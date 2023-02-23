@@ -1,0 +1,74 @@
+﻿@page "/"
+
+@*<MudContainer MaxWidth="MaxWidth.Small">
+    <h3 class="text-center">Регистрация. Введите данные компании и пользователя</h3>
+    <MudForm @ref="form" @bind-IsValid="@success" @bind-Errors="@errors">
+        <MudTextField T="string" Label="Имя" Required="true" RequiredError="Имя пользователя должно быть заполнено" Class="mb-3" />
+        <MudTextField T="string" Label="Почта" Required="true" RequiredError="Почта должна быть заполнена"
+                        Validation="@(new EmailAddressAttribute() {ErrorMessage = "Введенная почта не корректна"})" Class="mb-3" />
+        <MudTextField T="string" Label="Название компании" Required="true" RequiredError="Название компании не можеть быть пустым" Class="mb-3" />
+        <MudTextField T="string" Label="Адрес" Required="true" RequiredError="Адрес компании должен быть заполнен" Class="mb-3" />
+        <MudTextField T="string" Label="Телефон" Required="true" RequiredError="Адрес компании должен быть заполнен"
+                        Validation="@(new PhoneAttribute() {ErrorMessage = "Введенная почта не корректна"})" Class="mb-3" />
+        <MudButton ButtonType="ButtonType.Submit" Variant="Variant.Filled" Color="Color.Primary" Disabled="@(!success)" Class="mb-3">Регистрация</MudButton>
+        <MudText Align="Align.Center" Typo="Typo.subtitle2">При регистрации вы принимаете условия пользовательского соглашения</MudText>
+    </MudForm>
+    <MudLink Class="align-center text-center">Уже есть аккаунт</MudLink>
+</MudContainer>*@
+
+<MudCard>
+    <MudCardHeader>
+        <CardHeaderContent>
+            <MudText Typo="Typo.h5">Регистрация. Введите данные компании и пользователя</MudText>
+        </CardHeaderContent>
+    </MudCardHeader>
+    <MudForm @ref="form" @bind-IsValid="@success" @bind-Errors="@errors">
+        <MudCardContent>
+            <MudTextField T="string" Label="Имя" Required="true" RequiredError="Имя пользователя должно быть заполнено" Class="mb-3" />
+            <MudTextField T="string" Label="Почта" Required="true" RequiredError="Почта должна быть заполнена"
+                          Validation="@(new EmailAddressAttribute() {ErrorMessage = "Введенная почта не корректна"})" Class="mb-3" />
+            <MudTextField T="string" Label="Название компании" Required="true" RequiredError="Название компании не можеть быть пустым" Class="mb-3" />
+            <MudTextField T="string" Label="Адрес" Required="true" RequiredError="Адрес компании должен быть заполнен" Class="mb-3" />
+            <MudTextField T="string" Label="Телефон" Required="true" RequiredError="Адрес компании должен быть заполнен"
+                          Validation="@(new PhoneAttribute() {ErrorMessage = "Введенная почта не корректна"})" Class="mb-3" />
+
+            <MudText Align="Align.Center" Typo="Typo.subtitle2">При регистрации вы принимаете условия пользовательского соглашения</MudText>
+        </MudCardContent>
+        
+        <MudCardActions Class="d-flex flex-column">
+            <MudButton ButtonType="ButtonType.Submit" Variant="Variant.Filled" Color="Color.Primary" Disabled="@(!success)" Class="mb-3 mx-auto">Регистрация</MudButton>
+            <MudLink Class="mx-auto">Уже есть аккаунт?</MudLink>
+        </MudCardActions>
+    </MudForm>
+</MudCard>
+
+@code {
+    bool success;
+    string[] errors = { };
+    MudTextField<string>? pwField1;
+    MudForm? form;
+
+    //private IEnumerable<string> PasswordStrength(string pw)
+    //{
+    //    if (string.IsNullOrWhiteSpace(pw))
+    //    {
+    //        yield return "Password is required!";
+    //        yield break;
+    //    }
+    //    if (pw.Length < 8)
+    //        yield return "Password must be at least of length 8";
+    //    if (!Regex.IsMatch(pw, @"[A-Z]"))
+    //        yield return "Password must contain at least one capital letter";
+    //    if (!Regex.IsMatch(pw, @"[a-z]"))
+    //        yield return "Password must contain at least one lowercase letter";
+    //    if (!Regex.IsMatch(pw, @"[0-9]"))
+    //        yield return "Password must contain at least one digit";
+    //}
+
+    //private string? PasswordMatch(string? arg)
+    //{
+    //    if (pwField1?.Value != arg)
+    //        return "Passwords don't match";
+    //    return null;
+    //}
+}

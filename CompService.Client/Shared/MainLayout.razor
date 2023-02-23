@@ -1,19 +1,33 @@
 ﻿@inherits LayoutComponentBase
 
 <PageTitle>CompService.Client</PageTitle>
+<MudThemeProvider />
+<MudDialogProvider />
+<MudSnackbarProvider />
 
-<div class="page">
-    <div class="sidebar">
-        <NavMenu />
-    </div>
 
-    <main>
-        <div class="top-row px-4">
-            <a href="https://docs.microsoft.com/aspnet/" target="_blank">About</a>
-        </div>
+<MudLayout d>
+    <MudAppBar>
+    </MudAppBar>
+    <MudPaper Style="overflow:hidden; position:relative;">
+        <MudDrawer ClipMode="DrawerClipMode.Always" Elevation="1" Variant="DrawerVariant.Mini">
+            <MudNavMenu>
+                <MudNavLink Match="NavLinkMatch.All" Icon="@Icons.Material.Filled.Home" Href="/index"/>
+            </MudNavMenu>
+        </MudDrawer>
+    </MudPaper>
+    <MudMainContent>
+        @Body
+    </MudMainContent>
+</MudLayout>
 
-        <article class="content px-4">
-            @Body
-        </article>
-    </main>
-</div>
+@code{
+    @code {
+        bool _drawerOpen = true;
+
+        void DrawerToggle()
+        {
+            _drawerOpen = !_drawerOpen;
+        }
+    }
+}
