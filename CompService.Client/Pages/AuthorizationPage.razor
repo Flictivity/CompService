@@ -13,14 +13,14 @@
                 <MudText Typo="Typo.h5">Вход. Введите почту для получения кода</MudText>
             </CardHeaderContent>
         </MudCardHeader>
-        <MudForm Model="@_model" @ref="@_form" @bind-IsValid="@success">
+        <MudForm Model="@_model" @ref="@_form" @bind-IsValid="@_success">
             <MudCardContent>
                 <MudTextField T="string" @bind-Value="_model.Email" Label="Почта" Required="true" RequiredError="Почта должна быть заполнена"
                               Validation="@(new EmailAddressAttribute() {ErrorMessage = "Введенная почта не корректна"})" Class="mb-3" />
                 <MudText Align="Align.Center" Typo="Typo.subtitle2">При входе в систему вы принимаете условия пользовательского соглашения</MudText>
             </MudCardContent>
             <MudCardActions Class="d-flex flex-column">
-                <MudButton Variant="Variant.Filled" Color="Color.Primary" Disabled="@(!success)" Class="mb-3 mx-auto" OnClick="async () => await CreateCode()">Авторизация</MudButton>
+                <MudButton Variant="Variant.Filled" Color="Color.Primary" Disabled="@(!_success)" Class="mb-3 mx-auto" OnClick="async () => await CreateCode()">Авторизация</MudButton>
             </MudCardActions>
         </MudForm>
     </MudCard>
@@ -33,30 +33,28 @@ else
                 <MudText Typo="Typo.h5">На вашу почту отправлен код.</MudText>
             </CardHeaderContent>
         </MudCardHeader>
-        <MudForm Model="@_model" @ref="@_form" @bind-IsValid="@success">
+        <MudForm Model="@_model" @ref="@_form" @bind-IsValid="@_success">
             <MudCardContent>
                 <MudTextField T="string" @bind-Value="_model.Code" Label="Код" Required="true" RequiredError="Необходимо ввести код" Class="mb-3" />
                 <MudText Align="Align.Center" Typo="Typo.subtitle2">При входе в систему вы принимаете условия пользовательского соглашения</MudText>
             </MudCardContent>
             <MudCardActions Class="d-flex flex-column">
-                <MudButton Variant="Variant.Filled" Color="Color.Primary" Disabled="@(!success)" Class="mb-3 mx-auto" OnClick="async () => await Authorization()">Авторизация</MudButton>
+                <MudButton Variant="Variant.Filled" Color="Color.Primary" Disabled="@(!_success)" Class="mb-3 mx-auto" OnClick="async () => await Authorization()">Авторизация</MudButton>
             </MudCardActions>
         </MudForm>
     </MudCard>
 }
 
 @code {
-    private bool success;
+    private bool _success;
     private MudForm? _form;
-    private LoginCredentials _model = new();
-    private string message = "Успешная регистрация";
+    private readonly LoginCredentials _model = new();
     private bool _isShowAuth = true;
-    private string email;
 
     private async Task CreateCode()
     {
-        var resSucces = await AuthorizationService.CreateAuthorizeCodeAsync(_model.Email);
-        if (resSucces)
+        var resSuccess = await AuthorizationService.CreateAuthorizeCodeAsync(_model.Email);
+        if (resSuccess)
         {
             _isShowAuth = false;
         }
@@ -73,6 +71,10 @@ else
         {
             Snackbar.Add("Успешно",Severity.Success);
             Nav.NavigateTo("/index");
+        }
+        else
+        {
+            Snackbar.Add("Неверный код",Severity.Error);
         }
     }
 }

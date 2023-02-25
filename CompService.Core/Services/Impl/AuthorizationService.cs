@@ -39,19 +39,40 @@ namespace CompService.Core.Services.Impl
             {
                 return false;
             }
-            await _verificationRepository.CreateVerification(user);
+
+            var rnd = new Random();
+            var verification = new UserVerification
+            {
+                IsActual = true,
+                Code = rnd.Next(0, 1000000).ToString("D6"),
+                ExpyreTime = DateTime.UtcNow.AddHours(2),
+                UserId = user.UserId
+            };
+            await _verificationRepository.CreateVerification(verification);
             return true;
         }
 
         public async Task<User?> AuthorizeAsync(string email, string code)
         {
             var user = await _userRepository.GetUserByEmail(email);
-            if(user is null)
+            if (user is null)
             {
                 return null;
             }
 
-            return await _verificationRepository.VerificateUser(email, code) ? user : null;
+            var res = await _verificationRepository.VerificateUser(email);
+            if (!Equals(res?.Code, code))
+            {
+                return null;
+            }
+
+            if (!(res.ExpyreTime < DateTime.UtcNow))
+            {
+                return null;
+            }
+
+            await _verificationRepository.ChangeVerification(res.Id);
+            return user;
         }
     }
 }

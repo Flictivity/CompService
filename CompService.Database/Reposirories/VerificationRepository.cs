@@ -16,44 +16,52 @@ public class VerificationRepository : IVerificationRepository
         _logger = logger;
     }
 
-    public async Task CreateVerification(User user)
+    public async Task CreateVerification(UserVerification? verification)
     {
-        var userDb = new UserDb
+        if (verification is null)
         {
-            UserId = user.UserId,
-            Name = user.Name,
-            Email = user.Email,
-            Password = user.Password,
-            PhoneNumber = user.PhoneNumber
-        };
-        var rnd = new Random();
+            _logger.LogError("Verification is null");
+            return;
+        }
+
+        var userDb = _context.Users.FirstOrDefault(x => x.UserId == verification.UserId);
+        if (userDb is null)
+        {
+            _logger.LogError("User not found");
+            return;
+        }
+
         var verificationDb = new UserVerificationDb
         {
-            IsActual = true,
-            Code = rnd.Next(0, 1000000).ToString("D6"),
-            User = userDb
+            IsActual = verification.IsActual,
+            Code = verification.Code,
+            User = userDb,
+            ExpyreTime = verification.ExpyreTime
         };
         _context.UserVerifications.Add(verificationDb);
-        _context.SaveChangesAsync();
+        await _context.SaveChangesAsync();
     }
 
-    public Task<bool> VerificateUser(string email, string code)
+    public Task<UserVerification?> VerificateUser(string email)
     {
         var res = _context.UserVerifications.FirstOrDefault(x =>
-            x.User.Email == email);
+            x.User.Email == email && x.IsActual);
 
-        if (!Equals(res.Code, code))
-        {
-            return Task.FromResult(false);
-        }
+        return Task.FromResult(res is null
+            ? null
+            : new UserVerification
+            {
+                Id = res.Id,
+                Code = res.Code,
+                IsActual = res.IsActual,
+                UserId = res.UserId 
+            });
+    }
 
-        if (!res.IsActual)
-        {
-            return Task.FromResult(false);
-        }
-
-        res.IsActual = false;
-        _context.SaveChanges();
-        return Task.FromResult(true);
+    public async Task ChangeVerification(int id)
+    {
+        var verification = _context.UserVerifications.FirstOrDefault(x => x.Id == id);
+        if (verification != null) verification.IsActual = false;
+        await _context.SaveChangesAsync();
     }
 }

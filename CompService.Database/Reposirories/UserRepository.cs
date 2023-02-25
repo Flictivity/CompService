@@ -47,19 +47,15 @@ namespace CompService.Database.Reposirories
         public Task<User?> GetUserByEmail(string? email)
         {
             var res = _context.Users.FirstOrDefault(x => x.Email == email);
-            if(res is null)
+            
+            return Task.FromResult(res is null ? null : new User
             {
-                return Task.FromResult<User?>(null);
-            }
-
-            var user = new User
-            {
+                UserId = res.UserId,
                 Email = res.Email,
                 PhoneNumber = res.PhoneNumber,
                 Password = res.Password,
                 Name = res.Name
-            };
-            return Task.FromResult<User?>(user);
+            }); 
         }
     }
 }

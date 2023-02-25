@@ -15,6 +15,6 @@ namespace CompService.Database.Models
         public string Email { get; set; } = null!;
         public string? Password { get; set; }
         public string? PhoneNumber { get; set; }
-        public List<UserVerificationDb> Verification { get; set; }
+        public List<UserVerificationDb> Verification { get; set; } = null!;
     }
 }
