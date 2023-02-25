@@ -1,23 +1,20 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using CompService.Core.Models;
+﻿using CompService.Core.Models;
 using CompService.Core.Repositories;
-using CompService.Core.Services;
 
 namespace CompService.Core.Services.Impl
 {
     public class AuthorizationService : IAuthorizationService
     {
-        private readonly IUserRepository _userRepository;
+        private readonly IUserService _userService;
         private readonly IVerificationRepository _verificationRepository;
+        private readonly IEmailService _emailService;
 
-        public AuthorizationService(IUserRepository userRepository, IVerificationRepository verificationRepository)
+        public AuthorizationService(IUserService userService, IVerificationRepository verificationRepository,
+            IEmailService emailService)
         {
-            _userRepository = userRepository;
+            _userService = userService;
             _verificationRepository = verificationRepository;
+            _emailService = emailService;
         }
 
         public async Task<bool> RegistrateAsync(string name, string email, string? phoneNumber)
@@ -28,13 +25,13 @@ namespace CompService.Core.Services.Impl
                 Email = email,
                 PhoneNumber = phoneNumber
             };
-            await _userRepository.CreateUser(user);
+            await _userService.CreateUserAsync(user);
             return true;
         }
 
         public async Task<bool> CreateAuthorizeCodeAsync(string? email)
         {
-            User? user = await _userRepository.GetUserByEmail(email);
+            var user = await _userService.GetUserByEmailAsync(email);
             if (user is null)
             {
                 return false;
@@ -49,17 +46,13 @@ namespace CompService.Core.Services.Impl
                 UserId = user.UserId
             };
             await _verificationRepository.CreateVerification(verification);
+            await _emailService.SendEmailAsync(email, "Код подтверждения", $"Код подтверждения для" +
+            $"авторизации в приложении - {verification.Code}. Если вы ничего такого не делали, то проигнорируйте письмо");
             return true;
         }
 
         public async Task<User?> AuthorizeAsync(string email, string code)
         {
-            var user = await _userRepository.GetUserByEmail(email);
-            if (user is null)
-            {
-                return null;
-            }
-
             var res = await _verificationRepository.VerificateUser(email);
             if (!Equals(res?.Code, code))
             {
@@ -72,7 +65,7 @@ namespace CompService.Core.Services.Impl
             }
 
             await _verificationRepository.ChangeVerification(res.Id);
-            return user;
+            return await _userService.GetUserByEmailAsync(email);
         }
     }
 }

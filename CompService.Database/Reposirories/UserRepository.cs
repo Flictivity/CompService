@@ -53,7 +53,6 @@ namespace CompService.Database.Reposirories
                 UserId = res.UserId,
                 Email = res.Email,
                 PhoneNumber = res.PhoneNumber,
-                Password = res.Password,
                 Name = res.Name
             }); 
         }

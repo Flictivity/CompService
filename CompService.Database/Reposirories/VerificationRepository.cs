@@ -24,18 +24,11 @@ public class VerificationRepository : IVerificationRepository
             return;
         }
 
-        var userDb = _context.Users.FirstOrDefault(x => x.UserId == verification.UserId);
-        if (userDb is null)
-        {
-            _logger.LogError("User not found");
-            return;
-        }
-
         var verificationDb = new UserVerificationDb
         {
             IsActual = verification.IsActual,
             Code = verification.Code,
-            User = userDb,
+            UserId = verification.UserId,
             ExpyreTime = verification.ExpyreTime
         };
         _context.UserVerifications.Add(verificationDb);

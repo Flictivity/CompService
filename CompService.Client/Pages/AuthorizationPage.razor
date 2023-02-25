@@ -16,7 +16,7 @@
         <MudForm Model="@_model" @ref="@_form" @bind-IsValid="@_success">
             <MudCardContent>
                 <MudTextField T="string" @bind-Value="_model.Email" Label="Почта" Required="true" RequiredError="Почта должна быть заполнена"
-                              Validation="@(new EmailAddressAttribute() {ErrorMessage = "Введенная почта не корректна"})" Class="mb-3" />
+                              Validation="@(new EmailAddressAttribute() {ErrorMessage = "Введенная почта не корректна"})" Class="mb-3"/>
                 <MudText Align="Align.Center" Typo="Typo.subtitle2">При входе в систему вы принимаете условия пользовательского соглашения</MudText>
             </MudCardContent>
             <MudCardActions Class="d-flex flex-column">
@@ -35,7 +35,7 @@ else
         </MudCardHeader>
         <MudForm Model="@_model" @ref="@_form" @bind-IsValid="@_success">
             <MudCardContent>
-                <MudTextField T="string" @bind-Value="_model.Code" Label="Код" Required="true" RequiredError="Необходимо ввести код" Class="mb-3" />
+                <MudTextField T="string" @bind-Value="_model.Code" Label="Код" Required="true" RequiredError="Необходимо ввести код" Class="mb-3"/>
                 <MudText Align="Align.Center" Typo="Typo.subtitle2">При входе в систему вы принимаете условия пользовательского соглашения</MudText>
             </MudCardContent>
             <MudCardActions Class="d-flex flex-column">
@@ -69,12 +69,13 @@ else
         var res = await AuthorizationService.AuthorizeAsync(_model.Email, _model.Code);
         if (res is not null)
         {
-            Snackbar.Add("Успешно",Severity.Success);
+            Snackbar.Add("Успешно", Severity.Success);
             Nav.NavigateTo("/index");
         }
         else
         {
-            Snackbar.Add("Неверный код",Severity.Error);
+            Snackbar.Add("Неверный код", Severity.Error);
         }
     }
+
 }
