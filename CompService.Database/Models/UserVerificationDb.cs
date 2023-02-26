@@ -1,6 +1,4 @@
-﻿using CompService.Core.Models;
-
-namespace CompService.Database.Models;
+﻿namespace CompService.Database.Models;
 
 public class UserVerificationDb
 {

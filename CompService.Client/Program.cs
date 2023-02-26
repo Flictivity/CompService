@@ -2,12 +2,9 @@ using CompService.Core.Services;
 using IAuthorizationService = CompService.Core.Services.IAuthorizationService;
 using CompService.Core.Services.Impl;
 using CompService.Database;
-using Microsoft.AspNetCore.Components;
-using Microsoft.AspNetCore.Components.Web;
 using MudBlazor.Services;
 using CompService.Core.Repositories;
 using CompService.Database.Reposirories;
-using static Microsoft.EntityFrameworkCore.DbLoggerCategory.Database;
 using Microsoft.EntityFrameworkCore;
 using MudBlazor;
 

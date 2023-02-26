@@ -1,5 +1,7 @@
-﻿using CompService.Core.Models;
+﻿using CompService.Core.Messages;
+using CompService.Core.Models;
 using CompService.Core.Repositories;
+using CompService.Core.Results;
 
 namespace CompService.Core.Services.Impl
 {
@@ -17,7 +19,7 @@ namespace CompService.Core.Services.Impl
             _emailService = emailService;
         }
 
-        public async Task<bool> RegistrateAsync(string name, string email, string? phoneNumber)
+        public async Task<BaseResult> RegistrateAsync(string name, string email, string? phoneNumber)
         {
             var user = new User
             {
@@ -26,15 +28,15 @@ namespace CompService.Core.Services.Impl
                 PhoneNumber = phoneNumber
             };
             await _userService.CreateUserAsync(user);
-            return true;
+            return new BaseResult {Success = true};
         }
 
-        public async Task<bool> CreateAuthorizeCodeAsync(string? email)
+        public async Task<BaseResult> CreateAuthorizeCodeAsync(string? email)
         {
             var user = await _userService.GetUserByEmailAsync(email);
             if (user is null)
             {
-                return false;
+                return new BaseResult {Success = false, Message = UserMessages.UserNotFound};
             }
 
             var rnd = new Random();
@@ -46,9 +48,9 @@ namespace CompService.Core.Services.Impl
                 UserId = user.UserId
             };
             await _verificationRepository.CreateVerification(verification);
-            await _emailService.SendEmailAsync(email, "Код подтверждения", $"Код подтверждения для" +
-            $"авторизации в приложении - {verification.Code}. Если вы ничего такого не делали, то проигнорируйте письмо");
-            return true;
+            await _emailService.SendEmailAsync(email, MailSubjects.AuthMailSubject,
+                $"{MailMessages.AuthMailMessage} + {verification.Code}");
+            return new BaseResult{Success = true};
         }
 
         public async Task<User?> AuthorizeAsync(string email, string code)

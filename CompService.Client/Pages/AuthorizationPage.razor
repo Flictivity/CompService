@@ -53,14 +53,14 @@ else
 
     private async Task CreateCode()
     {
-        var resSuccess = await AuthorizationService.CreateAuthorizeCodeAsync(_model.Email);
-        if (resSuccess)
+        var res = await AuthorizationService.CreateAuthorizeCodeAsync(_model.Email);
+        if (res.Success)
         {
             _isShowAuth = false;
         }
         else
         {
-            Snackbar.Add("Пользователь с такой почтой не найден", Severity.Error);
+            Snackbar.Add(res.Message, Severity.Error);
         }
     }
 

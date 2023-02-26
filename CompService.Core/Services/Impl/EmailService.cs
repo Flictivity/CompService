@@ -1,5 +1,4 @@
 ﻿using MailKit.Net.Smtp;
-using MailKit.Security;
 using Microsoft.Extensions.Logging;
 using MimeKit;
 
@@ -14,7 +13,7 @@ public class EmailService : IEmailService
         _logger = logger;
     }
 
-    public async Task SendEmailAsync(string email, string subject, string message)
+    public async Task SendEmailAsync(string? email, string subject, string message)
     {
         var sendMessage = new MimeMessage();
         sendMessage.From.Add(new MailboxAddress("Компьютерный сервис", "computerservlse@mail.ru"));

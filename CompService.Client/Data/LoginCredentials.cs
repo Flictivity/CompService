@@ -1,6 +1,4 @@
-﻿using System.Data;
-
-namespace CompService.Client.Data
+﻿namespace CompService.Client.Data
 {
     public class LoginCredentials
     {
