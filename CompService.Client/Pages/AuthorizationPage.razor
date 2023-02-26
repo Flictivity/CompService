@@ -4,6 +4,7 @@
 @inject IAuthorizationService AuthorizationService;
 @inject ISnackbar Snackbar;
 @inject NavigationManager Nav;
+@inject Blazored.LocalStorage.ILocalStorageService Session;
 
 @if (_isShowAuth)
 {
@@ -69,8 +70,10 @@ else
         var res = await AuthorizationService.AuthorizeAsync(_model.Email, _model.Code);
         if (res is not null)
         {
+            await Session.SetItemAsync("UserSession", res);
             Snackbar.Add("Успешно", Severity.Success);
-            Nav.NavigateTo("/index");
+            StateHasChanged();
+            Nav.NavigateTo("/cabinet");
         }
         else
         {

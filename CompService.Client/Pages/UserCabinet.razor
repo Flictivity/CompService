@@ -1,0 +1,28 @@
+﻿@page "/cabinet"
+@using CompService.Core.Models
+@inject Blazored.LocalStorage.ILocalStorageService Session;
+@inject NavigationManager Nav;
+<h3>UserCabinet</h3>
+
+<MudText>@_currentUser?.Name</MudText>
+<MudText>@_currentUser?.Email</MudText>
+<MudText>@_currentUser?.PhoneNumber</MudText>
+<MudButton @onclick="Quit">Quit</MudButton>
+
+@code {
+    private User? _currentUser;
+
+    
+    protected override async Task OnInitializedAsync()
+    {
+        _currentUser = await Session.GetItemAsync<User>("UserSession");
+        await base.OnInitializedAsync();
+    }
+    
+    private async void Quit()
+    {
+        await Session.ClearAsync();
+        StateHasChanged();
+        Nav.NavigateTo("/");
+    }
+}

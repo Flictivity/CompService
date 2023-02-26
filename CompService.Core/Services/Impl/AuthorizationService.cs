@@ -49,7 +49,7 @@ namespace CompService.Core.Services.Impl
             };
             await _verificationRepository.CreateVerification(verification);
             await _emailService.SendEmailAsync(email, MailSubjects.AuthMailSubject,
-                $"{MailMessages.AuthMailMessage} + {verification.Code}");
+                $"{MailMessages.AuthMailMessage}{verification.Code}");
             return new BaseResult{Success = true};
         }
 

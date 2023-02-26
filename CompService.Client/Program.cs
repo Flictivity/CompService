@@ -1,3 +1,4 @@
+using Blazored.LocalStorage;
 using CompService.Core.Services;
 using IAuthorizationService = CompService.Core.Services.IAuthorizationService;
 using CompService.Core.Services.Impl;
@@ -27,6 +28,7 @@ builder.Services.AddScoped<IVerificationRepository, VerificationRepository>();
 builder.Services.AddScoped<IAuthorizationService, AuthorizationService>();
 builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<IEmailService, EmailService>();
+builder.Services.AddBlazoredLocalStorage();
 
 var app = builder.Build();
 
