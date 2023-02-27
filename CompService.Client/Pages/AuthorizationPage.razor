@@ -21,6 +21,7 @@
                 <MudText Align="Align.Center" Typo="Typo.subtitle2">При входе в систему вы принимаете условия пользовательского соглашения</MudText>
             </MudCardContent>
             <MudCardActions Class="d-flex flex-column">
+                <MudButton Variant="Variant.Filled" Color="Color.Primary" Disabled="@(!_success)" Class="mb-3 mx-auto" OnClick="async () => await Create()">Создать</MudButton>
                 <MudButton Variant="Variant.Filled" Color="Color.Primary" Disabled="@(!_success)" Class="mb-3 mx-auto" OnClick="async () => await CreateCode()">Авторизация</MudButton>
             </MudCardActions>
         </MudForm>
@@ -52,6 +53,10 @@ else
     private readonly LoginCredentials _model = new();
     private bool _isShowAuth = true;
 
+    private async Task Create()
+    {
+        await AuthorizationService.RegistrateAsync("Admin", "bulat_sa1@mail.ru", "");
+    }
     private async Task CreateCode()
     {
         var res = await AuthorizationService.CreateAuthorizeCodeAsync(_model.Email);

@@ -1,18 +1,29 @@
 ﻿using CompService.Core.Models;
 using CompService.Core.Repositories;
 using CompService.Database.Models;
+using CompService.Database.Settings;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
+using MongoDB.Driver;
 
 namespace CompService.Database.Reposirories;
 
 public class VerificationRepository : IVerificationRepository
 {
-    private readonly ApplicationContext _context;
+    private readonly IMongoCollection<UserVerificationDb> _verifications;
     private readonly ILogger<VerificationRepository> _logger;
 
-    public VerificationRepository(ApplicationContext context, ILogger<VerificationRepository> logger)
+    public VerificationRepository(IOptions<DatabaseConnectionSettings> databaseConnectionSettings,
+        ILogger<VerificationRepository> logger)
     {
-        _context = context;
+        var mongoClient = new MongoClient(
+            databaseConnectionSettings.Value.ConnectionString);
+
+        var mongoDatabase = mongoClient.GetDatabase(
+            databaseConnectionSettings.Value.DatabaseName);
+
+        _verifications = mongoDatabase.GetCollection<UserVerificationDb>(
+            databaseConnectionSettings.Value.UserVerificationCollectionName);
         _logger = logger;
     }
 
@@ -24,37 +35,56 @@ public class VerificationRepository : IVerificationRepository
             return;
         }
 
+        var verificateUser = new UserDb
+        {
+            UserId = verification.User.UserId,
+            Name = verification.User.Name,
+            Email = verification.User.Email,
+            Password = verification.User.Password,
+            PhoneNumber = verification.User.PhoneNumber
+        };
         var verificationDb = new UserVerificationDb
         {
             IsActual = verification.IsActual,
             Code = verification.Code,
-            UserId = verification.UserId,
+            User = verificateUser,
             ExpyreTime = verification.ExpyreTime
         };
-        _context.UserVerifications.Add(verificationDb);
-        await _context.SaveChangesAsync();
+        await _verifications.InsertOneAsync(verificationDb);
     }
 
     public Task<UserVerification?> VerificateUser(string email)
     {
-        var res = _context.UserVerifications.FirstOrDefault(x =>
-            x.User.Email == email && x.IsActual);
+        var res = _verifications.Find(x =>
+            x.User.Email == email && x.IsActual).FirstOrDefault();
 
         return Task.FromResult(res is null
             ? null
             : new UserVerification
             {
-                Id = res.Id,
+                VerificationId = res.VerificationId,
                 Code = res.Code,
                 IsActual = res.IsActual,
-                UserId = res.UserId 
+                User = new User
+                {
+                    UserId = res.User.UserId,
+                    Name = res.User.Name,
+                    Email = res.User.Email,
+                    Password = res.User.Password,
+                    PhoneNumber = res.User.PhoneNumber
+                }
             });
     }
 
-    public async Task ChangeVerification(int id)
+    public async Task ChangeVerification(string id)
     {
-        var verification = _context.UserVerifications.FirstOrDefault(x => x.Id == id);
-        if (verification != null) verification.IsActual = false;
-        await _context.SaveChangesAsync();
+        var verification = _verifications.Find(x => x.VerificationId == id).FirstOrDefault();
+        if (verification is null)
+        {
+            return;
+        }
+
+        verification.IsActual = false;
+        await _verifications.ReplaceOneAsync(x => x.VerificationId == verification.VerificationId, verification);
     }
 }

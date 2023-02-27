@@ -2,11 +2,10 @@ using Blazored.LocalStorage;
 using CompService.Core.Services;
 using IAuthorizationService = CompService.Core.Services.IAuthorizationService;
 using CompService.Core.Services.Impl;
-using CompService.Database;
 using MudBlazor.Services;
 using CompService.Core.Repositories;
 using CompService.Database.Reposirories;
-using Microsoft.EntityFrameworkCore;
+using CompService.Database.Settings;
 using MudBlazor;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -19,12 +18,11 @@ builder.Services.AddMudServices(options =>
             options.SnackbarConfiguration.PositionClass = Defaults.Classes.Position.TopRight;
             options.SnackbarConfiguration.ShowTransitionDuration = 100;
         });
+builder.Services.Configure<DatabaseConnectionSettings>(
+    builder.Configuration.GetSection("MongoConnection"));
 
-builder.Services.AddDbContext<ApplicationContext>(options =>
-        options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")!));
-
-builder.Services.AddScoped<IUserRepository, UserRepository>();
-builder.Services.AddScoped<IVerificationRepository, VerificationRepository>();
+builder.Services.AddSingleton<IUserRepository, UserRepository>();
+builder.Services.AddSingleton<IVerificationRepository, VerificationRepository>();
 builder.Services.AddScoped<IAuthorizationService, AuthorizationService>();
 builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<IEmailService, EmailService>();

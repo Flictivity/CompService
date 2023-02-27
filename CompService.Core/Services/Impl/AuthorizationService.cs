@@ -45,7 +45,7 @@ namespace CompService.Core.Services.Impl
                 IsActual = true,
                 Code = rnd.Next(0, 1000000).ToString("D6"),
                 ExpyreTime = DateTime.UtcNow.AddHours(2),
-                UserId = user.UserId
+                User = user
             };
             await _verificationRepository.CreateVerification(verification);
             await _emailService.SendEmailAsync(email, MailSubjects.AuthMailSubject,
@@ -63,10 +63,11 @@ namespace CompService.Core.Services.Impl
 
             if (!(res.ExpyreTime < DateTime.UtcNow))
             {
+                await _verificationRepository.ChangeVerification(res.VerificationId);
                 return null;
             }
 
-            await _verificationRepository.ChangeVerification(res.Id);
+            await _verificationRepository.ChangeVerification(res.VerificationId);
             return await _userService.GetUserByEmailAsync(email);
         }
     }
