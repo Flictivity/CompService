@@ -7,6 +7,5 @@
         public string Email { get; set; } = null!;
         public string? Password { get; set; } 
         public string? PhoneNumber { get; set; }
-        public int VerificationId { get; set; }
     }
 }
