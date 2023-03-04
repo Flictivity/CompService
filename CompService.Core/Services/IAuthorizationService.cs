@@ -5,8 +5,10 @@ namespace CompService.Core.Services
 {
     public interface IAuthorizationService
     {
-        public Task<BaseResult> RegistrateAsync(string name, string email, string? phoneNumber);
+        public Task<BaseResult> RegistrateAsync(string name, string surname, string patronymic,
+            string email, string? phoneNumber);
         public Task<BaseResult> CreateAuthorizeCodeAsync(string email);
-        public Task<User?> AuthorizeAsync(string email, string code);
+        public Task<AuthorizationResult> AuthorizeWithCodeAsync(string email, string code);
+        public Task<AuthorizationResult> AuthorizeWithPassword(string email, string password);
     }
 }

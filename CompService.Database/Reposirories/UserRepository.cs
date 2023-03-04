@@ -36,30 +36,35 @@ namespace CompService.Database.Reposirories
                     Name = user.Name,
                     Email = user.Email,
                     Password = user.Password,
+                    Patronymic = user.Patronymic,
+                    Surname = user.Surname,
                     PhoneNumber = user.PhoneNumber,
                 };
                 await _users.InsertOneAsync(userDb);
 
-                return await Task.FromResult(true);
+                return true;
             }
             catch(Exception ex)
             {
                 _logger.LogError(ex.Message);
-                return await Task.FromResult(false);
+                return false;
             }
         }
 
-        public Task<User?> GetUserByEmail(string? email)
+        public async Task<User?> GetUserByEmail(string? email)
         {
-            var res = _users.Find(x => x.Email == email).FirstOrDefault();
+            var res = (await _users.FindAsync(x => x.Email == email)).FirstOrDefault();
             
-            return Task.FromResult(res is null ? null : new User
+            return res is null ? null : new User
             {
                 UserId = res.UserId,
                 Email = res.Email,
+                Surname = res.Surname,
+                Patronymic = res.Patronymic,
                 PhoneNumber = res.PhoneNumber,
+                Password = res.Password,
                 Name = res.Name
-            }); 
+            }; 
         }
     }
 }

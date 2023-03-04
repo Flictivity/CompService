@@ -1,15 +1,18 @@
 ﻿@using CompService.Core.Models
+@using CompService.Client.Data
 @inherits LayoutComponentBase
 @inject Blazored.LocalStorage.ILocalStorageService Session;
+@inject AppState AppState;
 <PageTitle>CompService.Client</PageTitle>
-<MudThemeProvider/>
+<MudThemeProvider Theme="new MudTheme { Palette = new Palette { Primary = p , Secondary = Colors.Grey.Default} }"/>
 <MudDialogProvider/>
 <MudSnackbarProvider/>
 
 
 <MudLayout>
     <MudAppBar>
-        @if (_currentUser is not null)
+        <MudSpacer></MudSpacer>    
+        @if (AppState.LoggedIn && _currentUser is not null)
         {
             <MudLink Href="/cabinet" Color="Color.Primary">
                 <MudAvatar Color="Color.Secondary">@_currentUser.Name[0]</MudAvatar>
@@ -20,6 +23,7 @@
         <MudDrawer ClipMode="DrawerClipMode.Always" Elevation="1" Variant="DrawerVariant.Mini">
             <MudNavMenu>
                 <MudNavLink Match="NavLinkMatch.All" Icon="@Icons.Material.Filled.Home" Href="/index"/>
+                <MudNavLink Match="NavLinkMatch.All" Icon="@Icons.Material.Filled.AddChart" Href="/index" />
             </MudNavMenu>
         </MudDrawer>
     </MudPaper>
@@ -29,6 +33,7 @@
 </MudLayout>
 
 @code {
+    string p = "#594AE2";
     private User? _currentUser;
     bool _drawerOpen = true;
 
@@ -40,7 +45,15 @@
     protected override async Task OnInitializedAsync()
     {
         _currentUser = await Session.GetItemAsync<User>("UserSession");
+        if (_currentUser is not null)
+        {
+            AppState.LoggedIn = true;
+        }
+        else
+        {
+            AppState.LoggedIn = false;
+        }
+
         await base.OnInitializedAsync();
     }
-
 }

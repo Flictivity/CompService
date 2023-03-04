@@ -1,28 +1,69 @@
 ﻿@page "/cabinet"
 @using CompService.Core.Models
+@using CompService.Client.Data
 @inject Blazored.LocalStorage.ILocalStorageService Session;
 @inject NavigationManager Nav;
-<h3>UserCabinet</h3>
+@inject AppState AppState;
+<h3>Личный кабинет</h3>
 
-<MudText>@_currentUser?.Name</MudText>
-<MudText>@_currentUser?.Email</MudText>
-<MudText>@_currentUser?.PhoneNumber</MudText>
-<MudButton @onclick="Quit">Quit</MudButton>
+@if (_isUserLoaded)
+{
+    <MudCard>
+        <MudStack Row="true">
+            <MudAvatar Class="align-center" Style="height:200px;width:200px;" Color="Color.Info">@_model.Surname[0]@_model.Name[0]</MudAvatar>
+            <MudStack>
+                <MudTextField T="string" @bind-Value="_model.Email" Label="Почта" InputType="InputType.Email"
+                              Validation="@(new EmailAddressAttribute {ErrorMessage = "Введенная почта не корректна"})"
+                              Class="mb-3"/>
+                <MudTextField T="string" @bind-Value="_model.PhoneNumber" InputType="InputType.Number" Label="Телефон"
+                              Class="mb-3"/>
+                <MudStack Row="true">
+                    <MudTextField T="string" @bind-Value="_model.Surname" Label="Фамилия"
+                                  Class="mb-3"/>
+                    <MudTextField T="string" @bind-Value="_model.Name" Label="Имя"
+                                  Class="mb-3"/>
+                    <MudTextField T="string" @bind-Value="_model.Patronymic" Label="Отчество"
+                                  Class="mb-3"/>
+                </MudStack>
+                <MudStack Row="true">
+                    <MudButton Variant="Variant.Filled" Color="Color.Secondary">Сменить пароль</MudButton>
+                </MudStack>
+                <MudButton Variant="Variant.Filled" Color="Color.Primary" Class="mb-3 mx-auto">Сохранить изменения</MudButton>
+            </MudStack>
+        </MudStack>
+    </MudCard>
+}
+
+else
+{
+    <MudProgressCircular Color="Color.Default" Indeterminate="true" Style="height:400px;width:400px;"/>
+}
 
 @code {
+    private bool _isUserLoaded;
     private User? _currentUser;
+    private UserModel _model = null!;
 
-    
     protected override async Task OnInitializedAsync()
     {
         _currentUser = await Session.GetItemAsync<User>("UserSession");
-        await base.OnInitializedAsync();
+        _model = new UserModel
+        {
+            Name = _currentUser.Name,
+            Surname = _currentUser.Surname,
+            Patronymic = _currentUser.Patronymic,
+            Email = _currentUser.Email,
+            Password = _currentUser.Password,
+            PhoneNumber = _currentUser.PhoneNumber
+        };
+        _isUserLoaded = true;
     }
-    
+
     private async void Quit()
     {
         await Session.ClearAsync();
-        StateHasChanged();
+        AppState.LoggedIn = false;
         Nav.NavigateTo("/");
     }
+
 }

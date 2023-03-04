@@ -39,6 +39,8 @@ public class VerificationRepository : IVerificationRepository
         {
             UserId = verification.User.UserId,
             Name = verification.User.Name,
+            Surname = verification.User.Surname,
+            Patronymic = verification.User.Patronymic,
             Email = verification.User.Email,
             Password = verification.User.Password,
             PhoneNumber = verification.User.PhoneNumber
@@ -53,12 +55,12 @@ public class VerificationRepository : IVerificationRepository
         await _verifications.InsertOneAsync(verificationDb);
     }
 
-    public Task<UserVerification?> VerificateUser(string email)
+    public async Task<UserVerification?> VerifyUser(string email)
     {
-        var res = _verifications.Find(x =>
-            x.User.Email == email && x.IsActual).FirstOrDefault();
+        var res = (await _verifications.FindAsync(x =>
+            x.User.Email == email && x.IsActual)).FirstOrDefault();
 
-        return Task.FromResult(res is null
+        return res is null
             ? null
             : new UserVerification
             {
@@ -70,21 +72,26 @@ public class VerificationRepository : IVerificationRepository
                     UserId = res.User.UserId,
                     Name = res.User.Name,
                     Email = res.User.Email,
+                    Surname = res.User.Surname,
+                    Patronymic = res.User.Patronymic,
                     Password = res.User.Password,
                     PhoneNumber = res.User.PhoneNumber
                 }
-            });
+            };
     }
 
     public async Task ChangeVerification(string id)
     {
-        var verification = _verifications.Find(x => x.VerificationId == id).FirstOrDefault();
+        var verification = (await _verifications
+            .FindAsync(x => x.VerificationId == id)).FirstOrDefault();
+
         if (verification is null)
         {
             return;
         }
 
         verification.IsActual = false;
-        await _verifications.ReplaceOneAsync(x => x.VerificationId == verification.VerificationId, verification);
+        await _verifications
+            .ReplaceOneAsync(x => x.VerificationId == verification.VerificationId, verification);
     }
 }

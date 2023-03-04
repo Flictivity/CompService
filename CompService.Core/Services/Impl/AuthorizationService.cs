@@ -19,10 +19,13 @@ namespace CompService.Core.Services.Impl
             _emailService = emailService;
         }
 
-        public async Task<BaseResult> RegistrateAsync(string name, string email, string? phoneNumber)
+        public async Task<BaseResult> RegistrateAsync(string name, string surname, string patronymic,
+            string email, string? phoneNumber)
         {
             var user = new User
             {
+                Surname = surname,
+                Patronymic = patronymic,
                 Name = name,
                 Email = email,
                 PhoneNumber = phoneNumber
@@ -31,6 +34,11 @@ namespace CompService.Core.Services.Impl
             return new BaseResult {Success = true};
         }
 
+        /// <summary>
+        /// Create a verify code for user, and send to user mailbox
+        /// </summary>
+        /// <param name="email"></param>
+        /// <returns></returns>
         public async Task<BaseResult> CreateAuthorizeCodeAsync(string? email)
         {
             var user = await _userService.GetUserByEmailAsync(email);
@@ -53,22 +61,35 @@ namespace CompService.Core.Services.Impl
             return new BaseResult{Success = true};
         }
 
-        public async Task<User?> AuthorizeAsync(string email, string code)
+        public async Task<AuthorizationResult> AuthorizeWithCodeAsync(string email, string code)
         {
-            var res = await _verificationRepository.VerificateUser(email);
+            var res = await _verificationRepository.VerifyUser(email);
             if (!Equals(res?.Code, code))
             {
-                return null;
+                return new AuthorizationResult{Success = false, Message = UserMessages.WrongUserVerifyCode};;
             }
 
             if (!(res.ExpyreTime < DateTime.UtcNow))
             {
                 await _verificationRepository.ChangeVerification(res.VerificationId);
-                return null;
+                return new AuthorizationResult{Success = false, Message = UserMessages.UserVerifyCodeExpire};
             }
 
             await _verificationRepository.ChangeVerification(res.VerificationId);
-            return await _userService.GetUserByEmailAsync(email);
+            return new AuthorizationResult {User = await _userService.GetUserByEmailAsync(email), Success = true};
+        }
+
+        public async Task<AuthorizationResult> AuthorizeWithPassword(string email, string password)
+        {
+            var user = await _userService.GetUserByEmailAsync(email);
+
+            if (user is null)
+                return new AuthorizationResult {Success = false, Message = UserMessages.UserNotFound};
+
+            if (!Equals(user.Password, password))
+                return new AuthorizationResult {Success = false, Message = UserMessages.WrongUserPassword};
+
+            return new AuthorizationResult { User = user, Success = true};
         }
     }
 }

@@ -1,4 +1,5 @@
 using Blazored.LocalStorage;
+using CompService.Client.Data;
 using CompService.Core.Services;
 using IAuthorizationService = CompService.Core.Services.IAuthorizationService;
 using CompService.Core.Services.Impl;
@@ -6,6 +7,7 @@ using MudBlazor.Services;
 using CompService.Core.Repositories;
 using CompService.Database.Reposirories;
 using CompService.Database.Settings;
+using MongoDB.Driver;
 using MudBlazor;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -23,10 +25,13 @@ builder.Services.Configure<DatabaseConnectionSettings>(
 
 builder.Services.AddSingleton<IUserRepository, UserRepository>();
 builder.Services.AddSingleton<IVerificationRepository, VerificationRepository>();
+
 builder.Services.AddScoped<IAuthorizationService, AuthorizationService>();
 builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<IEmailService, EmailService>();
+
 builder.Services.AddBlazoredLocalStorage();
+builder.Services.AddSingleton<AppState>();
 
 var app = builder.Build();
 
