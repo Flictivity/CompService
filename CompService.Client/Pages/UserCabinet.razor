@@ -43,7 +43,7 @@
                         </MudStack>
                         <MudStack Row="true">
                             <MudButton Variant="Variant.Filled" Color="Color.Secondary" Class="mb-5"
-                                       OnClick="OpenDialog">Сменить пароль</MudButton>
+                                       OnClick="async() => await OpenDialog()">Сменить пароль</MudButton>
                         </MudStack>
                     </MudStack>
                     <MudCardActions Class="pa-0">
@@ -106,10 +106,26 @@ else
         Nav.NavigateTo("/");
     }
 
-    private void OpenDialog()
+    private async Task OpenDialog()
     {    
         DialogOptions closeOnEscapeKey = new DialogOptions() { CloseOnEscapeKey = true };
+        DialogParameters parameters;
+        if (_model.Password is not null)
+        {
+            parameters = new DialogParameters {{"OldPassword", _model.Password}};
+        }
+        else
+        {
+            parameters = new DialogParameters() {{"OldPassword",null}};
+        }
 
-        DialogService.Show<PasswrodChangeWindow>("Simple Dialog", closeOnEscapeKey);
+        var dialog = await DialogService.ShowAsync<PasswrodChangeWindow>("Simple Dialog", parameters, closeOnEscapeKey);
+        var result = await dialog.Result;
+
+        if (!result.Canceled)
+        {
+            _model.Password = result.Data.ToString();
+            await SaveUserInfo();
+        }
     }
 }

@@ -49,6 +49,8 @@ else
             <MudCardActions Class="d-flex flex-column">
                 <MudButton Variant="Variant.Filled" Color="Color.Primary" Disabled="@(!_success)" Class="mb-3 mx-auto" 
                            OnClick="async () => await Authorization()">Авторизация</MudButton>
+               <MudLink Class="mt-3" Typo="Typo.subtitle2" Href="/authp" 
+                                        Underline="Underline.Hover">Вход по паролю</MudLink>
             </MudCardActions>
         </MudForm>
     </MudCard>
