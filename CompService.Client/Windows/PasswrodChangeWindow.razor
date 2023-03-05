@@ -1,32 +1,33 @@
-﻿@using CompService.Client.Data
-@using CompService.Client.Data.ValidationMessages
-@using CompService.Core.Messages
+﻿@using CompService.Client.Data.ValidationMessages
 @inject ISnackbar Snackbar;
-<MudDialog DefaultFocus="DefaultFocus.LastChild">
-    <DialogContent>
-        @if (_isHavePassword)
-        {
-            <MudTextField T="string" Label="Старый пароль"  
-                          InputType="InputType.Password"
-                          Required="true"
-                          RequiredError="Обязательное поле" @bind-Value="_password"/>
-        }
-        <MudTextField T="string" @bind-Value="_newPassword"
-                      Label="Новый пароль" HelperText="Выберите надежный новый пароль" InputType="InputType.Password"
-                      Validation="@(new Func<string, IEnumerable<string>>(PasswordStrength))"/>
-    </DialogContent>
-    <DialogActions>
-        <MudButton OnClick="Cancel">Cancel</MudButton>
-        <MudButton Color="Color.Primary" OnClick="Submit">Ok</MudButton>
-    </DialogActions>
-</MudDialog>
+<MudForm @bind-IsValid="_success">
+    <MudDialog DefaultFocus="DefaultFocus.LastChild">
+        <DialogContent>
+            @if (_isHavePassword)
+            {
+                <MudTextField T="string" Label="Старый пароль"  
+                              InputType="InputType.Password"
+                              Required="true"
+                              RequiredError="Обязательное поле" @bind-Value="_password"/>
+            }
+            <MudTextField T="string" @bind-Value="_newPassword"
+                          Label="Новый пароль" HelperText="Только английские буквы" InputType="InputType.Password"
+                          Validation="@(new Func<string, IEnumerable<string>>(PasswordStrength))"/>
+        </DialogContent>
+        <DialogActions>
+            <MudButton OnClick="Cancel">Cancel</MudButton>
+            <MudButton Color="Color.Primary" OnClick="Submit" Disabled="@(!_success)">Ok</MudButton>
+        </DialogActions>
+    </MudDialog>
+</MudForm>
 
 @code {
     private string _password = "";
     private string _newPassword = "";
 
     private bool _isHavePassword;
-    
+    private bool _success;
+
     [CascadingParameter]
     MudDialogInstance? MudDialog { get; set; }
 

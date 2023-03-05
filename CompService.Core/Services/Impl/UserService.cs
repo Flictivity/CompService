@@ -30,7 +30,8 @@ public class UserService : IUserService
         return await _userRepository.GetUserById(id);
     }
 
-    public async Task<BaseResult> ChangeUserData(string name, string surname, string patronymic, string email, string password, string phoneNumber)
+    public async Task<BaseResult> ChangeUserData(string name, string surname, string patronymic, string email,
+        string password, string phoneNumber)
     {
         var newUser = new User
         {
@@ -44,5 +45,10 @@ public class UserService : IUserService
         await _userRepository.UpdateUser(_userInfoHolder.CurrentUser, newUser);
 
         return new BaseResult {Success = true};
+    }
+
+    public async Task<IEnumerable<User>> GetAllUsers()
+    {
+        return await _userRepository.GetAllUsers();
     }
 }

@@ -7,14 +7,14 @@
 @inject UserInfoHolder UserInfoHolder;
 @inject IUserService UserService;
 <PageTitle>CompService.Client</PageTitle>
-<MudThemeProvider Theme="new MudTheme { Palette = new Palette { Primary = _primaryColor , Secondary = _secondaryColor}}"/>
+<MudThemeProvider Theme="new MudTheme {Palette = new Palette {Primary = _primaryColor, Secondary = _secondaryColor}}"/>
 <MudDialogProvider/>
 <MudSnackbarProvider/>
 
 
 <MudLayout>
     <MudAppBar>
-        <MudSpacer></MudSpacer>    
+        <MudSpacer></MudSpacer>
         @if (AppState.LoggedIn && UserInfoHolder.CurrentUser is not null)
         {
             <MudLink Href="/cabinet" Color="Color.Primary">
@@ -26,13 +26,19 @@
         <MudDrawer ClipMode="DrawerClipMode.Docked" Elevation="1" Variant="DrawerVariant.Mini" OpenMiniOnHover="true">
             <MudNavMenu>
                 <MudTooltip Text="Домашняя страница" Placement="Placement.Right">
-                    <MudNavLink Match="NavLinkMatch.All" 
-                                                Icon="@Icons.Material.Filled.Home" Href="/index">Домашняя страница</MudNavLink>
+                    <MudNavLink Match="NavLinkMatch.All" Icon="@Icons.Material.Filled.Home" Href="/index">
+                        Домашняя страница
+                    </MudNavLink>
                 </MudTooltip>
                 <MudTooltip Text="Заказы" Placement="Placement.Right">
                     <MudNavLink Match="NavLinkMatch.All" Icon="@Icons.Material.Filled.AddChart" Href="/index">
-                                        Заказы
-                                    </MudNavLink>
+                        Заказы
+                    </MudNavLink>
+                </MudTooltip>
+                <MudTooltip Text="Сотрудники" Placement="Placement.Right">
+                    <MudNavLink Match="NavLinkMatch.All" Icon="@Icons.Material.Filled.Work" Href="/employees">
+                        Сотрудники
+                    </MudNavLink>
                 </MudTooltip>
             </MudNavMenu>
         </MudDrawer>
@@ -56,9 +62,9 @@
     protected override async Task OnInitializedAsync()
     {
         var user = await Session.GetItemAsync<User>("UserSession");
-        if(user is not null)
+        if (user is not null)
             _currentUser = await UserService.GetUserByEmailAsync(user.Email);
-        
+
         if (_currentUser is not null)
         {
             UserInfoHolder.CurrentUser = _currentUser;
@@ -71,4 +77,5 @@
 
         await base.OnInitializedAsync();
     }
+
 }

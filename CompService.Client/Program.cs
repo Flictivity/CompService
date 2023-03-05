@@ -7,7 +7,6 @@ using MudBlazor.Services;
 using CompService.Core.Repositories;
 using CompService.Database.Reposirories;
 using CompService.Database.Settings;
-using MongoDB.Driver;
 using MudBlazor;
 
 var builder = WebApplication.CreateBuilder(args);

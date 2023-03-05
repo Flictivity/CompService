@@ -2,6 +2,7 @@
 @using CompService.Core.Models
 @using CompService.Client.Data
 @using CompService.Client.Windows
+@using CompService.Core.Extensions
 @using CompService.Core.Services
 @inject Blazored.LocalStorage.ILocalStorageService Session;
 @inject NavigationManager Nav;
@@ -10,7 +11,7 @@
 @inject UserInfoHolder UserInfoHolder;
 @inject ISnackbar Snackbar;
 @inject IDialogService DialogService
-<h3>Личный кабинет</h3>
+<h3 class="text-center">Личный кабинет</h3>
 
 @if (_isUserLoaded)
 {
@@ -23,18 +24,24 @@
             <MudForm @bind-IsValid="@_success">
                 <MudCard Class="pa-5">
                     <MudStack>
-                        <MudTextField Required="true" T="string" @bind-Value="_model.Email"
-                                      RequiredError="Обязательное поле" Label="Почта" InputType="InputType.Email"
-                                      Validation="@(new EmailAddressAttribute {ErrorMessage = "Введенная почта не корректна"})"
-                                      Class="mb-3"/>
+                        <MudStack Row="true">
+                            <MudTextField Required="true" T="string" @bind-Value="_model.Email"
+                                          RequiredError="Обязательное поле" Label="Почта" InputType="InputType.Email"
+                                          Validation="@(new EmailAddressAttribute {ErrorMessage = "Введенная почта не корректна"})"
+                                          Class="mb-3"/>
+                            <MudTextField T="string" @bind-Value="_role"
+                                          ReadOnly="true"
+                                          Variant="Variant.Text" Label="Роль"
+                                          Class="mb-3"/>
+                        </MudStack>
                         <MudTextField T="string" @bind-Value="_model.PhoneNumber"
                                       InputType="InputType.Number" Label="Телефон"
                                       Class="mb-3"/>
                         <MudStack Row="true">
-                            <MudTextField Required="true" RequiredError="Обязательное поле" T="string" 
+                            <MudTextField Required="true" RequiredError="Обязательное поле" T="string"
                                           @bind-Value="_model.Surname" Label="Фамилия"
                                           Class="mb-3"/>
-                            <MudTextField Required="true" T="string" RequiredError="Обязательное поле" 
+                            <MudTextField Required="true" T="string" RequiredError="Обязательное поле"
                                           @bind-Value="_model.Name" Label="Имя"
                                           Class="mb-3"/>
                             <MudTextField Required="true" RequiredError="Обязательное поле"
@@ -42,8 +49,10 @@
                                           Class="mb-3"/>
                         </MudStack>
                         <MudStack Row="true">
-                            <MudButton Variant="Variant.Filled" Color="Color.Secondary" Class="mb-5"
-                                       OnClick="async() => await OpenDialog()">Сменить пароль</MudButton>
+                            <MudButton Variant="Variant.Filled" Color="Color.Default" Class="mb-5"
+                                       OnClick="async () => await OpenDialog()">
+                                Сменить пароль
+                            </MudButton>
                         </MudStack>
                     </MudStack>
                     <MudCardActions Class="pa-0">
@@ -65,6 +74,8 @@
 
 else
 {
+    <h1>Недостаточно прав</h1>
+    return;
     <MudProgressCircular Class="mx-auto" Color="Color.Default" Indeterminate="true" Style="height:400px;width:400px;"/>
 }
 
@@ -72,10 +83,15 @@ else
     private bool _success;
     private bool _isUserLoaded;
     private User? _currentUser;
+    private string? _role;
     private UserModel _model = null!;
 
     protected override async Task OnInitializedAsync()
     {
+        if (UserInfoHolder.CurrentUser is null)
+        {
+            return;
+        }
         _currentUser = UserInfoHolder.CurrentUser!;
         _model = new UserModel
         {
@@ -86,6 +102,7 @@ else
             Password = _currentUser.Password,
             PhoneNumber = _currentUser.PhoneNumber
         };
+        _role = _model.Role.GetName();
         _isUserLoaded = true;
         await base.OnInitializedAsync();
     }
@@ -107,8 +124,8 @@ else
     }
 
     private async Task OpenDialog()
-    {    
-        DialogOptions closeOnEscapeKey = new DialogOptions() { CloseOnEscapeKey = true };
+    {
+        DialogOptions closeOnEscapeKey = new DialogOptions() {CloseOnEscapeKey = true};
         DialogParameters parameters;
         if (_model.Password is not null)
         {
@@ -116,10 +133,10 @@ else
         }
         else
         {
-            parameters = new DialogParameters() {{"OldPassword",null}};
+            parameters = new DialogParameters() {{"OldPassword", null}};
         }
 
-        var dialog = await DialogService.ShowAsync<PasswrodChangeWindow>("Simple Dialog", parameters, closeOnEscapeKey);
+        var dialog = await DialogService.ShowAsync<PasswrodChangeWindow>("Смена пароля", parameters, closeOnEscapeKey);
         var result = await dialog.Result;
 
         if (!result.Canceled)
@@ -128,4 +145,5 @@ else
             await SaveUserInfo();
         }
     }
+
 }

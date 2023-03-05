@@ -1,0 +1,75 @@
+﻿@page "/employees"
+@using CompService.Core.Services
+@using CompService.Core.Enums
+@using CompService.Core.Extensions
+@using CompService.Core.Models
+
+@inject IUserService UserService;
+@inject UserInfoHolder UserInfoHolder;
+
+@if (UserInfoHolder.CurrentUser is null)
+{
+    <h1>Недостаточно прав</h1>
+    return;
+}
+@if (UserInfoHolder.CurrentUser is not null && UserInfoHolder.CurrentUser.Role != Role.Administrator)
+{
+    <h1>Недостаточно прав</h1>
+    return;
+}
+    
+
+    <h3>Сотрудники</h3>
+
+    <MudScrollToTop Class="ma-10" TopOffset="0" Visible="true">
+        <MudFab Color="Color.Primary" Icon="@Icons.Material.Filled.Add"/>
+    </MudScrollToTop>
+
+        @if (_employees is null)
+        {
+            return;
+        }
+<MudTable Items="@_employees" Hover="true">
+        <HeaderContent>
+            <MudTh>Аватар</MudTh>
+            <MudTh>Имя</MudTh>
+            <MudTh>Фамилия</MudTh>
+            <MudTh>Телефон</MudTh>
+            <MudTh>Почта</MudTh>
+            <MudTh>Роль</MudTh>
+        </HeaderContent>
+    <RowTemplate>
+            <MudTd DataLabel="Аватар">
+                <MudAvatar Size="Size.Large">@context.Name[0]</MudAvatar>
+            </MudTd>
+            <MudTd DataLabel="Имя">
+                <MudText>@context.Name</MudText>
+            </MudTd>
+            <MudTd DataLabel="Фамилия">
+                <MudText>@context.Surname</MudText>
+            </MudTd>
+            <MudTd DataLabel="Телефон">
+                <MudText>@context.PhoneNumber</MudText>
+            </MudTd>
+            <MudTd DataLabel="Почта">
+                <MudText>@context.Email</MudText>
+            </MudTd>
+            <MudTd DataLabel="Роль">
+                <MudText>@context.Role.GetName()</MudText>
+            </MudTd>
+        </RowTemplate>
+    </MudTable>
+@code {
+    private List<User>? _employees;
+
+    protected override async Task OnInitializedAsync()
+    {
+        @if (UserInfoHolder.CurrentUser is null
+             || UserInfoHolder.CurrentUser is not null && UserInfoHolder.CurrentUser.Role != Role.Administrator)
+        {
+            return;
+        }
+        _employees = (await UserService.GetAllUsers()).ToList();
+        await base.OnInitializedAsync();
+    }
+}

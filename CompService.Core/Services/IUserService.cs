@@ -11,4 +11,6 @@ public interface IUserService
 
     public Task<BaseResult> ChangeUserData(string name, string surname, string patronymic, string email,
         string password, string phoneNumber);
+
+    public Task<IEnumerable<User>> GetAllUsers();
 }

@@ -1,4 +1,6 @@
-﻿namespace CompService.Core.Models
+﻿using CompService.Core.Enums;
+
+namespace CompService.Core.Models
 {
     public class User
     {
@@ -9,5 +11,7 @@
         public string Email { get; set; } = null!;
         public string? Password { get; set; }
         public string? PhoneNumber { get; set; }
+        
+        public Role Role { get; set; }
     }
 }

@@ -1,4 +1,5 @@
-﻿using CompService.Core.Messages;
+﻿using CompService.Core.Enums;
+using CompService.Core.Messages;
 using CompService.Core.Models;
 using CompService.Core.Repositories;
 using CompService.Core.Results;
@@ -22,7 +23,7 @@ namespace CompService.Core.Services.Impl
         }
 
         public async Task<BaseResult> RegistrateAsync(string name, string surname, string patronymic,
-            string email, string? phoneNumber)
+            string email, string? phoneNumber, Role role)
         {
             var user = new User
             {
@@ -30,7 +31,8 @@ namespace CompService.Core.Services.Impl
                 Patronymic = patronymic,
                 Name = name,
                 Email = email,
-                PhoneNumber = phoneNumber
+                PhoneNumber = phoneNumber,
+                Role = role
             };
             await _userService.CreateUserAsync(user);
             return new BaseResult {Success = true};

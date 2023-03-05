@@ -1,10 +1,10 @@
-﻿using CompService.Core.Models;
+﻿using CompService.Core.Enums;
+using CompService.Core.Models;
 using CompService.Core.Repositories;
 using CompService.Database.Models;
 using CompService.Database.Settings;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
-using MongoDB.Bson;
 using MongoDB.Driver;
 
 namespace CompService.Database.Reposirories
@@ -40,6 +40,7 @@ namespace CompService.Database.Reposirories
                     Patronymic = user.Patronymic,
                     Surname = user.Surname,
                     PhoneNumber = user.PhoneNumber,
+                    Role = (int)user.Role
                 };
                 await _users.InsertOneAsync(userDb);
 
@@ -64,7 +65,8 @@ namespace CompService.Database.Reposirories
                 Patronymic = res.Patronymic,
                 PhoneNumber = res.PhoneNumber,
                 Password = res.Password,
-                Name = res.Name
+                Name = res.Name,
+                Role = (Role)res.Role
             }; 
         }
 
@@ -80,7 +82,8 @@ namespace CompService.Database.Reposirories
                 Patronymic = res.Patronymic,
                 PhoneNumber = res.PhoneNumber,
                 Password = res.Password,
-                Name = res.Name
+                Name = res.Name,
+                Role = (Role)res.Role
             }; 
         }
 
@@ -99,10 +102,33 @@ namespace CompService.Database.Reposirories
                 Patronymic = newUser.Patronymic,
                 Email = newUser.Email,
                 Password = newUser.Password,
-                PhoneNumber = newUser.PhoneNumber
+                PhoneNumber = newUser.PhoneNumber,
+                Role = (int)currentUser.Role
             };
             
             await _users.ReplaceOneAsync(x => x.UserId == currentUser.UserId, newDbUser);
+        }
+
+        public async Task<IEnumerable<User>> GetAllUsers()
+        {
+            var users = (await _users.FindAsync(x => true)).ToList();
+            var res = new List<User>();
+            foreach (var user in users)
+            {
+                res.Add(new User
+                {
+                    UserId = user.UserId,
+                    Name = user.Name,
+                    Surname = user.Surname,
+                    Patronymic = user.Patronymic,
+                    Email = user.Email,
+                    Password = user.Password,
+                    PhoneNumber = user.PhoneNumber,
+                    Role = (Role)user.Role
+                });
+            }
+
+            return res;
         }
     }
 }
