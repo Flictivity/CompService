@@ -35,6 +35,12 @@ public class VerificationRepository : IVerificationRepository
             return;
         }
 
+        if (verification.User is null)
+        {
+            _logger.LogError("User is null");
+            return;
+        }
+
         var verificateUser = new UserDb
         {
             UserId = verification.User.UserId,

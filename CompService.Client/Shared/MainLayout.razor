@@ -1,10 +1,13 @@
 ﻿@using CompService.Core.Models
 @using CompService.Client.Data
+@using CompService.Core.Services
 @inherits LayoutComponentBase
 @inject Blazored.LocalStorage.ILocalStorageService Session;
 @inject AppState AppState;
+@inject UserInfoHolder UserInfoHolder;
+@inject IUserService UserService;
 <PageTitle>CompService.Client</PageTitle>
-<MudThemeProvider Theme="new MudTheme { Palette = new Palette { Primary = p , Secondary = Colors.Grey.Default} }"/>
+<MudThemeProvider Theme="new MudTheme { Palette = new Palette { Primary = _primaryColor , Secondary = _secondaryColor}}"/>
 <MudDialogProvider/>
 <MudSnackbarProvider/>
 
@@ -12,18 +15,29 @@
 <MudLayout>
     <MudAppBar>
         <MudSpacer></MudSpacer>    
-        @if (AppState.LoggedIn && _currentUser is not null)
+        @if (AppState.LoggedIn && UserInfoHolder.CurrentUser is not null)
         {
             <MudLink Href="/cabinet" Color="Color.Primary">
-                <MudAvatar Color="Color.Secondary">@_currentUser.Name[0]</MudAvatar>
+                <MudAvatar Color="Color.Secondary">@UserInfoHolder.CurrentUser.Name[0]</MudAvatar>
             </MudLink>
+        }
+        else
+        {
+            <MudProgressCircular Color="Color.Default" Indeterminate="true" Size="Size.Medium"/>
         }
     </MudAppBar>
     <MudPaper Style="overflow:hidden; position:relative;">
-        <MudDrawer ClipMode="DrawerClipMode.Always" Elevation="1" Variant="DrawerVariant.Mini">
+        <MudDrawer ClipMode="DrawerClipMode.Docked" Elevation="1" Variant="DrawerVariant.Mini" OpenMiniOnHover="true">
             <MudNavMenu>
-                <MudNavLink Match="NavLinkMatch.All" Icon="@Icons.Material.Filled.Home" Href="/index"/>
-                <MudNavLink Match="NavLinkMatch.All" Icon="@Icons.Material.Filled.AddChart" Href="/index" />
+                <MudTooltip Text="Домашняя страница" Placement="Placement.Right">
+                    <MudNavLink Match="NavLinkMatch.All" 
+                                                Icon="@Icons.Material.Filled.Home" Href="/index">Домашняя страница</MudNavLink>
+                </MudTooltip>
+                <MudTooltip Text="Заказы" Placement="Placement.Right">
+                    <MudNavLink Match="NavLinkMatch.All" Icon="@Icons.Material.Filled.AddChart" Href="/index">
+                                        Заказы
+                                    </MudNavLink>
+                </MudTooltip>
             </MudNavMenu>
         </MudDrawer>
     </MudPaper>
@@ -33,7 +47,8 @@
 </MudLayout>
 
 @code {
-    string p = "#594AE2";
+    readonly string _primaryColor = "#594AE2";
+    readonly string _secondaryColor = "#000000";
     private User? _currentUser;
     bool _drawerOpen = true;
 
@@ -44,9 +59,13 @@
 
     protected override async Task OnInitializedAsync()
     {
-        _currentUser = await Session.GetItemAsync<User>("UserSession");
+        var user = await Session.GetItemAsync<User>("UserSession");
+        if(user is not null)
+            _currentUser = await UserService.GetUserByEmailAsync(user.Email);
+        
         if (_currentUser is not null)
         {
+            UserInfoHolder.CurrentUser = _currentUser;
             AppState.LoggedIn = true;
         }
         else

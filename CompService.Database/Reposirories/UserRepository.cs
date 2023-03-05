@@ -4,6 +4,7 @@ using CompService.Database.Models;
 using CompService.Database.Settings;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using MongoDB.Bson;
 using MongoDB.Driver;
 
 namespace CompService.Database.Reposirories
@@ -65,6 +66,43 @@ namespace CompService.Database.Reposirories
                 Password = res.Password,
                 Name = res.Name
             }; 
+        }
+
+        public async Task<User?> GetUserById(string? id)
+        {
+            var res = (await _users.FindAsync(x => x.UserId == id)).FirstOrDefault();
+            
+            return res is null ? null : new User
+            {
+                UserId = res.UserId,
+                Email = res.Email,
+                Surname = res.Surname,
+                Patronymic = res.Patronymic,
+                PhoneNumber = res.PhoneNumber,
+                Password = res.Password,
+                Name = res.Name
+            }; 
+        }
+
+        public async Task UpdateUser(User? currentUser, User newUser)
+        {
+            if (currentUser is null)
+            {
+                return;
+            }
+
+            var newDbUser = new UserDb
+            {
+                UserId = currentUser.UserId,
+                Name = newUser.Name,
+                Surname = newUser.Surname,
+                Patronymic = newUser.Patronymic,
+                Email = newUser.Email,
+                Password = newUser.Password,
+                PhoneNumber = newUser.PhoneNumber
+            };
+            
+            await _users.ReplaceOneAsync(x => x.UserId == currentUser.UserId, newDbUser);
         }
     }
 }

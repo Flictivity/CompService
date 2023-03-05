@@ -10,13 +10,15 @@ namespace CompService.Core.Services.Impl
         private readonly IUserService _userService;
         private readonly IVerificationRepository _verificationRepository;
         private readonly IEmailService _emailService;
+        private readonly UserInfoHolder _userInfoHolder;
 
         public AuthorizationService(IUserService userService, IVerificationRepository verificationRepository,
-            IEmailService emailService)
+            IEmailService emailService, UserInfoHolder userInfoHolder)
         {
             _userService = userService;
             _verificationRepository = verificationRepository;
             _emailService = emailService;
+            _userInfoHolder = userInfoHolder;
         }
 
         public async Task<BaseResult> RegistrateAsync(string name, string surname, string patronymic,
@@ -58,7 +60,7 @@ namespace CompService.Core.Services.Impl
             await _verificationRepository.CreateVerification(verification);
             await _emailService.SendEmailAsync(email, MailSubjects.AuthMailSubject,
                 $"{MailMessages.AuthMailMessage}{verification.Code}");
-            return new BaseResult{Success = true};
+            return new BaseResult {Success = true};
         }
 
         public async Task<AuthorizationResult> AuthorizeWithCodeAsync(string email, string code)
@@ -66,16 +68,19 @@ namespace CompService.Core.Services.Impl
             var res = await _verificationRepository.VerifyUser(email);
             if (!Equals(res?.Code, code))
             {
-                return new AuthorizationResult{Success = false, Message = UserMessages.WrongUserVerifyCode};;
+                return new AuthorizationResult {Success = false, Message = UserMessages.WrongUserVerifyCode};
+                ;
             }
 
             if (!(res.ExpyreTime < DateTime.UtcNow))
             {
                 await _verificationRepository.ChangeVerification(res.VerificationId);
-                return new AuthorizationResult{Success = false, Message = UserMessages.UserVerifyCodeExpire};
+                return new AuthorizationResult {Success = false, Message = UserMessages.UserVerifyCodeExpire};
             }
 
             await _verificationRepository.ChangeVerification(res.VerificationId);
+            _userInfoHolder.CurrentUser = res.User;
+
             return new AuthorizationResult {User = await _userService.GetUserByEmailAsync(email), Success = true};
         }
 
@@ -89,7 +94,8 @@ namespace CompService.Core.Services.Impl
             if (!Equals(user.Password, password))
                 return new AuthorizationResult {Success = false, Message = UserMessages.WrongUserPassword};
 
-            return new AuthorizationResult { User = user, Success = true};
+            _userInfoHolder.CurrentUser = user;
+            return new AuthorizationResult {User = user, Success = true};
         }
     }
 }

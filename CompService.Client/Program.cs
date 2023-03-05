@@ -32,6 +32,7 @@ builder.Services.AddScoped<IEmailService, EmailService>();
 
 builder.Services.AddBlazoredLocalStorage();
 builder.Services.AddSingleton<AppState>();
+builder.Services.AddSingleton<UserInfoHolder>();
 
 var app = builder.Build();
 
