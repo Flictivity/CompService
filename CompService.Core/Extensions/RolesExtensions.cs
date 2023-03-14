@@ -8,6 +8,6 @@ public static class RolesExtensions
 {
     public static string? GetName(this Role role)
     {
-        return role.GetType().GetField(role.ToString()).GetCustomAttribute<DisplayAttribute>().Name;
+        return role.GetType().GetField(role.ToString()).GetCustomAttribute<DisplayAttribute>()?.Name;
     }
 }

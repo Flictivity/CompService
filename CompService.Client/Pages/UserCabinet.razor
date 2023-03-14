@@ -19,7 +19,10 @@
         <MudStack Row="true">
             <MudAvatar Class="align-self-center" Style="height:200px;width:200px; font-size: 2rem;"
                        Color="Color.Info">
-                @_model.Surname[0]@_model.Name[0]
+                @if (!(_model.Surname == "" || _model.Name == ""))
+                {
+                    @_model.Surname[0]@_model.Name[0]
+                }
             </MudAvatar>
             <MudForm @bind-IsValid="@_success">
                 <MudCard Class="pa-5">

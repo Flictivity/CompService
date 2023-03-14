@@ -34,6 +34,14 @@ namespace CompService.Core.Services.Impl
                 PhoneNumber = phoneNumber,
                 Role = role
             };
+
+            var dbUser = await _userService.GetUserByEmailAsync(user.Email);
+
+            if (dbUser is not null)
+            {
+                return new BaseResult {Success = false, Message = UserMessages.UserAlreadyExisting};
+            }
+            
             await _userService.CreateUserAsync(user);
             return new BaseResult {Success = true};
         }

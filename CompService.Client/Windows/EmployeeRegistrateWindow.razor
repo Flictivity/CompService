@@ -1,0 +1,72 @@
+﻿@page "/empReg"
+@using CompService.Client.Data
+@using CompService.Core.Enums
+@using CompService.Core.Extensions
+@using IAuthorizationService = CompService.Core.Services.IAuthorizationService
+
+@inject IAuthorizationService AuthorizationService;
+@inject ISnackbar Snackbar;
+
+<MudForm @bind-IsValid="_success" Model="_model" Wid>
+    <MudDialog DefaultFocus="DefaultFocus.LastChild">
+        <DialogContent>
+            <MudStack>
+                <MudTextField Required="true" T="string" @bind-Value="_model.Name"
+                              RequiredError="Обязательное поле" Label="Имя" InputType="InputType.Text"
+                              Class="mb-3"/>
+                <MudTextField Required="true" T="string" @bind-Value="_model.Surname"
+                              RequiredError="Обязательное поле" Label="Фамилия" InputType="InputType.Text"
+                              Class="mb-3"/>
+                <MudTextField Required="true" T="string" @bind-Value="_model.Patronymic"
+                              RequiredError="Обязательное поле" Label="Отчество" InputType="InputType.Text"
+                              Class="mb-3"/>
+                <MudTextField Required="false" T="string" @bind-Value="_model.PhoneNumber"
+                              Label="Телефон" InputType="InputType.Telephone"
+                              Class="mb-3"/>
+                <MudTextField Required="true" T="string" @bind-Value="_model.Email"
+                              RequiredError="Обязательное поле"
+                              Label="Почта" InputType="InputType.Email" Validation="@(new EmailAddressAttribute {ErrorMessage = "Введенная почта не корректна"})"
+                              Class="mb-3"/>
+                <MudSelect T="Role" @bind-Value="_model.Role" ToStringFunc="@_converter" HelperText="Нельзя изменить после создания сотрудника" T="string" Label="Роль"
+                           Variant="Variant.Text" AnchorOrigin="Origin.BottomCenter">
+                    @foreach (Role role in Enum.GetValues(typeof(Role)))
+                    {
+                        <MudSelectItem Value="role"/>
+                    }
+
+                </MudSelect>
+            </MudStack>
+        </DialogContent>
+        <DialogActions>
+            <MudButton Class="mx-auto" Variant="Variant.Filled" Color="Color.Secondary" OnClick="Cancel">Отмена</MudButton>
+            <MudButton Class="mx-auto" Variant="Variant.Filled" Color="Color.Primary" OnClick="Submit" Disabled="@(!_success)">Сохранить</MudButton>
+        </DialogActions>
+    </MudDialog>
+</MudForm>
+
+@code {
+
+    [CascadingParameter]
+    MudDialogInstance? MudDialog { get; set; }
+
+    private bool _success;
+    private UserModel _model = new();
+    private readonly Func<Role, string?> _converter = p => p.GetName();
+    
+    private async Task Submit()
+    {
+        var res = await AuthorizationService.RegistrateAsync(_model.Name, _model.Surname,
+            _model.Patronymic, _model.Email, _model.PhoneNumber, _model.Role);
+
+        if (!res.Success)
+        {
+            Snackbar.Add(res.Message, Severity.Error);
+            return;
+        }
+        
+        Snackbar.Add("Успешно", Severity.Success);
+        MudDialog?.Close(DialogResult.Ok(true));
+    }
+
+    private void Cancel() => MudDialog?.Cancel();
+}
