@@ -27,12 +27,20 @@ builder.Services.AddSingleton<IUserRepository, UserRepository>();
 builder.Services.AddSingleton<IVerificationRepository, VerificationRepository>();
 builder.Services.AddSingleton<IClientRepository, ClientRepository>();
 builder.Services.AddScoped<IReferenceRepository<Source>, SourceRepository>();
+builder.Services.AddScoped<IReferenceRepository<Defect>, DefectRepository>();
+builder.Services.AddScoped<IReferenceRepository<Brand>, BrandRepository>();
+builder.Services.AddScoped<IReferenceRepository<Appearance>, AppearanceRepository>();
+builder.Services.AddScoped<IReferenceRepository<DeviceType>, DeviceTypeRepository>();
 
 builder.Services.AddScoped<IAuthorizationService, AuthorizationService>();
 builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<IEmailService, EmailService>();
-builder.Services.AddScoped<IReferenceService<Source>, SourceService>();
 builder.Services.AddScoped<IClientService, ClientService>();
+builder.Services.AddScoped<IReferenceService<Source>, SourceService>();
+builder.Services.AddScoped<IReferenceService<Defect>, DefectService>();
+builder.Services.AddScoped<IReferenceService<Brand>, BrandService>();
+builder.Services.AddScoped<IReferenceService<Appearance>, AppearanceService>();
+builder.Services.AddScoped<IReferenceService<DeviceType>, DeviceTypeService>();
 
 builder.Services.AddBlazoredLocalStorage();
 builder.Services.AddSingleton<AppState>();

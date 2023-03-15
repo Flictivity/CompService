@@ -1,0 +1,96 @@
+﻿@page "/brands"
+
+@using CompService.Core.Models
+@using CompService.Core.Services
+@using CompService.Client.Windows
+
+@inject UserInfoHolder UserInfoHolder;
+@inject ISnackbar Snackbar;
+@inject IDialogService DialogService;
+@inject IReferenceService<Brand> ReferenceService;
+
+@if (UserInfoHolder.CurrentUser is null)
+{
+    <h1>Недостаточно прав</h1>
+    return;
+}
+
+<MudTable Items="@_brands" T="Brand" OnRowClick="RowClickEvent" Filter="new Func<Brand, bool>(FilterFunc1)" Hover="true">
+    <ToolBarContent>
+        <MudText Typo="Typo.h6">Неисправности</MudText>
+        <MudSpacer/>
+        <MudTextField @bind-Value="_searchString" Placeholder="Поиск" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Search" IconSize="Size.Medium" Class="mt-0"></MudTextField>
+    </ToolBarContent>
+    <HeaderContent>
+        <MudTh>Название</MudTh>
+    </HeaderContent>
+    <RowTemplate>
+        <MudTd DataLabel="Название">
+            <MudText>@context.Name</MudText>
+        </MudTd>
+    </RowTemplate>
+</MudTable>
+
+<MudFab Style="position: fixed; bottom: 0; right: 0; margin: 35px 25px;" Color="Color.Primary" Icon="@Icons.Material.Filled.Add" OnClick="async () => await OpenWindow()"/>
+
+@code {
+    private List<Brand>? _brands;
+    string _searchString = "";
+
+    protected override async Task OnInitializedAsync()
+    {
+        _brands = (await ReferenceService.GetAllValues()).ToList();
+        await base.OnInitializedAsync();
+    }
+    
+    private async Task OpenWindow()
+    {
+        DialogOptions closeOnEscapeKey = new DialogOptions {CloseOnEscapeKey = true};
+        DialogParameters parameters = new DialogParameters
+        {
+            {"SelectedReferenceName", null},
+            {"SelectedReference", null}
+        };
+        var dialog = await DialogService.ShowAsync<ReferenceWindow<Brand>>("Новая запись",parameters, closeOnEscapeKey);
+        var result = await dialog.Result;
+
+        if (!result.Canceled)
+        {
+            _brands = (await ReferenceService.GetAllValues()).ToList();
+            StateHasChanged();
+        }
+    }
+
+    private bool FilterFunc1(Brand element) => FilterFunc(element, _searchString);
+    
+    private bool FilterFunc(Brand element, string? searchingString)
+    {
+        if (string.IsNullOrWhiteSpace(searchingString))
+            return true;
+        if (element.Name.Contains(searchingString, StringComparison.OrdinalIgnoreCase))
+            return true;
+        return false;
+    }
+
+    private async void RowClickEvent(TableRowClickEventArgs<Brand> tableRowClickEventArgs)
+    {
+        DialogOptions closeOnEscapeKey = new DialogOptions {CloseOnEscapeKey = true};
+        DialogParameters parameters;
+        
+        parameters = new DialogParameters
+        {
+            {"SelectedReferenceName", tableRowClickEventArgs.Item.Name},
+            {"SelectedReference", tableRowClickEventArgs.Item}
+        };
+        var dialog = await DialogService.ShowAsync<ReferenceWindow<Brand>>("",
+            parameters, closeOnEscapeKey);
+        var result = await dialog.Result;
+
+        if (!result.Canceled)
+        {
+            _brands = (await ReferenceService.GetAllValues()).ToList();
+            Snackbar.Add("Успешно", Severity.Success);
+            StateHasChanged();
+        }
+    }
+}

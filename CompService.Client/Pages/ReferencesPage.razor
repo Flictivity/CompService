@@ -2,7 +2,6 @@
 @using CompService.Core.Services
 
 @inject UserInfoHolder UserInfoHolder;
-@inject ISnackbar Snackbar;
 @inject NavigationManager NavigationManager;
 
 @if (UserInfoHolder.CurrentUser is null)
@@ -11,7 +10,7 @@
     return;
 }
 
-<MudTable Items="@Elements" T="string" OnRowClick="RowClickEvent" Filter="new Func<string, bool>(FilterFunc1)" Hover="true">
+<MudTable Items="@_elements" T="string" OnRowClick="RowClickEvent" Filter="new Func<string, bool>(FilterFunc1)" Hover="true">
     <ToolBarContent>
         <MudText Typo="Typo.h6">Справочники</MudText>
         <MudSpacer/>
@@ -28,9 +27,12 @@
 </MudTable>
 @code {
     string _searchString = "";
-    private IEnumerable<string> Elements = new List<string>(){
+    private readonly IEnumerable<string> _elements = new List<string>(){
         "Источники",
-        "Неисправности"
+        "Неисправности",
+        "Бренды",
+        "Внешний вид",
+        "Тип устройства"
     };
 
     private bool FilterFunc1(string element) => FilterFunc(element, _searchString);
@@ -44,7 +46,7 @@
             return false;
         }
 
-    private async void RowClickEvent(TableRowClickEventArgs<string> tableRowClickEventArgs)
+    private void RowClickEvent(TableRowClickEventArgs<string> tableRowClickEventArgs)
     {
         switch (tableRowClickEventArgs.Item)
         {
@@ -52,7 +54,16 @@
                 NavigationManager.NavigateTo("/sources");
                 break;
             case "Неисправности":
-                Snackbar.Add("Неисправности", Severity.Success);
+                NavigationManager.NavigateTo("/defects");
+                break;
+            case "Бренды":
+                NavigationManager.NavigateTo("/brands");
+                break;
+            case "Внешний вид":
+                NavigationManager.NavigateTo("/appearances");
+                break;
+            case "Тип устройства":
+                NavigationManager.NavigateTo("/devTypes");
                 break;
         }
     }

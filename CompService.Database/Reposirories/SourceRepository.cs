@@ -11,9 +11,12 @@ namespace CompService.Database.Reposirories;
 public class SourceRepository : IReferenceRepository<Source>
 {
     private readonly IMongoCollection<SourceDb> _sources;
+    private readonly ILogger<IReferenceRepository<Source>> _logger;
     public SourceRepository(IOptions<DatabaseConnectionSettings> databaseConnectionSettings,
-        ILogger<IClientRepository> logger)
+        ILogger<IReferenceRepository<Source>> logger)
     {
+        _logger = logger;
+        
         var mongoClient = new MongoClient(
             databaseConnectionSettings.Value.ConnectionString);
 
@@ -50,6 +53,7 @@ public class SourceRepository : IReferenceRepository<Source>
     {
         if (currentRef is null)
         {
+            _logger.LogError("Null reference");
             return;
         }
 
@@ -64,9 +68,9 @@ public class SourceRepository : IReferenceRepository<Source>
 
     public async Task<IEnumerable<Source>> GetAllValues()
     {
-        var users = (await _sources.FindAsync(x => true)).ToList();
+        var sources = (await _sources.FindAsync(x => true)).ToList();
         var res = new List<Source>();
-        foreach (var reference in users)
+        foreach (var reference in sources)
         {
             res.Add(new Source
             {
