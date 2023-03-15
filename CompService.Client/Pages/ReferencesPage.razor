@@ -1,0 +1,59 @@
+﻿@page "/references"
+@using CompService.Core.Services
+
+@inject UserInfoHolder UserInfoHolder;
+@inject ISnackbar Snackbar;
+@inject NavigationManager NavigationManager;
+
+@if (UserInfoHolder.CurrentUser is null)
+{
+    <h1>Недостаточно прав</h1>
+    return;
+}
+
+<MudTable Items="@Elements" T="string" OnRowClick="RowClickEvent" Filter="new Func<string, bool>(FilterFunc1)" Hover="true">
+    <ToolBarContent>
+        <MudText Typo="Typo.h6">Справочники</MudText>
+        <MudSpacer/>
+        <MudTextField @bind-Value="_searchString" Placeholder="Поиск" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Search" IconSize="Size.Medium" Class="mt-0"></MudTextField>
+    </ToolBarContent>
+<HeaderContent>
+    <MudTh>Название</MudTh>
+</HeaderContent>
+<RowTemplate>
+    <MudTd DataLabel="Название">
+        <MudText>@context</MudText>
+    </MudTd>
+</RowTemplate>
+</MudTable>
+@code {
+    string _searchString = "";
+    private IEnumerable<string> Elements = new List<string>(){
+        "Источники",
+        "Неисправности"
+    };
+
+    private bool FilterFunc1(string element) => FilterFunc(element, _searchString);
+    
+        private bool FilterFunc(string element, string? searchingString)
+        {
+            if (string.IsNullOrWhiteSpace(searchingString))
+                return true;
+            if (element.Contains(searchingString, StringComparison.OrdinalIgnoreCase))
+                return true;
+            return false;
+        }
+
+    private async void RowClickEvent(TableRowClickEventArgs<string> tableRowClickEventArgs)
+    {
+        switch (tableRowClickEventArgs.Item)
+        {
+            case "Источники":
+                NavigationManager.NavigateTo("/sources");
+                break;
+            case "Неисправности":
+                Snackbar.Add("Неисправности", Severity.Success);
+                break;
+        }
+    }
+}

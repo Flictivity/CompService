@@ -1,5 +1,6 @@
 using Blazored.LocalStorage;
 using CompService.Client.Data;
+using CompService.Core.Models;
 using CompService.Core.Services;
 using IAuthorizationService = CompService.Core.Services.IAuthorizationService;
 using CompService.Core.Services.Impl;
@@ -24,10 +25,14 @@ builder.Services.Configure<DatabaseConnectionSettings>(
 
 builder.Services.AddSingleton<IUserRepository, UserRepository>();
 builder.Services.AddSingleton<IVerificationRepository, VerificationRepository>();
+builder.Services.AddSingleton<IClientRepository, ClientRepository>();
+builder.Services.AddScoped<IReferenceRepository<Source>, SourceRepository>();
 
 builder.Services.AddScoped<IAuthorizationService, AuthorizationService>();
 builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<IEmailService, EmailService>();
+builder.Services.AddScoped<IReferenceService<Source>, SourceService>();
+builder.Services.AddScoped<IClientService, ClientService>();
 
 builder.Services.AddBlazoredLocalStorage();
 builder.Services.AddSingleton<AppState>();

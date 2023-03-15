@@ -113,7 +113,7 @@ else
     private async Task SaveUserInfo()
     {
         await UserService.ChangeUserData(_model.Name, _model.Surname, _model.Patronymic, _model.Email, _model.Password!,
-            _model.PhoneNumber!);
+            _model.PhoneNumber!, UserInfoHolder.CurrentUser!);
         UserInfoHolder.CurrentUser = await UserService.GetUserByIdAsync(UserInfoHolder.CurrentUser?.UserId);
         Snackbar.Add("Успешно", Severity.Success);
     }

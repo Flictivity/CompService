@@ -7,12 +7,10 @@ namespace CompService.Core.Services.Impl;
 public class UserService : IUserService
 {
     private readonly IUserRepository _userRepository;
-    private readonly UserInfoHolder _userInfoHolder;
 
-    public UserService(IUserRepository userRepository, UserInfoHolder userInfoHolder)
+    public UserService(IUserRepository userRepository)
     {
         _userRepository = userRepository;
-        _userInfoHolder = userInfoHolder;
     }
 
     public async Task CreateUserAsync(User user)
@@ -31,7 +29,7 @@ public class UserService : IUserService
     }
 
     public async Task<BaseResult> ChangeUserData(string name, string surname, string patronymic, string email,
-        string password, string phoneNumber)
+        string password, string phoneNumber, User changeUser)
     {
         var newUser = new User
         {
@@ -42,7 +40,7 @@ public class UserService : IUserService
             Password = password,
             PhoneNumber = phoneNumber
         };
-        await _userRepository.UpdateUser(_userInfoHolder.CurrentUser, newUser);
+        await _userRepository.UpdateUser(changeUser, newUser);
 
         return new BaseResult {Success = true};
     }

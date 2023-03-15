@@ -1,0 +1,61 @@
+﻿@using CompService.Core.Services
+@typeparam TReference
+@inject ISnackbar Snackbar;
+@inject IReferenceService<TReference> ReferenceService;
+<MudForm @bind-IsValid="_success">
+    <MudDialog DefaultFocus="DefaultFocus.LastChild">
+            <DialogContent>
+                <MudTextField Required="true" T="string" @bind-Value="_name"
+                                               RequiredError="Обязательное поле" Label="Имя" InputType="InputType.Text"
+                                               Class="mb-3"/>
+            </DialogContent>
+            <DialogActions>
+                <MudButton OnClick="Cancel">Отмена</MudButton>
+                <MudButton Color="Color.Primary" OnClick="Submit" Disabled="@(!_success)">Сохранить</MudButton>
+            </DialogActions>
+        </MudDialog>
+</MudForm>
+
+@code {
+    [Parameter] public string? SelectedReferenceName { get; set; }
+    [Parameter] public TReference? SelectedReference { get; set; }
+
+    private string _name = "";
+    private bool _isEditing;
+    private bool _success;
+    
+    [CascadingParameter]
+    MudDialogInstance? MudDialog { get; set; }
+
+    protected override Task OnInitializedAsync()
+    {
+        if (SelectedReferenceName is not null)
+        {
+            _isEditing = true;
+            _name = SelectedReferenceName;
+        }
+        return base.OnInitializedAsync();
+    }
+
+    private async Task Submit()
+    {
+        if (_isEditing)
+        {
+            await ReferenceService.UpdateReference(SelectedReference, _name);
+            Snackbar.Add("Успешно", Severity.Success);
+            MudDialog?.Close(DialogResult.Ok(true));  
+            return;
+        }
+        
+        var res = await ReferenceService.Create(_name);
+
+        if (res.Success)
+        {
+            Snackbar.Add("Успешно", Severity.Success);
+            MudDialog?.Close(DialogResult.Ok(true));   
+        }
+        Snackbar.Add(res.Message, Severity.Error);
+    }
+    
+    private void Cancel() => MudDialog?.Cancel();
+}

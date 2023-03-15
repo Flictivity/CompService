@@ -10,7 +10,7 @@ public interface IUserService
     public Task<User?> GetUserByIdAsync(string? id);
 
     public Task<BaseResult> ChangeUserData(string name, string surname, string patronymic, string email,
-        string password, string phoneNumber);
+        string password, string phoneNumber, User changeUser);
 
     public Task<IEnumerable<User>> GetAllUsers();
 }
