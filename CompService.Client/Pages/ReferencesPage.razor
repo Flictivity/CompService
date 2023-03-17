@@ -32,7 +32,8 @@
         "Неисправности",
         "Бренды",
         "Внешний вид",
-        "Тип устройства"
+        "Тип устройства",
+        "Услуги"
     };
 
     private bool FilterFunc1(string element) => FilterFunc(element, _searchString);
@@ -64,6 +65,9 @@
                 break;
             case "Тип устройства":
                 NavigationManager.NavigateTo("/devTypes");
+                break;
+            case "Услуги":
+                NavigationManager.NavigateTo("/facilities");
                 break;
         }
     }

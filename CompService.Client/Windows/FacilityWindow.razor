@@ -1,0 +1,72 @@
+﻿@using CompService.Core.Services
+@using CompService.Core.Models
+@using CompService.Client.Data
+
+@inject ISnackbar Snackbar;
+@inject IFacilityService FacilityService;
+
+<MudForm @bind-IsValid="_success" Model="_model">
+    <MudDialog DefaultFocus="DefaultFocus.LastChild">
+        <DialogContent>
+            <MudTextField Required="true" T="string" @bind-Value="_model.Name"
+                          RequiredError="Обязательное поле" Label="Имя" InputType="InputType.Text"
+                          Class="mb-3"/>
+            <MudTextField Required="true" @bind-Value="_model.Cost"
+                                      RequiredError="Обязательное поле" Label="Стоимость" 
+                                      Class="mb-3"/>
+        </DialogContent>
+        <DialogActions>
+            <MudButton OnClick="Cancel">Отмена</MudButton>
+            <MudButton Color="Color.Primary" OnClick="Submit" Disabled="@(!_success)">Сохранить</MudButton>
+        </DialogActions>
+    </MudDialog>
+</MudForm>
+
+@code {
+    [Parameter] public Facility? SelectedFacility { get; set; }
+    private bool _isEditing;
+    private bool _success;
+    
+    [CascadingParameter]
+    MudDialogInstance? MudDialog { get; set; }
+
+    FacilityAndSparePartModel _model = new();
+
+    protected override Task OnInitializedAsync()
+    {
+        if (SelectedFacility is not null)
+        {
+            _isEditing = true;
+            _model.Name = SelectedFacility.Name;
+            _model.Cost = SelectedFacility.Cost;
+        }
+        return base.OnInitializedAsync();
+    }
+    
+    private async Task Submit()
+    {
+        var newFacility = new Facility
+        {
+            Name = _model.Name,
+            Cost = _model.Cost
+        };
+        if (_isEditing)
+        {
+            await FacilityService.UpdateFacility(SelectedFacility, newFacility.Name, newFacility.Cost);
+            Snackbar.Add("Успешно", Severity.Success);
+            MudDialog?.Close(DialogResult.Ok(true));  
+            return;
+        }
+
+        var res = await FacilityService.Create(newFacility);
+
+        if (res.Success)
+        {
+            Snackbar.Add("Успешно", Severity.Success);
+            MudDialog?.Close(DialogResult.Ok(true));   
+        }
+        Snackbar.Add(res.Message, Severity.Error);
+    }
+    
+    private void Cancel() => MudDialog?.Cancel();
+}

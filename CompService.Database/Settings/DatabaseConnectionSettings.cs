@@ -12,4 +12,5 @@ public class DatabaseConnectionSettings
     public string BrandsCollectionName { get; set; } = null!;
     public string AppearancesCollectionName { get; set; } = null!;
     public string DeviceTypesCollectionName { get; set; } = null!;
+    public string FacilitiesCollectionName { get; set; } = null!;
 }
