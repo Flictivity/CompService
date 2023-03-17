@@ -31,13 +31,21 @@ public class ClientRepository : IClientRepository
     {
         try
         {
+            if (client.Source is null)
+            {
+                return false;
+            }
             var clientDb = new ClientDb
             {
                 Name = client.Name,
                 Email = client.Email,
                 Surname = client.Surname,
                 PhoneNumber = client.PhoneNumber,
-                Source = client.Source
+                Source = new SourceDb
+                {
+                    SourceId = client.Source.SourceId,
+                    Name = client.Source.Name
+                }
             };
             await _clients.InsertOneAsync(clientDb);
 
@@ -53,7 +61,6 @@ public class ClientRepository : IClientRepository
     public async Task<Client?> GetClientByEmail(string? email)
     {
         var res = (await _clients.FindAsync(x => x.Email == email)).FirstOrDefault();
-            
         return res is null ? null : new Client
         {
             ClientId = res.ClientId,
@@ -61,7 +68,11 @@ public class ClientRepository : IClientRepository
             Surname = res.Surname,
             PhoneNumber = res.PhoneNumber,
             Name = res.Name,
-            Source = res.Source
+            Source = new Source
+            {
+                SourceId = res.Source!.SourceId,
+                Name = res.Source.Name
+            }
         }; 
     }
 
@@ -76,7 +87,11 @@ public class ClientRepository : IClientRepository
             Surname = res.Surname,
             PhoneNumber = res.PhoneNumber,
             Name = res.Name,
-            Source = res.Source
+            Source = new Source
+            {
+                SourceId = res.Source!.SourceId,
+                Name = res.Source.Name
+            }
         }; 
     }
 
@@ -94,7 +109,11 @@ public class ClientRepository : IClientRepository
             Surname = newClient.Surname,
             Email = newClient.Email,
             PhoneNumber = newClient.PhoneNumber,
-            Source = newClient.Source
+            Source = new SourceDb
+            {
+                SourceId = newClient.Source!.SourceId,
+                Name = newClient.Source.Name
+            }
         };
             
         await _clients.ReplaceOneAsync(x => x.ClientId == currentClient.ClientId, newDbUser);
@@ -113,7 +132,11 @@ public class ClientRepository : IClientRepository
                 Surname = client.Surname,
                 Email = client.Email,
                 PhoneNumber = client.PhoneNumber,
-                Source = client.Source,
+                Source = new Source
+                {
+                    SourceId = client.Source!.SourceId,
+                    Name = client.Source.Name
+                },
             });
         }
 

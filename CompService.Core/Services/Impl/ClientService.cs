@@ -1,4 +1,5 @@
-﻿using CompService.Core.Models;
+﻿using CompService.Core.Messages;
+using CompService.Core.Models;
 using CompService.Core.Repositories;
 using CompService.Core.Results;
 
@@ -19,7 +20,7 @@ public class ClientService : IClientService
 
         if (dbClient is not null)
         {
-            return new BaseResult{Success = false, Message = "Клиент с такой почтой уже существует"};
+            return new BaseResult{Success = false, Message = UserMessages.UserAlreadyExisting};
         }
             
        await _clientRepository.CreateClient(client);

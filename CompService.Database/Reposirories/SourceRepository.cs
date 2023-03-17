@@ -12,6 +12,7 @@ public class SourceRepository : IReferenceRepository<Source>
 {
     private readonly IMongoCollection<SourceDb> _sources;
     private readonly ILogger<IReferenceRepository<Source>> _logger;
+    
     public SourceRepository(IOptions<DatabaseConnectionSettings> databaseConnectionSettings,
         ILogger<IReferenceRepository<Source>> logger)
     {

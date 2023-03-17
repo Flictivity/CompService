@@ -13,4 +13,6 @@ public class DatabaseConnectionSettings
     public string AppearancesCollectionName { get; set; } = null!;
     public string DeviceTypesCollectionName { get; set; } = null!;
     public string FacilitiesCollectionName { get; set; } = null!;
+    public string SparePartCategoriesCollectionName { get; set; } = null!;
+    public string SparePartsCollectionName { get; set; } = null!;
 }

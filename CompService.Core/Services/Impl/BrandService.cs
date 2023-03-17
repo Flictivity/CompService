@@ -1,4 +1,5 @@
-﻿using CompService.Core.Models;
+﻿using CompService.Core.Messages;
+using CompService.Core.Models;
 using CompService.Core.Repositories;
 using CompService.Core.Results;
 
@@ -31,7 +32,7 @@ public class BrandService : IReferenceService<Brand>
     {
         if (currentRef is null)
         {
-            return new BaseResult {Success = false, Message = "Не удалось изменить данные"};
+            return new BaseResult {Success = false, Message = ReferencesMessages.Error};
         }
         var newRef = new Brand
         {

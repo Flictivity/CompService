@@ -33,7 +33,8 @@
         "Бренды",
         "Внешний вид",
         "Тип устройства",
-        "Услуги"
+        "Услуги",
+        "Категории запастей"
     };
 
     private bool FilterFunc1(string element) => FilterFunc(element, _searchString);
@@ -68,6 +69,9 @@
                 break;
             case "Услуги":
                 NavigationManager.NavigateTo("/facilities");
+                break;
+            case "Категории запастей":
+                NavigationManager.NavigateTo("/sparePartCategories");
                 break;
         }
     }

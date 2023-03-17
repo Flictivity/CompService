@@ -15,5 +15,5 @@ public class ClientDb
     public string? Email { get; set; }
     public string? PhoneNumber { get; set; }
 
-    public Source? Source { get; set; }
+    public SourceDb? Source { get; set; }
 }

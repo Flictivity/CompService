@@ -27,11 +27,13 @@ builder.Services.AddSingleton<IUserRepository, UserRepository>();
 builder.Services.AddSingleton<IVerificationRepository, VerificationRepository>();
 builder.Services.AddSingleton<IClientRepository, ClientRepository>();
 builder.Services.AddSingleton<IFacilityRepository, FacilityRepository>();
+builder.Services.AddSingleton<ISparePartRepository, SparePartRepository>();
 builder.Services.AddSingleton<IReferenceRepository<Source>, SourceRepository>();
 builder.Services.AddSingleton<IReferenceRepository<Defect>, DefectRepository>();
 builder.Services.AddSingleton<IReferenceRepository<Brand>, BrandRepository>();
 builder.Services.AddSingleton<IReferenceRepository<Appearance>, AppearanceRepository>();
 builder.Services.AddSingleton<IReferenceRepository<DeviceType>, DeviceTypeRepository>();
+builder.Services.AddSingleton<IReferenceRepository<SparePartCategory>, SparePartCategoryRepository>();
 
 builder.Services.AddScoped<IAuthorizationService, AuthorizationService>();
 builder.Services.AddScoped<IUserService, UserService>();
@@ -43,6 +45,7 @@ builder.Services.AddScoped<IReferenceService<Brand>, BrandService>();
 builder.Services.AddScoped<IReferenceService<Appearance>, AppearanceService>();
 builder.Services.AddScoped<IReferenceService<DeviceType>, DeviceTypeService>();
 builder.Services.AddScoped<IFacilityService, FacilityService>();
+builder.Services.AddScoped<ISparePartService, SparePartService>();
 
 builder.Services.AddBlazoredLocalStorage();
 builder.Services.AddSingleton<AppState>();

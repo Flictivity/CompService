@@ -1,4 +1,5 @@
-﻿using CompService.Core.Models;
+﻿using CompService.Core.Messages;
+using CompService.Core.Models;
 using CompService.Core.Repositories;
 using CompService.Core.Results;
 
@@ -29,7 +30,7 @@ public class FacilityService : IFacilityService
     {
         if (currentFacility is null)
         {
-            return new BaseResult {Success = false, Message = "Не удалось изменить данные"};
+            return new BaseResult {Success = false, Message = ReferencesMessages.Error};
         }
 
         var newFacility = new Facility
