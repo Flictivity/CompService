@@ -12,6 +12,6 @@ namespace CompService.Core.Models
         public string? Password { get; set; }
         public string? PhoneNumber { get; set; }
         
-        public Role Role { get; set; }
+        public Roles Roles { get; set; }
     }
 }

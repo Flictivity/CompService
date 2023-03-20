@@ -1,4 +1,5 @@
-﻿using MailKit.Net.Smtp;
+﻿using CompService.Core.Results;
+using MailKit.Net.Smtp;
 using Microsoft.Extensions.Logging;
 using MimeKit;
 
@@ -13,7 +14,7 @@ public class EmailService : IEmailService
         _logger = logger;
     }
 
-    public async Task SendEmailAsync(string? email, string subject, string message)
+    public async Task<BaseResult> SendEmailAsync(string? email, string subject, string message)
     {
         var sendMessage = new MimeMessage();
         sendMessage.From.Add(new MailboxAddress("Компьютерный сервис", "computerservlse@mail.ru"));
@@ -32,10 +33,12 @@ public class EmailService : IEmailService
             client.Authenticate("computerservlse@mail.ru","huHgtZq7qVDhrfUYk8hu");
             await client.SendAsync(sendMessage);
             _logger.LogInformation("Письмо успешно отправлено");
+            return new BaseResult{Success = true};
         }
         catch (Exception ex)
         {
             _logger.LogError(ex.Message);
+            return new BaseResult{Success = false, Message = "Не удалось отправить письмо"};
         }
         finally
         {

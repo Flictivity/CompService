@@ -31,15 +31,15 @@
                               Class="mb-3"/>
                 @if (_isEditing)
                 {
-                    <MudTextField T="string" Value="_model.Role.GetName()" ReadOnly="true"
+                    <MudTextField T="string" Value="_model.Roles.GetName()" ReadOnly="true"
                                                               Variant="Variant.Text" Label="Роль"
                                                               Class="mb-3"/>
                 }
                 else
                 {
-                    <MudSelect T="Role" @bind-Value="_model.Role" ToStringFunc="@_converter" HelperText="Нельзя изменить после создания сотрудника" Label="Роль"
+                    <MudSelect T="Roles" @bind-Value="_model.Roles" ToStringFunc="@_converter" HelperText="Нельзя изменить после создания сотрудника" Label="Роль"
                                Variant="Variant.Text" AnchorOrigin="Origin.BottomCenter">
-                        @foreach (Role role in Enum.GetValues(typeof(Role)))
+                        @foreach (Roles role in Enum.GetValues(typeof(Roles)))
                         {
                             <MudSelectItem Value="role"/>
                         }
@@ -62,7 +62,7 @@
     private bool _success;
     private bool _isEditing;
     private UserModel _model = new();
-    private readonly Func<Role, string?> _converter = p => p.GetName();
+    private readonly Func<Roles, string?> _converter = p => p.GetName();
 
     protected override Task OnInitializedAsync()
     {
@@ -75,7 +75,7 @@
             _model.Patronymic = SelectedUser.Patronymic;
             _model.Email = SelectedUser.Email;
             _model.PhoneNumber = SelectedUser.PhoneNumber;
-            _model.Role = SelectedUser.Role;
+            _model.Roles = SelectedUser.Roles;
         }
         
         return base.OnInitializedAsync();
@@ -94,7 +94,7 @@
             return;
         }
         var res = await AuthorizationService.RegistrateAsync(_model.Name, _model.Surname,
-            _model.Patronymic, _model.Email, _model.PhoneNumber, _model.Role);
+            _model.Patronymic, _model.Email, _model.PhoneNumber, _model.Roles);
 
         if (!res.Success)
         {

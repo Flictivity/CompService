@@ -2,7 +2,7 @@
 
 namespace CompService.Core.Enums;
 
-public enum Role
+public enum Roles
 {
     [Display(Name = "Администратор")] Administrator = 0,
     [Display(Name = "Мастер")] Master = 1,

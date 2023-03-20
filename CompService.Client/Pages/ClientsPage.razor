@@ -14,7 +14,7 @@
     <h1>Недостаточно прав</h1>
     return;
 }
-@if (UserInfoHolder.CurrentUser is not null && UserInfoHolder.CurrentUser.Role == Role.Master)
+@if (UserInfoHolder.CurrentUser is not null && UserInfoHolder.CurrentUser.Roles == Roles.Master)
 {
     <h1>Недостаточно прав</h1>
     return;
@@ -70,7 +70,7 @@
     protected override async Task OnInitializedAsync()
     {
         @if (UserInfoHolder.CurrentUser is null
-             || UserInfoHolder.CurrentUser is not null && UserInfoHolder.CurrentUser.Role == Role.Master)
+             || UserInfoHolder.CurrentUser is not null && UserInfoHolder.CurrentUser.Roles == Roles.Master)
         {
             return;
         }

@@ -8,5 +8,5 @@ public class ClientModel
     public string Surname { get; set; } = String.Empty;
     public string? Email { get; set; } = String.Empty;
     public string? PhoneNumber { get; set; } = String.Empty;
-    public Source? Source { get; set; } = null;
+    public Source? Source { get; set; }
 }

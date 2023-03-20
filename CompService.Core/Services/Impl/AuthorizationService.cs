@@ -23,7 +23,7 @@ namespace CompService.Core.Services.Impl
         }
 
         public async Task<BaseResult> RegistrateAsync(string name, string surname, string patronymic,
-            string email, string? phoneNumber, Role role)
+            string email, string? phoneNumber, Roles roles)
         {
             var user = new User
             {
@@ -32,7 +32,7 @@ namespace CompService.Core.Services.Impl
                 Name = name,
                 Email = email,
                 PhoneNumber = phoneNumber,
-                Role = role
+                Roles = roles
             };
 
             var dbUser = await _userService.GetUserByEmailAsync(user.Email);
@@ -68,9 +68,14 @@ namespace CompService.Core.Services.Impl
                 User = user
             };
             await _verificationRepository.CreateVerification(verification);
-            await _emailService.SendEmailAsync(email, MailSubjects.AuthMailSubject,
+            var sendResult = await _emailService.SendEmailAsync(email, MailSubjects.AuthMailSubject,
                 $"{MailMessages.AuthMailMessage}{verification.Code}");
-            return new BaseResult {Success = true};
+            if (sendResult.Success)
+            {
+                return new BaseResult {Success = true};
+            }
+
+            return new BaseResult {Success = false, Message = sendResult.Message};
         }
 
         public async Task<AuthorizationResult> AuthorizeWithCodeAsync(string email, string code)

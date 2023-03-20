@@ -1,0 +1,114 @@
+﻿@page "/spareParts"
+@using CompService.Core.Models
+@using CompService.Core.Services
+@using CompService.Core.Enums
+@using CompService.Client.Windows
+
+@inject UserInfoHolder UserInfoHolder;
+@inject ISparePartService SparePartService;
+@inject ISnackbar Snackbar;
+@inject IDialogService DialogService;
+
+@if (UserInfoHolder.CurrentUser is null)
+{
+    <h1>Недостаточно прав</h1>
+    return;
+}
+
+<MudTable Items="@_spareParts" T="SparePart" OnRowClick="RowClickEvent" Filter="new Func<SparePart, bool>(FilterFunc1)" Hover="true">
+    <ToolBarContent>
+        <MudText Typo="Typo.h6">Запчасти</MudText>
+        <MudSpacer/>
+        <MudTextField @bind-Value="_searchString" Placeholder="Поиск" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Search" IconSize="Size.Medium" Class="mt-0"></MudTextField>
+    </ToolBarContent>
+    <HeaderContent>
+        <MudTh><MudTableSortLabel SortBy="new Func<SparePart, object>(x=>x.Article)">Артикул</MudTableSortLabel></MudTh>
+        <MudTh><MudTableSortLabel SortBy="new Func<SparePart, object>(x=>x.Name)">Название</MudTableSortLabel></MudTh>
+        <MudTh><MudTableSortLabel SortBy="new Func<SparePart, object>(x=>x.Category.Name)">Категория</MudTableSortLabel></MudTh>
+        <MudTh><MudTableSortLabel SortBy="new Func<SparePart, object>(x=>x.Count)">Количество</MudTableSortLabel></MudTh>
+        <MudTh><MudTableSortLabel SortBy="new Func<SparePart, object>(x=>x.PurchasePrice)">Цена</MudTableSortLabel></MudTh>
+        <MudTh><MudTableSortLabel SortBy="new Func<SparePart, object>(x=>x.RetailPrice)">Себестоимость</MudTableSortLabel></MudTh>
+    </HeaderContent>
+    <RowTemplate>
+        <MudTd DataLabel="Артикул">
+            <MudText>@context.Article</MudText>
+        </MudTd>
+        <MudTd DataLabel="Название">
+            <MudText>@context.Name</MudText>
+        </MudTd>
+        <MudTd DataLabel="Категория">
+            <MudText>@context.Category.Name</MudText>
+        </MudTd>
+        <MudTd DataLabel="Количество">
+            <MudText>@context.Count</MudText>
+        </MudTd>
+        <MudTd DataLabel="Цена">
+            <MudText>@context.PurchasePrice</MudText>
+        </MudTd>
+        <MudTd DataLabel="Себестоимость">
+            <MudText>@context.RetailPrice</MudText>
+        </MudTd>
+    </RowTemplate>
+</MudTable>
+
+<MudFab Style="position: fixed; bottom: 0; right: 0; margin: 35px 25px;" Color="Color.Primary" Icon="@Icons.Material.Filled.Add" OnClick="async () => await OpenWindow()"/>
+
+@code {
+    string _searchString = "";
+    private List<SparePart>? _spareParts;
+    
+    protected override async Task OnInitializedAsync()
+    {
+        @if (UserInfoHolder.CurrentUser is null
+             || UserInfoHolder.CurrentUser is not null && UserInfoHolder.CurrentUser.Roles == Roles.Operator)
+        {
+            return;
+        }
+        _spareParts = (await SparePartService.GetAllSpareParts()).ToList();
+        await base.OnInitializedAsync();
+    }
+    
+    private async Task OpenWindow()
+    {
+        DialogOptions closeOnEscapeKey = new DialogOptions {CloseOnEscapeKey = true};
+        DialogParameters parameters = new DialogParameters {{"SelectedSparePart", null}};
+
+        var dialog = await DialogService.ShowAsync<SparePartWindow>("Новая запчасть", parameters, closeOnEscapeKey);
+        var result = await dialog.Result;
+
+        if (!result.Canceled)
+        {
+            _spareParts = (await SparePartService.GetAllSpareParts()).ToList();
+            StateHasChanged();
+        }
+    }
+    
+    private bool FilterFunc1(SparePart element) => FilterFunc(element, _searchString);
+    
+    private bool FilterFunc(SparePart element, string? searchingString)
+    {
+        if (string.IsNullOrWhiteSpace(searchingString))
+            return true;
+        if (element.Article.Contains(searchingString, StringComparison.OrdinalIgnoreCase))
+            return true;
+        if (element.Name.Contains(searchingString, StringComparison.OrdinalIgnoreCase))
+            return true;
+        return false;
+    }
+    
+    private async void RowClickEvent(TableRowClickEventArgs<SparePart> tableRowClickEventArgs)
+    {
+        DialogOptions closeOnEscapeKey = new DialogOptions {CloseOnEscapeKey = true};
+        DialogParameters parameters = new DialogParameters {{"SelectedSparePart", tableRowClickEventArgs.Item}};
+        
+        var dialog = await DialogService.ShowAsync<SparePartWindow>("", parameters, closeOnEscapeKey);
+        var result = await dialog.Result;
+
+        if (!result.Canceled)
+        {
+            _spareParts = (await SparePartService.GetAllSpareParts()).ToList();
+            Snackbar.Add("Успешно", Severity.Success);
+            StateHasChanged();
+        }
+    }
+}

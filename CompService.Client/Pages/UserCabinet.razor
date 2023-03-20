@@ -105,7 +105,7 @@ else
             Password = _currentUser.Password,
             PhoneNumber = _currentUser.PhoneNumber
         };
-        _role = _model.Role.GetName();
+        _role = _model.Roles.GetName();
         _isUserLoaded = true;
         await base.OnInitializedAsync();
     }

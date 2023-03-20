@@ -28,77 +28,26 @@ public class SparePartRepository : ISparePartRepository
     }
     public async Task Create(SparePart newSparePart)
     {
-        var sparePartDb = new SparePartDb
-        {
-            Name = newSparePart.Name,
-            Article = newSparePart.Article,
-            Category = new SparePartCategoryDb
-            {
-                CategoryId = newSparePart.Category.CategoryId,
-                Name = newSparePart.Category.Name
-            },
-            Count = newSparePart.Count,
-            PurchasePrice = newSparePart.PurchasePrice,
-            RetailPrice = newSparePart.RetailPrice
-        };
+        var sparePartDb = EntityConverter.ConvertSparePart(newSparePart);
         await _spareParts.InsertOneAsync(sparePartDb);
     }
 
     public async Task<SparePart?> GetSparePartByName(string? name)
     {
         var res = (await _spareParts.FindAsync(x => x.Name == name)).FirstOrDefault();
-        return res is null ? null : new SparePart
-        {
-            SparePartId = res.SparePartId,
-            Name = res.Name,
-            Article = res.Article,
-            Category = new SparePartCategory
-            {
-                CategoryId = res.Category.CategoryId,
-                Name = res.Category.Name
-            },
-            Count = res.Count,
-            PurchasePrice = res.PurchasePrice,
-            RetailPrice = res.PurchasePrice
-        }; 
+        return res is null ? null : EntityConverter.ConvertSparePart(res);
     }
 
     public async Task<SparePart?> GetSparePartById(string? id)
     {
         var res = (await _spareParts.FindAsync(x => x.SparePartId == id)).FirstOrDefault();
-        return res is null ? null : new SparePart
-        {
-            SparePartId = res.SparePartId,
-            Name = res.Name,
-            Article = res.Article,
-            Category = new SparePartCategory
-            {
-                CategoryId = res.Category.CategoryId,
-                Name = res.Category.Name
-            },
-            Count = res.Count,
-            PurchasePrice = res.PurchasePrice,
-            RetailPrice = res.PurchasePrice
-        }; 
+        return res is null ? null : EntityConverter.ConvertSparePart(res);
     }
 
     public async Task<SparePart?> GetSparePartByArticle(string? article)
     {
         var res = (await _spareParts.FindAsync(x => x.Article == article)).FirstOrDefault();
-        return res is null ? null : new SparePart
-        {
-            SparePartId = res.SparePartId,
-            Name = res.Name,
-            Article = res.Article,
-            Category = new SparePartCategory
-            {
-                CategoryId = res.Category.CategoryId,
-                Name = res.Category.Name
-            },
-            Count = res.Count,
-            PurchasePrice = res.PurchasePrice,
-            RetailPrice = res.PurchasePrice
-        }; 
+        return res is null ? null : EntityConverter.ConvertSparePart(res);
     }
 
     public async Task UpdateSparePart(SparePart currentSparePart, SparePart newSparePart)
@@ -127,20 +76,7 @@ public class SparePartRepository : ISparePartRepository
         var res = new List<SparePart>();
         foreach (var sparePart in spareParts)
         {
-            res.Add(new SparePart
-            {
-                SparePartId = sparePart.SparePartId,
-                Name = sparePart.Name,
-                Article = sparePart.Article,
-                Category = new SparePartCategory
-                {
-                    CategoryId = sparePart.Category.CategoryId,
-                    Name = sparePart.Category.Name
-                },
-                Count = sparePart.Count,
-                PurchasePrice = sparePart.PurchasePrice,
-                RetailPrice = sparePart.RetailPrice
-            });
+            res.Add(EntityConverter.ConvertSparePart(sparePart));
         }
 
         return res;

@@ -7,11 +7,11 @@ namespace CompService.Core.Services.Impl;
 
 public class SparePartCategoryService : IReferenceService<SparePartCategory>
 {
-    private readonly IReferenceRepository<SparePartCategory> _sourceRepository;
+    private readonly IReferenceRepository<SparePartCategory> _categoriesRepository;
 
-    public SparePartCategoryService(IReferenceRepository<SparePartCategory> sourceRepository)
+    public SparePartCategoryService(IReferenceRepository<SparePartCategory> categoriesRepository)
     {
-        _sourceRepository = sourceRepository;
+        _categoriesRepository = categoriesRepository;
     }
     public async Task<BaseResult> Create(string newRefName)
     {
@@ -19,13 +19,13 @@ public class SparePartCategoryService : IReferenceService<SparePartCategory>
         {
             Name = newRefName
         };
-        await _sourceRepository.Create(newRef);
+        await _categoriesRepository.Create(newRef);
         return new BaseResult {Success = true};
     }
 
     public async Task<SparePartCategory?> GetReferenceById(string? id)
     {
-        return await _sourceRepository.GetReferenceById(id);
+        return await _categoriesRepository.GetReferenceById(id);
     }
 
     public async Task<BaseResult> UpdateReference(SparePartCategory? currentRef, string newRefName)
@@ -40,12 +40,12 @@ public class SparePartCategoryService : IReferenceService<SparePartCategory>
             CategoryId = currentRef.CategoryId,
             Name = newRefName
         };
-        await _sourceRepository.UpdateReference(currentRef, newRef);
+        await _categoriesRepository.UpdateReference(currentRef, newRef);
         return new BaseResult {Success = true};
     }
 
     public async Task<IEnumerable<SparePartCategory>> GetAllValues()
     {
-        return await _sourceRepository.GetAllValues();
+        return await _categoriesRepository.GetAllValues();
     }
 }

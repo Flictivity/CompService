@@ -32,16 +32,7 @@ namespace CompService.Database.Reposirories
         {
             try
             {
-                var userDb = new UserDb
-                {
-                    Name = user.Name,
-                    Email = user.Email,
-                    Password = user.Password,
-                    Patronymic = user.Patronymic,
-                    Surname = user.Surname,
-                    PhoneNumber = user.PhoneNumber,
-                    Role = (int)user.Role
-                };
+                var userDb = EntityConverter.ConvertUser(user);
                 await _users.InsertOneAsync(userDb);
 
                 return true;
@@ -57,34 +48,14 @@ namespace CompService.Database.Reposirories
         {
             var res = (await _users.FindAsync(x => x.Email == email)).FirstOrDefault();
             
-            return res is null ? null : new User
-            {
-                UserId = res.UserId,
-                Email = res.Email,
-                Surname = res.Surname,
-                Patronymic = res.Patronymic,
-                PhoneNumber = res.PhoneNumber,
-                Password = res.Password,
-                Name = res.Name,
-                Role = (Role)res.Role
-            }; 
+            return res is null ? null : EntityConverter.ConvertUser(res); 
         }
 
         public async Task<User?> GetUserById(string? id)
         {
             var res = (await _users.FindAsync(x => x.UserId == id)).FirstOrDefault();
             
-            return res is null ? null : new User
-            {
-                UserId = res.UserId,
-                Email = res.Email,
-                Surname = res.Surname,
-                Patronymic = res.Patronymic,
-                PhoneNumber = res.PhoneNumber,
-                Password = res.Password,
-                Name = res.Name,
-                Role = (Role)res.Role
-            }; 
+            return res is null ? null : EntityConverter.ConvertUser(res); 
         }
 
         public async Task UpdateUser(User? currentUser, User newUser)
@@ -103,7 +74,7 @@ namespace CompService.Database.Reposirories
                 Email = newUser.Email,
                 Password = newUser.Password,
                 PhoneNumber = newUser.PhoneNumber,
-                Role = (int)currentUser.Role
+                Role = (int)currentUser.Roles
             };
             
             await _users.ReplaceOneAsync(x => x.UserId == currentUser.UserId, newDbUser);
@@ -115,17 +86,7 @@ namespace CompService.Database.Reposirories
             var res = new List<User>();
             foreach (var user in users)
             {
-                res.Add(new User
-                {
-                    UserId = user.UserId,
-                    Name = user.Name,
-                    Surname = user.Surname,
-                    Patronymic = user.Patronymic,
-                    Email = user.Email,
-                    Password = user.Password,
-                    PhoneNumber = user.PhoneNumber,
-                    Role = (Role)user.Role
-                });
+                res.Add(EntityConverter.ConvertUser(user));
             }
 
             return res;

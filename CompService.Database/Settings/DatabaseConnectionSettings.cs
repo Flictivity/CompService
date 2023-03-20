@@ -15,4 +15,5 @@ public class DatabaseConnectionSettings
     public string FacilitiesCollectionName { get; set; } = null!;
     public string SparePartCategoriesCollectionName { get; set; } = null!;
     public string SparePartsCollectionName { get; set; } = null!;
+    public string TransactionsCollectionName { get; set; } = null!;
 }

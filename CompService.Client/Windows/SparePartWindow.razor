@@ -1,0 +1,117 @@
+﻿@using CompService.Core.Models
+@using CompService.Client.Data
+@using CompService.Core.Services
+
+@inject ISparePartService SparePartService;
+@inject IReferenceService<SparePartCategory> SparePartCategoryService;
+@inject ISnackbar Snackbar;
+<MudForm @bind-IsValid="_success" Model="_model">
+    <MudDialog DefaultFocus="DefaultFocus.LastChild">
+        <DialogContent>
+            <MudStack>
+                <MudTextField Required="true" T="string" @bind-Value="_model.Name"
+                              RequiredError="Обязательное поле" Label="Имя" InputType="InputType.Text"
+                              Class="mb-3"/>
+                @if (_categories is not null && _categories.Count != 0)
+                {
+                    <MudSelect T="SparePartCategory" @bind-Value="_model.Category" ToStringFunc="@_converter" Label="Категория"
+                               Variant="Variant.Text" AnchorOrigin="Origin.BottomCenter">
+                        @foreach (SparePartCategory category in _categories)
+                        {
+                            <MudSelectItem Value="category"/>
+                        }
+                    </MudSelect>
+                }
+                <MudTextField Required="true" T="string" @bind-Value="_model.Article"
+                              RequiredError="Обязательное поле" Label="Артикул" InputType="InputType.Text"
+                              Class="mb-3"/>
+                <MudTextField Required="false" T="int" @bind-Value="_model.Count"
+                              Label="Количество" InputType="InputType.Number"
+                              Class="mb-3"/>
+                <MudStack Row="true">
+                    <MudTextField Required="true" @bind-Value="_model.PurchasePrice"
+                                  RequiredError="Обязательное поле"
+                                  Label="Розничная цена" 
+                                  Class="mb-3"/>
+                    <MudTextField Required="true" @bind-Value="_model.RetailPrice"
+                                                  RequiredError="Обязательное поле"
+                                                  Label="Закупочная цена" 
+                                                  Class="mb-3"/>
+                </MudStack>
+            </MudStack>
+        </DialogContent>
+        <DialogActions>
+            <MudButton Class="mx-auto" Variant="Variant.Filled" Color="Color.Secondary" OnClick="Cancel">Отмена</MudButton>
+            <MudButton Class="mx-auto" Variant="Variant.Filled" Color="Color.Primary" OnClick="Submit" Disabled="@(!_success)">Сохранить</MudButton>
+        </DialogActions>
+    </MudDialog>
+</MudForm>
+
+@code {
+
+    [Parameter]
+    public SparePart? SelectedSparePart { get; set; }
+
+    [CascadingParameter]
+    MudDialogInstance? MudDialog { get; set; }
+
+    private bool _success;
+    private bool _isEditing;
+    private SparePartModel _model = new();
+    private readonly Func<SparePartCategory?, string?> _converter = p => p?.Name;
+    private List<SparePartCategory>? _categories;
+
+    protected override async Task OnInitializedAsync()
+    {
+        _categories = (await SparePartCategoryService.GetAllValues()).ToList();
+        if (SelectedSparePart is not null)
+        {
+            _isEditing = true;
+            
+            _model.Name = SelectedSparePart.Name;
+            _model.Article = SelectedSparePart.Article;
+            _model.Count = SelectedSparePart.Count;
+            _model.PurchasePrice = SelectedSparePart.PurchasePrice;
+            _model.RetailPrice = SelectedSparePart.RetailPrice;
+            _model.Category = SelectedSparePart.Category;
+        }
+        
+        await base.OnInitializedAsync();
+    }
+
+    private async Task Submit()
+    {
+        var newSparePart = new SparePart
+        {
+            Name = _model.Name,
+            Article = _model.Article,
+            Category = _model.Category!,
+            Count = _model.Count,
+            PurchasePrice = _model.PurchasePrice,
+            RetailPrice = _model.RetailPrice
+        };
+        
+        if (_isEditing)
+        {
+            await SparePartService.UpdateSparePart(SelectedSparePart!, newSparePart);
+            
+            Snackbar.Add("Успешно", Severity.Success);
+            MudDialog?.Close(DialogResult.Ok(true));
+
+            return;
+        }
+
+        var res = await SparePartService.Create(newSparePart);
+
+        if (!res.Success)
+        {
+            Snackbar.Add(res.Message, Severity.Error);
+            return;
+        }
+        
+        Snackbar.Add("Успешно", Severity.Success);
+        MudDialog?.Close(DialogResult.Ok(true));
+    }
+
+    private void Cancel() => MudDialog?.Cancel();
+}

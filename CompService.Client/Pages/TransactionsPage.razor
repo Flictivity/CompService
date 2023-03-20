@@ -1,0 +1,134 @@
+﻿@page "/transactions"
+@using CompService.Core.Services
+@using CompService.Core.Models
+@using CompService.Core.Extensions
+@using CompService.Core.Enums
+
+@inject ITransactionService TransactionService;
+@inject UserInfoHolder UserInfoHolder;
+
+<MudStack Row="true">
+    <MudStack Row="true">
+        <MudStack Row="true">
+            <MudText Typo="Typo.h6">Баланс</MudText>
+            <MudText Typo="Typo.subtitle1" Color="Color.Secondary">@_balance</MudText>
+        </MudStack>
+        <MudStack>
+            <MudText Typo="Typo.h6">Приход</MudText>
+            <MudText Typo="Typo.subtitle1" Color="Color.Secondary">@_arrival</MudText>
+        </MudStack>
+        <MudStack>
+            <MudText Typo="Typo.h6">Расход</MudText>
+            <MudText Typo="Typo.subtitle1" Color="Color.Secondary">@_expense</MudText>
+        </MudStack>
+    </MudStack>
+    <MudStack Row="true">
+        <MudStack>
+            <MudText Typo="Typo.h6">С</MudText>
+            <MudDatePicker></MudDatePicker>
+        </MudStack>
+        <MudStack>
+            <MudText Typo="Typo.h6">По</MudText>
+            <MudDatePicker></MudDatePicker>
+        </MudStack>
+    </MudStack>
+</MudStack>
+
+
+<MudTable Items="_transactions" T="Transaction" Hover="true">
+    <ToolBarContent>
+        <MudText Typo="Typo.h6">Платежи</MudText>
+        <MudSpacer/>
+        <MudTextField @bind-Value="_searchString" Placeholder="Поиск" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Search" IconSize="Size.Medium" Class="mt-0"></MudTextField>
+    </ToolBarContent>
+    <HeaderContent>
+        <MudTh>
+            <MudTableSortLabel SortBy="new Func<Transaction, object>(x => x.TransactionTime)">Дата</MudTableSortLabel>
+        </MudTh>
+        <MudTh>
+            <MudTableSortLabel SortBy="new Func<Transaction, object>(x => x.ArrivalMoney)">Приход</MudTableSortLabel>
+        </MudTh>
+        <MudTh>
+            <MudTableSortLabel SortBy="new Func<Transaction, object>(x => x.ExpenseMoney)">Расход</MudTableSortLabel>
+        </MudTh>
+        <MudTh>Метод оплаты</MudTh>
+        <MudTh>Основание</MudTh>
+        <MudTh>
+            <MudTableSortLabel SortBy="new Func<Transaction, object>(x => x.User.Surname)">Сотрудник</MudTableSortLabel>
+        </MudTh>
+    </HeaderContent>
+    <RowTemplate>
+        <MudTd DataLabel="Дата">
+            <MudText>@context.TransactionTime</MudText>
+        </MudTd>
+        <MudTd DataLabel="Приход">
+            <MudText Color="Color.Success">
+                @if (context.ArrivalMoney != 0)
+                {
+                    @context.ArrivalMoney
+                }
+            </MudText>
+        </MudTd>
+        <MudTd DataLabel="Расход">
+            <MudText Color="Color.Error">
+                @if (context.ExpenseMoney != 0)
+                {
+                    @context.ExpenseMoney
+                }
+            </MudText>
+        </MudTd>
+        <MudTd DataLabel="Метод оплаты">
+            <MudText>@context.PaymentMehod.GetName()</MudText>
+        </MudTd>
+        <MudTd DataLabel="Основание">
+            <MudText>@context.TransactionBasis.GetName()</MudText>
+        </MudTd>
+        <MudTd>
+            <MudText>@context.User.Surname</MudText>
+        </MudTd>
+    </RowTemplate>
+</MudTable>
+
+<MudFab Style="position: fixed; bottom: 0; right: 0; margin: 35px 25px;" Color="Color.Primary" Icon="@Icons.Material.Filled.Add" OnClick="async () => await OpenWindow()"/>
+
+@code {
+    private string _searchString = "";
+    private double _balance;
+    private double _arrival;
+    private double _expense;
+    private List<Transaction>? _transactions;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var transactions = await TransactionService.GetAllTransactions();
+        _balance = transactions.Item2.Balance;
+        _arrival = transactions.Item2.Arrival;
+        _expense = transactions.Item2.Expense;
+        _transactions = transactions.Item1.ToList();
+        await base.OnInitializedAsync();
+    }
+
+    private async Task OpenWindow()
+    {
+        if (UserInfoHolder.CurrentUser is null)
+        {
+            return;
+        }
+        var newTransaction = new Transaction
+        {
+            TransactionTime = DateTime.Now, ArrivalMoney = 0, ExpenseMoney = 1000, PaymentMehod = PaymentMethods.Cash,
+            TransactionBasis = TransactionBasis.Rent, Order = null, User = UserInfoHolder.CurrentUser
+        };
+        var res = await TransactionService.Create(newTransaction);
+
+        if (res.Success)
+        {
+            var transactions = await TransactionService.GetAllTransactions();
+            _balance = transactions.Item2.Balance;
+            _arrival = transactions.Item2.Arrival;
+            _expense = transactions.Item2.Expense;
+            _transactions = transactions.Item1.ToList();
+        }
+    }
+
+}

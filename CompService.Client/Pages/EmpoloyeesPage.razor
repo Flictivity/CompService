@@ -14,7 +14,7 @@
     <h1>Недостаточно прав</h1>
     return;
 }
-@if (UserInfoHolder.CurrentUser is not null && UserInfoHolder.CurrentUser.Role != Role.Administrator)
+@if (UserInfoHolder.CurrentUser is not null && UserInfoHolder.CurrentUser.Roles != Roles.Administrator)
 {
     <h1>Недостаточно прав</h1>
     return;
@@ -56,7 +56,7 @@
             <MudText>@context.Email</MudText>
         </MudTd>
         <MudTd DataLabel="Роль">
-            <MudText>@context.Role.GetName()</MudText>
+            <MudText>@context.Roles.GetName()</MudText>
         </MudTd>
     </RowTemplate>
 </MudTable>
@@ -70,7 +70,7 @@
     protected override async Task OnInitializedAsync()
     {
         @if (UserInfoHolder.CurrentUser is null
-             || UserInfoHolder.CurrentUser is not null && UserInfoHolder.CurrentUser.Role != Role.Administrator)
+             || UserInfoHolder.CurrentUser is not null && UserInfoHolder.CurrentUser.Roles != Roles.Administrator)
         {
             return;
         }

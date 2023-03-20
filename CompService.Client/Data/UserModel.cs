@@ -10,5 +10,5 @@ public class UserModel
     public string Email { get; set; } = String.Empty;
     public string? Password { get; set; } = String.Empty;
     public string? PhoneNumber { get; set; } = String.Empty;
-    public Role Role { get; set; }
+    public Roles Roles { get; set; }
 }
