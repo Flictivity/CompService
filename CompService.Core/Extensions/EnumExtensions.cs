@@ -8,6 +8,6 @@ public static class EnumExtensions
 {
     public static string? GetName(this Enum @enum)
     {
-        return @enum.GetType().GetField(@enum.ToString()).GetCustomAttribute<DisplayAttribute>()?.Name;
+        return @enum.GetType().GetField(@enum.ToString())?.GetCustomAttribute<DisplayAttribute>()?.Name;
     }
 }
