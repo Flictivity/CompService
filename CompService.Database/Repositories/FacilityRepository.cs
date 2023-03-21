@@ -30,11 +30,7 @@ public class FacilityRepository : IFacilityRepository
 
     public async Task CreateFacility(Facility facility)
     {
-        var dbRef = new FacilityDb
-        {
-            Name = facility.Name,
-            Cost = facility.Cost
-        };
+        var dbRef = EntityConverter.ConvertFacility(facility);
         await _facilities.InsertOneAsync(dbRef);
     }
 
@@ -44,22 +40,12 @@ public class FacilityRepository : IFacilityRepository
 
         return res is null
             ? null
-            : new Facility
-            {
-                FacilityId = res.FacilityId,
-                Name = res.Name,
-                Cost = res.Cost
-            };
+            : EntityConverter.ConvertFacility(res);
     }
 
     public async Task UpdateFacility(Facility currentFacility, Facility newFacility)
     {
-        var newDbFacility = new FacilityDb
-        {
-            FacilityId = newFacility.FacilityId,
-            Name = newFacility.Name,
-            Cost = newFacility.Cost,
-        };
+        var newDbFacility = EntityConverter.ConvertFacility(newFacility);
 
         await _facilities.ReplaceOneAsync(x => x.FacilityId == currentFacility.FacilityId, newDbFacility);
     }
@@ -68,7 +54,6 @@ public class FacilityRepository : IFacilityRepository
     {
         var facilities = (await _facilities.FindAsync(x => true)).ToList();
 
-        return facilities.Select(facility => 
-            new Facility {FacilityId = facility.FacilityId, Name = facility.Name, Cost = facility.Cost}).ToList();
+        return facilities.Select(EntityConverter.ConvertFacility).ToList();
     }
 }

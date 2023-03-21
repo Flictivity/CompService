@@ -30,7 +30,7 @@ public class TransactionService : ITransactionService
         return new BaseResult {Success = true};
     }
 
-    public async Task<(IEnumerable<Transaction>, TransactionResult)> GetAllTransactions()
+    public async Task<TransactionListDataResult> GetAllTransactions()
     {
         var res = (await _transactionRepository.GetAllTransactions())
             .OrderBy(x => x.TransactionTime)
@@ -41,19 +41,20 @@ public class TransactionService : ITransactionService
         var balance = new TransactionResult
         {
             Success = true,
-            Balance = arrival - expense,
+            Profit = arrival - expense,
             Arrival = arrival,
             Expense = expense
         };
         
-        return (res, balance);
+        return new TransactionListDataResult{Success = true, TransactionResult = balance, Items = res};
     }
 
-    public async Task<(IEnumerable<Transaction>, TransactionResult)> GetAllTransactionsForPeriod(DateTime periodStart,
+    public async Task<TransactionListDataResult> GetAllTransactionsForPeriod(DateTime periodStart,
         DateTime periodEnd)
     {
         var res = (await _transactionRepository
-            .GetAllTransactionsForPeriod(periodStart, periodEnd))
+            .GetAllTransactions())
+            .Where(x => x.TransactionTime >= periodStart && x.TransactionTime <= periodEnd)
             .OrderBy(x => x.TransactionTime)
             .ToList();
         
@@ -62,11 +63,11 @@ public class TransactionService : ITransactionService
         var balance = new TransactionResult
         {
             Success = true,
-            Balance = arrival - expense,
+            Profit = arrival - expense,
             Arrival = arrival,
             Expense = expense
         };
         
-        return (res, balance);
+        return new TransactionListDataResult{Success = true, TransactionResult = balance, Items = res};
     }
 }

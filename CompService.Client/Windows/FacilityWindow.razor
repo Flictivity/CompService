@@ -26,9 +26,9 @@
     [Parameter] public Facility? SelectedFacility { get; set; }
     private bool _isEditing;
     private bool _success;
-    
+
     [CascadingParameter]
-    MudDialogInstance? MudDialog { get; set; }
+    MudDialogInstance MudDialog { get; set; } = null!;
 
     FacilityModel _model = new();
 
@@ -50,7 +50,7 @@
             Name = _model.Name,
             Cost = _model.Cost
         };
-        if (_isEditing)
+        if (_isEditing && SelectedFacility is not null)
         {
             await FacilityService.UpdateFacility(SelectedFacility, newFacility.Name, newFacility.Cost);
             Snackbar.Add("Успешно", Severity.Success);

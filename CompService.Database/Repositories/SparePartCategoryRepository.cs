@@ -42,20 +42,12 @@ public class SparePartCategoryRepository : IReferenceRepository<SparePartCategor
 
         return res is null
             ? null
-            : new SparePartCategory
-            {
-                CategoryId = res.CategoryId,
-                Name = res.Name
-            };
+            : EntityConverter.ConvertSparePartCategory(res);
     }
 
     public async Task UpdateReference(SparePartCategory currentRef, SparePartCategory newRef)
     {
-        var newDbRef = new SparePartCategoryDb
-        {
-            CategoryId = newRef.CategoryId,
-            Name = newRef.Name
-        };
+        var newDbRef = EntityConverter.ConvertSparePartCategory(newRef);
 
         await _categories.ReplaceOneAsync(x => x.CategoryId == currentRef.CategoryId, newDbRef);
     }

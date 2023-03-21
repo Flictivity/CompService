@@ -23,9 +23,9 @@
     private string _name = "";
     private bool _isEditing;
     private bool _success;
-    
+
     [CascadingParameter]
-    MudDialogInstance? MudDialog { get; set; }
+    MudDialogInstance MudDialog { get; set; } = null!;
 
     protected override Task OnInitializedAsync()
     {

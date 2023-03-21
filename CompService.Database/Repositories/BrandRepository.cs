@@ -42,11 +42,7 @@ public class BrandRepository : IReferenceRepository<Brand>
 
         return res is null
             ? null
-            : new Brand
-            {
-                BrandId = res.BrandId,
-                Name = res.Name
-            };
+            : EntityConverter.ConvertBrand(res);
     }
 
     public async Task UpdateReference(Brand currentRef, Brand newRef)

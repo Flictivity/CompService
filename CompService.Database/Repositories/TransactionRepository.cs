@@ -48,9 +48,9 @@ public class TransactionRepository : ITransactionRepository
             TransactionTime = newTransaction.TransactionTime,
             ArrivalMoney = newTransaction.ArrivalMoney,
             ExpenseMoney = newTransaction.ExpenseMoney,
-            PaymentMehod = (int) newTransaction.PaymentMehod,
+            PaymentMethod = (int) newTransaction.PaymentMethod,
             TransactionBasis = (int) newTransaction.TransactionBasis,
-            OrderDb = newTransaction.Order is null
+            Order = newTransaction.Order is null
                 ? null
                 : new OrderDb
                 {
@@ -67,7 +67,8 @@ public class TransactionRepository : ITransactionRepository
                 Password = newTransaction.User.Password,
                 PhoneNumber = newTransaction.User.PhoneNumber,
                 Role = (int) newTransaction.User.Roles
-            }
+            },
+            Comment = newTransaction.Comment
         };
 
         await _transactions
@@ -77,16 +78,6 @@ public class TransactionRepository : ITransactionRepository
     public async Task<IEnumerable<Transaction>> GetAllTransactions()
     {
         var transactions = (await _transactions.FindAsync(x => true)).ToList();
-
-        return transactions.Select(EntityConverter.ConvertTransaction).ToList();
-    }
-
-    public async Task<IEnumerable<Transaction>> GetAllTransactionsForPeriod(DateTime periodStart,
-        DateTime periodEnd)
-    {
-        var transactions = (await _transactions
-            .FindAsync(x => x.TransactionTime.Date >= periodStart
-                            && x.TransactionTime < periodEnd)).ToList();
 
         return transactions.Select(EntityConverter.ConvertTransaction).ToList();
     }

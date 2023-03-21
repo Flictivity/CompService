@@ -43,20 +43,12 @@ public class SourceRepository : IReferenceRepository<Source>
 
         return res is null
             ? null
-            : new Source
-            {
-                SourceId = res.SourceId,
-                Name = res.Name
-            };
+            : EntityConverter.ConvertSource(res);
     }
 
     public async Task UpdateReference(Source currentRef, Source newRef)
     {
-        var newDbRef = new SourceDb
-        {
-            SourceId = newRef.SourceId,
-            Name = newRef.Name
-        };
+        var newDbRef = EntityConverter.ConvertSource(newRef);
 
         await _sources.ReplaceOneAsync(x => x.SourceId == currentRef.SourceId, newDbRef);
     }

@@ -42,20 +42,12 @@ public class DeviceTypeRepository : IReferenceRepository<DeviceType>
 
         return res is null
             ? null
-            : new DeviceType
-            {
-                DeviceTypeId = res.DeviceTypeId,
-                Name = res.Name
-            };
+            : EntityConverter.ConvertDeviceType(res);
     }
 
     public async Task UpdateReference(DeviceType currentRef, DeviceType newRef)
     {
-        var newDbRef = new DeviceTypeDb()
-        {
-            DeviceTypeId = newRef.DeviceTypeId,
-            Name = newRef.Name
-        };
+        var newDbRef = EntityConverter.ConvertDeviceType(newRef);
 
         await _defects.ReplaceOneAsync(x => x.DeviceTypeId == currentRef.DeviceTypeId, newDbRef);
     }

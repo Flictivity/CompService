@@ -29,7 +29,7 @@
     private bool _success;
 
     [CascadingParameter]
-    MudDialogInstance? MudDialog { get; set; }
+    MudDialogInstance MudDialog { get; set; } = null!;
 
     [Parameter]
     public string? OldPassword { get; set; }

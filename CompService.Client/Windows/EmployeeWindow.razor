@@ -56,8 +56,9 @@
 
 @code {
     [Parameter] public User? SelectedUser { get; set; }
+
     [CascadingParameter]
-    MudDialogInstance? MudDialog { get; set; }
+    MudDialogInstance MudDialog { get; set; } = null!;
 
     private bool _success;
     private bool _isEditing;

@@ -2,35 +2,35 @@
 @using CompService.Core.Services
 @using CompService.Core.Models
 @using CompService.Core.Extensions
-@using CompService.Core.Enums
+@using CompService.Client.Windows
 
 @inject ITransactionService TransactionService;
 @inject UserInfoHolder UserInfoHolder;
+@inject IDialogService DialogService;
 
-<MudStack Row="true">
+@if (UserInfoHolder.CurrentUser is null)
+{
+    <h1>Недостаточно прав</h1>
+    return;
+}
+
+<MudStack Row="true" Class="d-flex justify-space-between">
     <MudStack Row="true">
-        <MudStack Row="true">
-            <MudText Typo="Typo.h6">Баланс</MudText>
+        <MudStack Row="true" Class="d-flex align-center mr-10">
+            <MudText Typo="Typo.h6">Итого</MudText>
             <MudText Typo="Typo.subtitle1" Color="Color.Secondary">@_balance</MudText>
         </MudStack>
-        <MudStack>
+        <MudStack Class="d-flex justify-center align-content-center">
             <MudText Typo="Typo.h6">Приход</MudText>
-            <MudText Typo="Typo.subtitle1" Color="Color.Secondary">@_arrival</MudText>
+            <MudText Typo="Typo.subtitle1" Color="Color.Secondary" Class="mx-auto">@_arrival</MudText>
         </MudStack>
-        <MudStack>
+        <MudStack Class="d-flex justify-center align-content-center">
             <MudText Typo="Typo.h6">Расход</MudText>
-            <MudText Typo="Typo.subtitle1" Color="Color.Secondary">@_expense</MudText>
+            <MudText Typo="Typo.subtitle1" Color="Color.Secondary" Class="mx-auto">@_expense</MudText>
         </MudStack>
     </MudStack>
-    <MudStack Row="true">
-        <MudStack>
-            <MudText Typo="Typo.h6">С</MudText>
-            <MudDatePicker></MudDatePicker>
-        </MudStack>
-        <MudStack>
-            <MudText Typo="Typo.h6">По</MudText>
-            <MudDatePicker></MudDatePicker>
-        </MudStack>
+    <MudStack>
+        <MudDateRangePicker PickerVariant="PickerVariant.Dialog" PickerClosed="async () => await RefreshTransactions()" Label="Период" @bind-DateRange="_dateRange" Editable="true"/>
     </MudStack>
 </MudStack>
 
@@ -59,7 +59,7 @@
     </HeaderContent>
     <RowTemplate>
         <MudTd DataLabel="Дата">
-            <MudText>@context.TransactionTime</MudText>
+            <MudText>@context.TransactionTime.Date.ToString("dd/MM/yyyy")</MudText>
         </MudTd>
         <MudTd DataLabel="Приход">
             <MudText Color="Color.Success">
@@ -78,7 +78,7 @@
             </MudText>
         </MudTd>
         <MudTd DataLabel="Метод оплаты">
-            <MudText>@context.PaymentMehod.GetName()</MudText>
+            <MudText>@context.PaymentMethod.GetName()</MudText>
         </MudTd>
         <MudTd DataLabel="Основание">
             <MudText>@context.TransactionBasis.GetName()</MudText>
@@ -92,6 +92,8 @@
 <MudFab Style="position: fixed; bottom: 0; right: 0; margin: 35px 25px;" Color="Color.Primary" Icon="@Icons.Material.Filled.Add" OnClick="async () => await OpenWindow()"/>
 
 @code {
+    private DateRange _dateRange = new(DateTime.Now.Date, DateTime.Now.AddDays(7).Date);
+
     private string _searchString = "";
     private double _balance;
     private double _arrival;
@@ -101,10 +103,10 @@
     protected override async Task OnInitializedAsync()
     {
         var transactions = await TransactionService.GetAllTransactions();
-        _balance = transactions.Item2.Balance;
-        _arrival = transactions.Item2.Arrival;
-        _expense = transactions.Item2.Expense;
-        _transactions = transactions.Item1.ToList();
+        _balance = transactions.TransactionResult.Profit;
+        _arrival = transactions.TransactionResult.Arrival;
+        _expense = transactions.TransactionResult.Expense;
+        _transactions = transactions.Items.ToList();
         await base.OnInitializedAsync();
     }
 
@@ -114,21 +116,34 @@
         {
             return;
         }
-        var newTransaction = new Transaction
-        {
-            TransactionTime = DateTime.Now, ArrivalMoney = 0, ExpenseMoney = 1000, PaymentMehod = PaymentMethods.Cash,
-            TransactionBasis = TransactionBasis.Rent, Order = null, User = UserInfoHolder.CurrentUser
-        };
-        var res = await TransactionService.Create(newTransaction);
 
-        if (res.Success)
+        DialogOptions closeOnEscapeKey = new DialogOptions {CloseOnEscapeKey = true};
+
+        var dialog = await DialogService.ShowAsync<TransactionCreateWindow>("Новая запись", closeOnEscapeKey);
+        var result = await dialog.Result;
+
+        if (!result.Canceled)
         {
             var transactions = await TransactionService.GetAllTransactions();
-            _balance = transactions.Item2.Balance;
-            _arrival = transactions.Item2.Arrival;
-            _expense = transactions.Item2.Expense;
-            _transactions = transactions.Item1.ToList();
+            _balance = transactions.TransactionResult.Profit;
+            _arrival = transactions.TransactionResult.Arrival;
+            _expense = transactions.TransactionResult.Expense;
+            _transactions = transactions.Items.ToList();
+            StateHasChanged();
         }
+    }
+
+    private async Task RefreshTransactions()
+    {
+        var transactions = await TransactionService
+            .GetAllTransactionsForPeriod(_dateRange.Start ?? DateTime.Now,
+                _dateRange.End ?? DateTime.Now.AddDays(7));
+
+        _balance = transactions.TransactionResult.Profit;
+        _arrival = transactions.TransactionResult.Arrival;
+        _expense = transactions.TransactionResult.Expense;
+        _transactions = transactions.Items.ToList();
+        StateHasChanged();
     }
 
 }

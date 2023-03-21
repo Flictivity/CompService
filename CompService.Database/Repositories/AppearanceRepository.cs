@@ -42,11 +42,7 @@ public class AppearanceRepository : IReferenceRepository<Appearance>
 
         return res is null
             ? null
-            : new Appearance
-            {
-                AppearanceId = res.AppearanceId,
-                Name = res.Name
-            };
+            : EntityConverter.ConvertAppearance(res);
     }
 
     public async Task UpdateReference(Appearance currentRef, Appearance newRef)
@@ -64,7 +60,6 @@ public class AppearanceRepository : IReferenceRepository<Appearance>
     {
         var defects = (await _defects.FindAsync(x => true)).ToList();
 
-        return defects.Select(reference => 
-            new Appearance {AppearanceId = reference.AppearanceId, Name = reference.Name,}).ToList();
+        return defects.Select(EntityConverter.ConvertAppearance).ToList();
     }
 }

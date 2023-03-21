@@ -1,0 +1,117 @@
+﻿@page "/orders"
+@using CompService.Core.Models
+@using CompService.Core.Services
+@using CompService.Core.Extensions
+@using CompService.Core.Enums
+
+@inject IOrderService OrderService;
+@inject IClientService ClientService;
+@inject IReferenceService<Appearance> AppearanceService;
+@inject IReferenceService<Brand> BrandService;
+@inject IReferenceService<Defect> DefectService;
+@inject IReferenceService<DeviceType> DeviceTypeService;
+@inject UserInfoHolder UserInfoHolder;
+
+<MudTable Items="_orders" T="Order" Hover="true">
+    <ToolBarContent>
+        <MudText Typo="Typo.h6">Заказы</MudText>
+        <MudSpacer/>
+        <MudTextField @bind-Value="_searchString" Placeholder="Поиск" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Search" IconSize="Size.Medium" Class="mt-0"></MudTextField>
+    </ToolBarContent>
+    <HeaderContent>
+        <MudTh>
+            <MudTableSortLabel SortBy="new Func<Order, object>(x => x.OrderId)">Заказ</MudTableSortLabel>
+        </MudTh>
+        <MudTh>
+            <MudTableSortLabel SortBy="new Func<Order, object>(x => x.Status.GetName())">Статус</MudTableSortLabel>
+        </MudTh>
+        <MudTh>
+            <MudTableSortLabel SortBy="new Func<Order, object>(x => x.Client.Name)">Клиент</MudTableSortLabel>
+        </MudTh>
+        <MudTh>
+            <MudTableSortLabel SortBy="new Func<Order, object>(x => x.Defect.Name)">Неисправность</MudTableSortLabel>
+        </MudTh>
+        <MudTh>
+            <MudTableSortLabel SortBy="new Func<Order, object>(x => x.Operator.Surname)">Оператор</MudTableSortLabel>
+        </MudTh>
+        <MudTh>
+            <MudTableSortLabel SortBy="new Func<Order, object>(x => x.Master.Surname)">Исполнитель</MudTableSortLabel>
+        </MudTh>
+        <MudTh>Место на стойке</MudTh>
+        <MudTh>
+            <MudTableSortLabel SortBy="new Func<Order, object>(x => x.Money)">Итоговая сумма</MudTableSortLabel>
+        </MudTh>
+    </HeaderContent>
+    <RowTemplate>
+        <MudTd DataLabel="Заказ">
+            <MudStack>
+                <MudText>@context.OrderId</MudText>
+                <MudText>@context.OrderDate.ToString("dd/MM/yyyy")</MudText>
+            </MudStack>
+        </MudTd>
+        <MudTd DataLabel="Статус">
+            <MudText>@context.Status.GetName()</MudText>
+        </MudTd>
+        <MudTd DataLabel="Клиент">
+            <MudStack>
+                <MudText>@context.Client.Surname</MudText>
+                <MudText>@context.Client.PhoneNumber</MudText>
+            </MudStack>
+        </MudTd>
+        <MudTd DataLabel="Неиcправность">
+            <MudText>@context.Defect.Name</MudText>
+        </MudTd>
+        <MudTd DataLabel="Оператор">
+            <MudText>@context.Operator.Surname @context.Operator.Name[0]. @context.Operator.Patronymic[0].</MudText>
+        </MudTd>
+        <MudTd DataLabel="Исполнитель">
+            <MudText>@context.Master.Surname @context.Master.Name[0]. @context.Master.Patronymic[0].</MudText>
+        </MudTd>
+        <MudTd DataLabel="Место на стойке">
+            <MudText></MudText>
+        </MudTd>
+        <MudTd DataLabel="Итоговая сумма">
+            <MudText>@context.Money</MudText>
+        </MudTd>
+    </RowTemplate>
+</MudTable>
+
+<MudFab Style="position: fixed; bottom: 0; right: 0; margin: 35px 25px;" Color="Color.Primary" Icon="@Icons.Material.Filled.Add" OnClick="async () => await OpenWindow()"/>
+
+@code {
+    private string _searchString = "";
+    private List<Order>? _orders;
+
+    protected override async Task OnInitializedAsync()
+    {
+        _orders = (await OrderService.GetAllOrders()).ToList();
+        await base.OnInitializedAsync();
+    }
+
+    private async Task OpenWindow()
+    {
+        var newOrder = new Order
+        {
+            OrderDate = DateTime.Now,
+            Client = (await ClientService.GetAllClients()).ToList()[0],
+            Defect = (await DefectService.GetAllValues()).ToList()[0],
+            Appearance = (await AppearanceService.GetAllValues()).ToList()[0],
+            DeviceType = (await DeviceTypeService.GetAllValues()).ToList()[0],
+            Brand = (await BrandService.GetAllValues()).ToList()[0],
+            Model = "Test",
+            DevicePassword = null,
+            Operator = UserInfoHolder.CurrentUser!,
+            Master = UserInfoHolder.CurrentUser!,
+            Status = OrdersStatuses.NewOrder,
+            SpareParts = null,
+            Facilities = null,
+            Money = 0
+        };
+        var res = await OrderService.Create(newOrder);
+        if (res.Success)
+        {
+            _orders = (await OrderService.GetAllOrders()).ToList();
+            StateHasChanged();
+        }
+    }
+}
