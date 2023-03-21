@@ -1,21 +1,21 @@
 ﻿using CompService.Core.Enums;
 using CompService.Core.Models;
 using CompService.Core.Repositories;
+using CompService.Core.Settings;
 using CompService.Database.Models;
-using CompService.Database.Settings;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using MongoDB.Driver;
 
-namespace CompService.Database.Reposirories
+namespace CompService.Database.Repositories
 {
     public class UserRepository : IUserRepository
     {
         private readonly IMongoCollection<UserDb> _users;
-        private readonly ILogger<IUserRepository> _logger;
+        private readonly ILogger<UserRepository> _logger;
 
         public UserRepository(IOptions<DatabaseConnectionSettings> databaseConnectionSettings,
-            ILogger<IUserRepository> logger)
+            ILogger<UserRepository> logger)
         {
             var mongoClient = new MongoClient(
                 databaseConnectionSettings.Value.ConnectionString);
@@ -58,13 +58,8 @@ namespace CompService.Database.Reposirories
             return res is null ? null : EntityConverter.ConvertUser(res); 
         }
 
-        public async Task UpdateUser(User? currentUser, User newUser)
+        public async Task UpdateUser(User currentUser, User newUser)
         {
-            if (currentUser is null)
-            {
-                return;
-            }
-
             var newDbUser = new UserDb
             {
                 UserId = currentUser.UserId,
@@ -83,13 +78,8 @@ namespace CompService.Database.Reposirories
         public async Task<IEnumerable<User>> GetAllUsers()
         {
             var users = (await _users.FindAsync(x => true)).ToList();
-            var res = new List<User>();
-            foreach (var user in users)
-            {
-                res.Add(EntityConverter.ConvertUser(user));
-            }
 
-            return res;
+            return users.Select(EntityConverter.ConvertUser).ToList();
         }
     }
 }

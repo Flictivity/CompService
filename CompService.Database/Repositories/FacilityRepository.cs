@@ -1,12 +1,12 @@
 ﻿using CompService.Core.Models;
 using CompService.Core.Repositories;
+using CompService.Core.Settings;
 using CompService.Database.Models;
-using CompService.Database.Settings;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using MongoDB.Driver;
 
-namespace CompService.Database.Reposirories;
+namespace CompService.Database.Repositories;
 
 public class FacilityRepository : IFacilityRepository
 {
@@ -52,14 +52,8 @@ public class FacilityRepository : IFacilityRepository
             };
     }
 
-    public async Task UpdateFacility(Facility? currentFacility, Facility newFacility)
+    public async Task UpdateFacility(Facility currentFacility, Facility newFacility)
     {
-        if (currentFacility is null)
-        {
-            _logger.LogError("Null reference");
-            return;
-        }
-
         var newDbFacility = new FacilityDb
         {
             FacilityId = newFacility.FacilityId,
@@ -73,17 +67,8 @@ public class FacilityRepository : IFacilityRepository
     public async Task<IEnumerable<Facility>> GetAllFacilities()
     {
         var facilities = (await _facilities.FindAsync(x => true)).ToList();
-        var res = new List<Facility>();
-        foreach (var facility in facilities)
-        {
-            res.Add(new Facility
-            {
-                FacilityId = facility.FacilityId,
-                Name = facility.Name,
-                Cost = facility.Cost
-            });
-        }
 
-        return res;
+        return facilities.Select(facility => 
+            new Facility {FacilityId = facility.FacilityId, Name = facility.Name, Cost = facility.Cost}).ToList();
     }
 }

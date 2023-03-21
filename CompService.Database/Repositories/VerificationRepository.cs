@@ -1,12 +1,12 @@
 ﻿using CompService.Core.Models;
 using CompService.Core.Repositories;
+using CompService.Core.Settings;
 using CompService.Database.Models;
-using CompService.Database.Settings;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using MongoDB.Driver;
 
-namespace CompService.Database.Reposirories;
+namespace CompService.Database.Repositories;
 
 public class VerificationRepository : IVerificationRepository
 {
@@ -27,21 +27,15 @@ public class VerificationRepository : IVerificationRepository
         _logger = logger;
     }
 
-    public async Task CreateVerification(UserVerification? verification)
+    public async Task CreateVerification(UserVerification verification)
     {
-        if (verification is null)
-        {
-            _logger.LogError("Verification is null");
-            return;
-        }
-
         if (verification.User is null)
         {
             _logger.LogError("User is null");
             return;
         }
 
-        var verificateUser = new UserDb
+        var verificationUser = new UserDb
         {
             UserId = verification.User.UserId,
             Name = verification.User.Name,
@@ -55,7 +49,7 @@ public class VerificationRepository : IVerificationRepository
         {
             IsActual = verification.IsActual,
             Code = verification.Code,
-            User = verificateUser,
+            User = verificationUser,
             ExpyreTime = verification.ExpyreTime
         };
         await _verifications.InsertOneAsync(verificationDb);

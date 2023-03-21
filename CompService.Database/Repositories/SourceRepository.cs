@@ -1,20 +1,20 @@
 ﻿using CompService.Core.Models;
 using CompService.Core.Repositories;
+using CompService.Core.Settings;
 using CompService.Database.Models;
-using CompService.Database.Settings;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using MongoDB.Driver;
 
-namespace CompService.Database.Reposirories;
+namespace CompService.Database.Repositories;
 
 public class SourceRepository : IReferenceRepository<Source>
 {
     private readonly IMongoCollection<SourceDb> _sources;
-    private readonly ILogger<IReferenceRepository<Source>> _logger;
+    private readonly ILogger<SourceRepository> _logger;
     
     public SourceRepository(IOptions<DatabaseConnectionSettings> databaseConnectionSettings,
-        ILogger<IReferenceRepository<Source>> logger)
+        ILogger<SourceRepository> logger)
     {
         _logger = logger;
         
@@ -50,14 +50,8 @@ public class SourceRepository : IReferenceRepository<Source>
             };
     }
 
-    public async Task UpdateReference(Source? currentRef, Source newRef)
+    public async Task UpdateReference(Source currentRef, Source newRef)
     {
-        if (currentRef is null)
-        {
-            _logger.LogError("Null reference");
-            return;
-        }
-
         var newDbRef = new SourceDb
         {
             SourceId = newRef.SourceId,
@@ -70,16 +64,8 @@ public class SourceRepository : IReferenceRepository<Source>
     public async Task<IEnumerable<Source>> GetAllValues()
     {
         var sources = (await _sources.FindAsync(x => true)).ToList();
-        var res = new List<Source>();
-        foreach (var reference in sources)
-        {
-            res.Add(new Source
-            {
-                SourceId = reference.SourceId,
-                Name = reference.Name,
-            });
-        }
 
-        return res;
+        return sources.Select(reference => 
+            new Source {SourceId = reference.SourceId, Name = reference.Name,}).ToList();
     }
 }

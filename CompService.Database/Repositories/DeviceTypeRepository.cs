@@ -1,19 +1,19 @@
 ﻿using CompService.Core.Models;
 using CompService.Core.Repositories;
+using CompService.Core.Settings;
 using CompService.Database.Models;
-using CompService.Database.Settings;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using MongoDB.Driver;
 
-namespace CompService.Database.Reposirories;
+namespace CompService.Database.Repositories;
 
 public class DeviceTypeRepository : IReferenceRepository<DeviceType>
 {
     private readonly IMongoCollection<DeviceTypeDb> _defects;
-    private readonly ILogger<IReferenceRepository<DeviceType>> _logger;
+    private readonly ILogger<DeviceTypeRepository> _logger;
     public DeviceTypeRepository(IOptions<DatabaseConnectionSettings> databaseConnectionSettings,
-        ILogger<IReferenceRepository<DeviceType>> logger)
+        ILogger<DeviceTypeRepository> logger)
     {
         _logger = logger;
         
@@ -49,14 +49,8 @@ public class DeviceTypeRepository : IReferenceRepository<DeviceType>
             };
     }
 
-    public async Task UpdateReference(DeviceType? currentRef, DeviceType newRef)
+    public async Task UpdateReference(DeviceType currentRef, DeviceType newRef)
     {
-        if (currentRef is null)
-        {
-            _logger.LogError("Null reference");
-            return;
-        }
-
         var newDbRef = new DeviceTypeDb()
         {
             DeviceTypeId = newRef.DeviceTypeId,
@@ -69,16 +63,8 @@ public class DeviceTypeRepository : IReferenceRepository<DeviceType>
     public async Task<IEnumerable<DeviceType>> GetAllValues()
     {
         var defects = (await _defects.FindAsync(x => true)).ToList();
-        var res = new List<DeviceType>();
-        foreach (var reference in defects)
-        {
-            res.Add(new DeviceType()
-            {
-                DeviceTypeId = reference.DeviceTypeId,
-                Name = reference.Name,
-            });
-        }
 
-        return res;
+        return defects.Select(reference => 
+            new DeviceType {DeviceTypeId = reference.DeviceTypeId, Name = reference.Name,}).ToList();
     }
 }

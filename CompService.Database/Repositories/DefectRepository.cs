@@ -1,19 +1,19 @@
 ﻿using CompService.Core.Models;
 using CompService.Core.Repositories;
+using CompService.Core.Settings;
 using CompService.Database.Models;
-using CompService.Database.Settings;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using MongoDB.Driver;
 
-namespace CompService.Database.Reposirories;
+namespace CompService.Database.Repositories;
 
 public class DefectRepository : IReferenceRepository<Defect>
 {
     private readonly IMongoCollection<DefectDb> _defects;
-    private readonly ILogger<IReferenceRepository<Defect>> _logger;
+    private readonly ILogger<DefectRepository> _logger;
     public DefectRepository(IOptions<DatabaseConnectionSettings> databaseConnectionSettings,
-        ILogger<IReferenceRepository<Defect>> logger)
+        ILogger<DefectRepository> logger)
     {
         _logger = logger;
         
@@ -49,14 +49,8 @@ public class DefectRepository : IReferenceRepository<Defect>
             };
     }
 
-    public async Task UpdateReference(Defect? currentRef, Defect newRef)
+    public async Task UpdateReference(Defect currentRef, Defect newRef)
     {
-        if (currentRef is null)
-        {
-            _logger.LogError("Null reference");
-            return;
-        }
-
         var newDbRef = new DefectDb
         {
             DefectId = newRef.DefectId,
@@ -69,16 +63,8 @@ public class DefectRepository : IReferenceRepository<Defect>
     public async Task<IEnumerable<Defect>> GetAllValues()
     {
         var defects = (await _defects.FindAsync(x => true)).ToList();
-        var res = new List<Defect>();
-        foreach (var reference in defects)
-        {
-            res.Add(new Defect
-            {
-                DefectId = reference.DefectId,
-                Name = reference.Name,
-            });
-        }
 
-        return res;
+        return defects.Select(reference => 
+            new Defect {DefectId = reference.DefectId, Name = reference.Name,}).ToList();
     }
 }

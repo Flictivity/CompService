@@ -69,6 +69,37 @@ public static class EntityConverter
         };
     }
 
+    public static ClientDb ConvertClient(Client client)
+    {
+        return new ClientDb
+        {
+            Name = client.Name,
+            Email = client.Email,
+            Surname = client.Surname,
+            PhoneNumber = client.PhoneNumber,
+            Source = client.Source is null ? null : new SourceDb
+            {
+                SourceId = client.Source.SourceId,
+                Name = client.Source.Name
+            }
+        };
+    }
+
+    public static Client ConvertClient(ClientDb client)
+    {
+        return new Client
+        {
+            Name = client.Name,
+            Email = client.Email,
+            Surname = client.Surname,
+            PhoneNumber = client.PhoneNumber,
+            Source = client.Source is null ? null : new Source
+            {
+                SourceId = client.Source.SourceId,
+                Name = client.Source.Name
+            }
+        };
+    }
     public static TransactionDb ConvertTransaction(Transaction transaction)
     {
         return new TransactionDb

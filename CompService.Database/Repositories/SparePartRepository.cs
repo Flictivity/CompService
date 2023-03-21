@@ -1,20 +1,20 @@
 ﻿using CompService.Core.Models;
 using CompService.Core.Repositories;
+using CompService.Core.Settings;
 using CompService.Database.Models;
-using CompService.Database.Settings;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using MongoDB.Driver;
 
-namespace CompService.Database.Reposirories;
+namespace CompService.Database.Repositories;
 
 public class SparePartRepository : ISparePartRepository
 {
     private readonly IMongoCollection<SparePartDb> _spareParts;
-    private readonly ILogger<ISparePartRepository> _logger;
+    private readonly ILogger<SparePartRepository> _logger;
 
     public SparePartRepository(IOptions<DatabaseConnectionSettings> databaseConnectionSettings,
-        ILogger<ISparePartRepository> logger)
+        ILogger<SparePartRepository> logger)
     {
         var mongoClient = new MongoClient(
             databaseConnectionSettings.Value.ConnectionString);
@@ -67,18 +67,14 @@ public class SparePartRepository : ISparePartRepository
             RetailPrice = newSparePart.RetailPrice
         };
             
-        await _spareParts.ReplaceOneAsync(x => x.SparePartId == currentSparePart.SparePartId, newSparePartDb);
+        await _spareParts
+            .ReplaceOneAsync(x => x.SparePartId == currentSparePart.SparePartId, newSparePartDb);
     }
 
     public async Task<IEnumerable<SparePart>> GetAllSpareParts()
     {
         var spareParts = (await _spareParts.FindAsync(x => true)).ToList();
-        var res = new List<SparePart>();
-        foreach (var sparePart in spareParts)
-        {
-            res.Add(EntityConverter.ConvertSparePart(sparePart));
-        }
 
-        return res;
+        return spareParts.Select(EntityConverter.ConvertSparePart).ToList();
     }
 }

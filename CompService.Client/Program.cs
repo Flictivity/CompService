@@ -6,8 +6,8 @@ using IAuthorizationService = CompService.Core.Services.IAuthorizationService;
 using CompService.Core.Services.Impl;
 using MudBlazor.Services;
 using CompService.Core.Repositories;
-using CompService.Database.Reposirories;
-using CompService.Database.Settings;
+using CompService.Core.Settings;
+using CompService.Database.Repositories;
 using MudBlazor;
 
 var builder = WebApplication.CreateBuilder(args);

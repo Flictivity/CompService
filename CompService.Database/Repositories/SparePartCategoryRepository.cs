@@ -1,20 +1,20 @@
 ﻿using CompService.Core.Models;
 using CompService.Core.Repositories;
+using CompService.Core.Settings;
 using CompService.Database.Models;
-using CompService.Database.Settings;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using MongoDB.Driver;
 
-namespace CompService.Database.Reposirories;
+namespace CompService.Database.Repositories;
 
 public class SparePartCategoryRepository : IReferenceRepository<SparePartCategory>
 {
     private readonly IMongoCollection<SparePartCategoryDb> _categories;
-    private readonly ILogger<IReferenceRepository<SparePartCategory>> _logger;
+    private readonly ILogger<SparePartCategoryRepository> _logger;
     
     public SparePartCategoryRepository(IOptions<DatabaseConnectionSettings> databaseConnectionSettings,
-        ILogger<IReferenceRepository<SparePartCategory>> logger)
+        ILogger<SparePartCategoryRepository> logger)
     {
         _logger = logger;
         
@@ -49,14 +49,8 @@ public class SparePartCategoryRepository : IReferenceRepository<SparePartCategor
             };
     }
 
-    public async Task UpdateReference(SparePartCategory? currentRef, SparePartCategory newRef)
+    public async Task UpdateReference(SparePartCategory currentRef, SparePartCategory newRef)
     {
-        if (currentRef is null)
-        {
-            _logger.LogError("Null reference");
-            return;
-        }
-
         var newDbRef = new SparePartCategoryDb
         {
             CategoryId = newRef.CategoryId,
@@ -69,16 +63,8 @@ public class SparePartCategoryRepository : IReferenceRepository<SparePartCategor
     public async Task<IEnumerable<SparePartCategory>> GetAllValues()
     {
         var categories = (await _categories.FindAsync(x => true)).ToList();
-        var res = new List<SparePartCategory>();
-        foreach (var category in categories)
-        {
-            res.Add(new SparePartCategory
-            {
-                CategoryId = category.CategoryId,
-                Name = category.Name,
-            });
-        }
 
-        return res;
+        return categories.Select(category => 
+            new SparePartCategory {CategoryId = category.CategoryId, Name = category.Name,}).ToList();
     }
 }

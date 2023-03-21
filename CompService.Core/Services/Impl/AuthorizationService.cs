@@ -70,12 +70,9 @@ namespace CompService.Core.Services.Impl
             await _verificationRepository.CreateVerification(verification);
             var sendResult = await _emailService.SendEmailAsync(email, MailSubjects.AuthMailSubject,
                 $"{MailMessages.AuthMailMessage}{verification.Code}");
-            if (sendResult.Success)
-            {
-                return new BaseResult {Success = true};
-            }
-
-            return new BaseResult {Success = false, Message = sendResult.Message};
+            return sendResult.Success
+                ? new BaseResult {Success = true} 
+                : new BaseResult {Success = false, Message = sendResult.Message};
         }
 
         public async Task<AuthorizationResult> AuthorizeWithCodeAsync(string email, string code)

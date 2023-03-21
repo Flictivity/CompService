@@ -1,12 +1,12 @@
 ﻿using CompService.Core.Models;
 using CompService.Core.Repositories;
+using CompService.Core.Settings;
 using CompService.Database.Models;
-using CompService.Database.Settings;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using MongoDB.Driver;
 
-namespace CompService.Database.Reposirories;
+namespace CompService.Database.Repositories;
 
 public class TransactionRepository : ITransactionRepository
 {
@@ -77,27 +77,17 @@ public class TransactionRepository : ITransactionRepository
     public async Task<IEnumerable<Transaction>> GetAllTransactions()
     {
         var transactions = (await _transactions.FindAsync(x => true)).ToList();
-        var res = new List<Transaction>();
-        foreach (var transaction in transactions)
-        {
-            res.Add(EntityConverter.ConvertTransaction(transaction));
-        }
 
-        return res;
+        return transactions.Select(EntityConverter.ConvertTransaction).ToList();
     }
 
-    public async Task<IEnumerable<Transaction>> GetAllTransactionsForPeriod(DateTime periodStart, DateTime periodEnd)
+    public async Task<IEnumerable<Transaction>> GetAllTransactionsForPeriod(DateTime periodStart,
+        DateTime periodEnd)
     {
         var transactions = (await _transactions
             .FindAsync(x => x.TransactionTime.Date >= periodStart
                             && x.TransactionTime < periodEnd)).ToList();
 
-        var res = new List<Transaction>();
-        foreach (var transaction in transactions)
-        {
-            res.Add(EntityConverter.ConvertTransaction(transaction));
-        }
-
-        return res;
+        return transactions.Select(EntityConverter.ConvertTransaction).ToList();
     }
 }

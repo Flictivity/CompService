@@ -7,7 +7,7 @@ namespace CompService.Core.Repositories
         public Task<bool> CreateUser(User user);
         public Task<User?> GetUserByEmail(string? email);
         public Task<User?> GetUserById(string? id);
-        public Task UpdateUser(User? currentUser, User newUser);
+        public Task UpdateUser(User currentUser, User newUser);
         public Task<IEnumerable<User>> GetAllUsers();
     }
 }

@@ -1,4 +1,4 @@
-﻿namespace CompService.Database.Settings;
+﻿namespace CompService.Core.Settings;
 
 public class DatabaseConnectionSettings
 {

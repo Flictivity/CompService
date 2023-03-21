@@ -1,19 +1,19 @@
 ﻿using CompService.Core.Models;
 using CompService.Core.Repositories;
+using CompService.Core.Settings;
 using CompService.Database.Models;
-using CompService.Database.Settings;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using MongoDB.Driver;
 
-namespace CompService.Database.Reposirories;
+namespace CompService.Database.Repositories;
 
 public class AppearanceRepository : IReferenceRepository<Appearance>
 {
     private readonly IMongoCollection<AppearanceDb> _defects;
-    private readonly ILogger<IReferenceRepository<Appearance>> _logger;
+    private readonly ILogger<AppearanceRepository> _logger;
     public AppearanceRepository(IOptions<DatabaseConnectionSettings> databaseConnectionSettings,
-        ILogger<IReferenceRepository<Appearance>> logger)
+        ILogger<AppearanceRepository> logger)
     {
         _logger = logger;
         
@@ -49,14 +49,8 @@ public class AppearanceRepository : IReferenceRepository<Appearance>
             };
     }
 
-    public async Task UpdateReference(Appearance? currentRef, Appearance newRef)
+    public async Task UpdateReference(Appearance currentRef, Appearance newRef)
     {
-        if (currentRef is null)
-        {
-            _logger.LogError("Null reference");
-            return;
-        }
-
         var newDbRef = new AppearanceDb
         {
             AppearanceId = newRef.AppearanceId,
@@ -69,16 +63,8 @@ public class AppearanceRepository : IReferenceRepository<Appearance>
     public async Task<IEnumerable<Appearance>> GetAllValues()
     {
         var defects = (await _defects.FindAsync(x => true)).ToList();
-        var res = new List<Appearance>();
-        foreach (var reference in defects)
-        {
-            res.Add(new Appearance
-            {
-                AppearanceId = reference.AppearanceId,
-                Name = reference.Name,
-            });
-        }
 
-        return res;
+        return defects.Select(reference => 
+            new Appearance {AppearanceId = reference.AppearanceId, Name = reference.Name,}).ToList();
     }
 }

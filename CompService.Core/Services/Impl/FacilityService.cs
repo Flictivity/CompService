@@ -26,13 +26,8 @@ public class FacilityService : IFacilityService
         return await _facilityRepository.GetFacilityById(id);
     }
 
-    public async Task<BaseResult> UpdateFacility(Facility? currentFacility, string name, double cost)
+    public async Task<BaseResult> UpdateFacility(Facility currentFacility, string name, double cost)
     {
-        if (currentFacility is null)
-        {
-            return new BaseResult {Success = false, Message = ReferencesMessages.Error};
-        }
-
         var newFacility = new Facility
         {
             Name = name,

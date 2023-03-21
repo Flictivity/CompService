@@ -1,19 +1,19 @@
 ﻿using CompService.Core.Models;
 using CompService.Core.Repositories;
+using CompService.Core.Settings;
 using CompService.Database.Models;
-using CompService.Database.Settings;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using MongoDB.Driver;
 
-namespace CompService.Database.Reposirories;
+namespace CompService.Database.Repositories;
 
 public class BrandRepository : IReferenceRepository<Brand>
 {
     private readonly IMongoCollection<BrandDb> _brands;
-    private readonly ILogger<IReferenceRepository<Brand>> _logger;
+    private readonly ILogger<BrandRepository> _logger;
     public BrandRepository(IOptions<DatabaseConnectionSettings> databaseConnectionSettings,
-        ILogger<IReferenceRepository<Brand>> logger)
+        ILogger<BrandRepository> logger)
     {
         _logger = logger;
         
@@ -49,14 +49,8 @@ public class BrandRepository : IReferenceRepository<Brand>
             };
     }
 
-    public async Task UpdateReference(Brand? currentRef, Brand newRef)
+    public async Task UpdateReference(Brand currentRef, Brand newRef)
     {
-        if (currentRef is null)
-        {
-            _logger.LogError("Null reference");
-            return;
-        }
-
         var newDbRef = new BrandDb
         {
             BrandId = newRef.BrandId,
@@ -69,16 +63,8 @@ public class BrandRepository : IReferenceRepository<Brand>
     public async Task<IEnumerable<Brand>> GetAllValues()
     {
         var defects = (await _brands.FindAsync(x => true)).ToList();
-        var res = new List<Brand>();
-        foreach (var reference in defects)
-        {
-            res.Add(new Brand
-            {
-                BrandId = reference.BrandId,
-                Name = reference.Name,
-            });
-        }
 
-        return res;
+        return defects.Select(reference => 
+            new Brand {BrandId = reference.BrandId, Name = reference.Name,}).ToList();
     }
 }
