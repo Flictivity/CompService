@@ -14,19 +14,19 @@ public class FacilityService : IFacilityService
         _facilityRepository = facilityRepository;
     }
 
-    public async Task<BaseResult> Create(Facility newFacility)
+    public async Task<BaseResult> CreateAsync(Facility newFacility)
     {
         await _facilityRepository.CreateFacility(newFacility);
 
         return new BaseResult {Success = true};
     }
 
-    public async Task<Facility?> GetFacilityById(string? id)
+    public async Task<Facility?> GetFacilityByIdAsync(string? id)
     {
         return await _facilityRepository.GetFacilityById(id);
     }
 
-    public async Task<BaseResult> UpdateFacility(Facility currentFacility, string name, double cost)
+    public async Task<BaseResult> UpdateFacilityAsync(Facility currentFacility, string name, double cost)
     {
         var newFacility = new Facility
         {
@@ -39,7 +39,7 @@ public class FacilityService : IFacilityService
         return new BaseResult {Success = true};
     }
 
-    public async Task<IEnumerable<Facility>> GetAllFacilities()
+    public async Task<IEnumerable<Facility>> GetAllFacilitiesAsync()
     {
         return await _facilityRepository.GetAllFacilities();
     }

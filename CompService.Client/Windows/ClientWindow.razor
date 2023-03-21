@@ -56,7 +56,7 @@
 
     protected override async Task OnInitializedAsync()
     {
-        _sources = (await SourceService.GetAllValues()).ToList();
+        _sources = (await SourceService.GetAllValuesAsync()).ToList();
         if (SelectedClient is not null)
         {
             _isEditing = true;
@@ -75,7 +75,7 @@
     {
         if (_isEditing)
         {
-            await ClientService.ChangeClientData(_model.Name, _model.Surname,  _model.Email, _model.PhoneNumber!,
+            await ClientService.ChangeClientDataAsync(_model.Name, _model.Surname,  _model.Email, _model.PhoneNumber!,
                 SelectedClient!, _model.Source);
             
             Snackbar.Add("Успешно", Severity.Success);

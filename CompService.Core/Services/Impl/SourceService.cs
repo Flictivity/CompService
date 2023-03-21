@@ -14,7 +14,7 @@ public class SourceService : IReferenceService<Source>
         _sourceRepository = sourceRepository;
     }
 
-    public async Task<BaseResult> Create(string newRefName)
+    public async Task<BaseResult> CreateAsync(string newRefName)
     {
         var newRef = new Source
         {
@@ -24,12 +24,12 @@ public class SourceService : IReferenceService<Source>
         return new BaseResult {Success = true};
     }
 
-    public async Task<Source?> GetReferenceById(string? id)
+    public async Task<Source?> GetReferenceByIdAsync(string? id)
     {
         return await _sourceRepository.GetReferenceById(id);
     }
 
-    public async Task<BaseResult> UpdateReference(Source? currentRef, string newRefName)
+    public async Task<BaseResult> UpdateReferenceAsync(Source? currentRef, string newRefName)
     {
         if (currentRef is null)
         {
@@ -45,7 +45,7 @@ public class SourceService : IReferenceService<Source>
         return new BaseResult {Success = true};
     }
 
-    public async Task<IEnumerable<Source>> GetAllValues()
+    public async Task<IEnumerable<Source>> GetAllValuesAsync()
     {
         return await _sourceRepository.GetAllValues();
     }

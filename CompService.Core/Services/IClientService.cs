@@ -9,8 +9,8 @@ public interface IClientService
     public Task<Client?> GetClientByEmailAsync(string? email);
     public Task<Client?> GetClientByIdAsync(string? id);
 
-    public Task<BaseResult> ChangeClientData(string name, string surname, string? email,
+    public Task<BaseResult> ChangeClientDataAsync(string name, string surname, string? email,
          string? phoneNumber, Client changeClient, Source? source);
 
-    public Task<IEnumerable<Client>> GetAllClients();
+    public Task<IEnumerable<Client>> GetAllClientsAsync();
 }

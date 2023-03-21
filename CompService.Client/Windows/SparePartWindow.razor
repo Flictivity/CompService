@@ -63,7 +63,7 @@
 
     protected override async Task OnInitializedAsync()
     {
-        _categories = (await SparePartCategoryService.GetAllValues()).ToList();
+        _categories = (await SparePartCategoryService.GetAllValuesAsync()).ToList();
         if (SelectedSparePart is not null)
         {
             _isEditing = true;
@@ -93,7 +93,7 @@
 
         if (_isEditing)
         {
-            await SparePartService.UpdateSparePart(SelectedSparePart!, newSparePart);
+            await SparePartService.UpdateSparePartAsync(SelectedSparePart!, newSparePart);
 
             Snackbar.Add("Успешно", Severity.Success);
             MudDialog?.Close(DialogResult.Ok(true));
@@ -101,7 +101,7 @@
             return;
         }
 
-        var res = await SparePartService.Create(newSparePart);
+        var res = await SparePartService.CreateAsync(newSparePart);
 
         if (!res.Success)
         {

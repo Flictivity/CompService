@@ -12,7 +12,7 @@ public class BrandService : IReferenceService<Brand>
     {
         _brandRepository = brandRepository;
     }
-    public async Task<BaseResult> Create(string newRefName)
+    public async Task<BaseResult> CreateAsync(string newRefName)
     {
         var newRef = new Brand
         {
@@ -23,12 +23,12 @@ public class BrandService : IReferenceService<Brand>
         return new BaseResult{Success = true};
     }
 
-    public async Task<Brand?> GetReferenceById(string? id)
+    public async Task<Brand?> GetReferenceByIdAsync(string? id)
     {
         return await _brandRepository.GetReferenceById(id);
     }
 
-    public async Task<BaseResult> UpdateReference(Brand? currentRef, string newRefName)
+    public async Task<BaseResult> UpdateReferenceAsync(Brand? currentRef, string newRefName)
     {
         if (currentRef is null)
         {
@@ -43,7 +43,7 @@ public class BrandService : IReferenceService<Brand>
         return new BaseResult {Success = true};
     }
 
-    public async Task<IEnumerable<Brand>> GetAllValues()
+    public async Task<IEnumerable<Brand>> GetAllValuesAsync()
     {
         return await _brandRepository.GetAllValues();
     }

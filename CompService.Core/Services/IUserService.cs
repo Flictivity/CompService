@@ -9,8 +9,8 @@ public interface IUserService
     public Task<User?> GetUserByEmailAsync(string? email);
     public Task<User?> GetUserByIdAsync(string? id);
 
-    public Task<BaseResult> ChangeUserData(string name, string surname, string patronymic, string email,
+    public Task<BaseResult> ChangeUserDataAsync(string name, string surname, string patronymic, string email,
         string password, string phoneNumber, User changeUser);
 
-    public Task<IEnumerable<User>> GetAllUsers();
+    public Task<IEnumerable<User>> GetAllUsersAsync();
 }

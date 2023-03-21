@@ -13,24 +13,24 @@ public class TransactionService : ITransactionService
         _transactionRepository = transactionRepository;
     }
     
-    public async Task<BaseResult> Create(Transaction newTransaction)
+    public async Task<BaseResult> CreateAsync(Transaction newTransaction)
     {
         await _transactionRepository.Create(newTransaction);
         return new BaseResult {Success = true};
     }
 
-    public async Task<Transaction?> GetTransactionById(string? id)
+    public async Task<Transaction?> GetTransactionByIdAsync(string? id)
     {
         return await _transactionRepository.GetTransactionById(id);
     }
 
-    public async Task<BaseResult> UpdateTransaction(Transaction currentTransaction, Transaction newTransaction)
+    public async Task<BaseResult> UpdateTransactionAsync(Transaction currentTransaction, Transaction newTransaction)
     {
         await _transactionRepository.UpdateTransaction(currentTransaction, newTransaction);
         return new BaseResult {Success = true};
     }
 
-    public async Task<TransactionListDataResult> GetAllTransactions()
+    public async Task<TransactionListDataResult> GetAllTransactionsAsync()
     {
         var res = (await _transactionRepository.GetAllTransactions())
             .OrderBy(x => x.TransactionTime)
@@ -49,7 +49,7 @@ public class TransactionService : ITransactionService
         return new TransactionListDataResult{Success = true, TransactionResult = balance, Items = res};
     }
 
-    public async Task<TransactionListDataResult> GetAllTransactionsForPeriod(DateTime periodStart,
+    public async Task<TransactionListDataResult> GetAllTransactionsForPeriodAsync(DateTime periodStart,
         DateTime periodEnd)
     {
         var res = (await _transactionRepository

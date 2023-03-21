@@ -86,7 +86,7 @@
     {
         if (_isEditing)
         {
-            await UserService.ChangeUserData(_model.Name, _model.Surname, _model.Patronymic, _model.Email, _model.Password!,
+            await UserService.ChangeUserDataAsync(_model.Name, _model.Surname, _model.Patronymic, _model.Email, _model.Password!,
                 _model.PhoneNumber!, SelectedUser!);
             
             Snackbar.Add("Успешно", Severity.Success);

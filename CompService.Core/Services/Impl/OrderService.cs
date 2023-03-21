@@ -13,24 +13,24 @@ public class OrderService : IOrderService
         _orderRepository = orderRepository;
     }
 
-    public async Task<BaseResult> Create(Order order)
+    public async Task<BaseResult> CreateAsync(Order order)
     {
         await _orderRepository.Create(order);
         return new BaseResult {Success = true};
     }
 
-    public async Task<Order?> GetOrderById(string? id)
+    public async Task<Order?> GetOrderByIdAsync(string? id)
     {
         return await _orderRepository.GetOrderById(id);
     }
 
-    public async Task<BaseResult> UpdateOrder(Order currentOrder, Order newOrder)
+    public async Task<BaseResult> UpdateOrderAsync(Order currentOrder, Order newOrder)
     {
         await _orderRepository.UpdateOrder(currentOrder, newOrder);
         return new BaseResult {Success = true};
     }
 
-    public async Task<IEnumerable<Order>> GetAllOrders()
+    public async Task<IEnumerable<Order>> GetAllOrdersAsync()
     {
         return await _orderRepository.GetAllOrders();
     }

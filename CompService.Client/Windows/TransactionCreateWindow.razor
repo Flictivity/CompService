@@ -70,7 +70,7 @@
             User = UserInfoHolder.CurrentUser
         };
 
-        var res = await TransactionService.Create(newTransaction);
+        var res = await TransactionService.CreateAsync(newTransaction);
 
         if (!res.Success)
         {

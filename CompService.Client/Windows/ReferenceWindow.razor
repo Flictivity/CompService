@@ -41,13 +41,13 @@
     {
         if (_isEditing)
         {
-            await ReferenceService.UpdateReference(SelectedReference, _name);
+            await ReferenceService.UpdateReferenceAsync(SelectedReference, _name);
             Snackbar.Add("Успешно", Severity.Success);
             MudDialog?.Close(DialogResult.Ok(true));  
             return;
         }
         
-        var res = await ReferenceService.Create(_name);
+        var res = await ReferenceService.CreateAsync(_name);
 
         if (res.Success)
         {

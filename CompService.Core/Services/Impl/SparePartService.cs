@@ -13,13 +13,13 @@ public class SparePartService : ISparePartService
     {
         _sparePartRepository = sparePartRepository;
     }
-    public async Task<BaseResult> Create(SparePart newSparePart)
+    public async Task<BaseResult> CreateAsync(SparePart newSparePart)
     {
-        var sparePartInDb = await GetSparePartByName(newSparePart.Name);
+        var sparePartInDb = await GetSparePartByNameAsync(newSparePart.Name);
 
         if (sparePartInDb is not null)
         {
-            await UpdateSparePartCount(sparePartInDb.SparePartId, sparePartInDb.Count + newSparePart.Count);
+            await UpdateSparePartCountAsync(sparePartInDb.SparePartId, sparePartInDb.Count + newSparePart.Count);
             return new BaseResult {Success = true};
         }
 
@@ -27,30 +27,30 @@ public class SparePartService : ISparePartService
         return new BaseResult {Success = true};
     }
 
-    public async Task<SparePart?> GetSparePartById(string? id)
+    public async Task<SparePart?> GetSparePartByIdAsync(string? id)
     {
         return await _sparePartRepository.GetSparePartById(id);
     }
 
-    public async Task<SparePart?> GetSparePartByName(string? name)
+    public async Task<SparePart?> GetSparePartByNameAsync(string? name)
     {
         return await _sparePartRepository.GetSparePartByName(name);
     }
 
-    public async Task<SparePart?> GetSparePartByArticle(string? article)
+    public async Task<SparePart?> GetSparePartByArticleAsync(string? article)
     {
         return await _sparePartRepository.GetSparePartById(article);
     }
 
-    public async Task<BaseResult> UpdateSparePart(SparePart currentSparePart, SparePart newSparePart)
+    public async Task<BaseResult> UpdateSparePartAsync(SparePart currentSparePart, SparePart newSparePart)
     {
         await _sparePartRepository.UpdateSparePart(currentSparePart, newSparePart);
         return new BaseResult {Success = true};
     }
 
-    public async Task<BaseResult> UpdateSparePartCount(string id, int newCount)
+    public async Task<BaseResult> UpdateSparePartCountAsync(string id, int newCount)
     {
-        var sparePart = await GetSparePartById(id);
+        var sparePart = await GetSparePartByIdAsync(id);
         if (sparePart is null)
         {
             return new BaseResult {Success = false, Message = SparePartMessages.NotFound};
@@ -70,7 +70,7 @@ public class SparePartService : ISparePartService
         return new BaseResult {Success = true};
     }
 
-    public async Task<IEnumerable<SparePart>> GetAllSpareParts()
+    public async Task<IEnumerable<SparePart>> GetAllSparePartsAsync()
     {
         return await _sparePartRepository.GetAllSpareParts();
     }

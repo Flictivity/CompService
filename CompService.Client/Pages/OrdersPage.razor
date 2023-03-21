@@ -84,7 +84,7 @@
 
     protected override async Task OnInitializedAsync()
     {
-        _orders = (await OrderService.GetAllOrders()).ToList();
+        _orders = (await OrderService.GetAllOrdersAsync()).ToList();
         await base.OnInitializedAsync();
     }
 
@@ -93,11 +93,11 @@
         var newOrder = new Order
         {
             OrderDate = DateTime.Now,
-            Client = (await ClientService.GetAllClients()).ToList()[0],
-            Defect = (await DefectService.GetAllValues()).ToList()[0],
-            Appearance = (await AppearanceService.GetAllValues()).ToList()[0],
-            DeviceType = (await DeviceTypeService.GetAllValues()).ToList()[0],
-            Brand = (await BrandService.GetAllValues()).ToList()[0],
+            Client = (await ClientService.GetAllClientsAsync()).ToList()[0],
+            Defect = (await DefectService.GetAllValuesAsync()).ToList()[0],
+            Appearance = (await AppearanceService.GetAllValuesAsync()).ToList()[0],
+            DeviceType = (await DeviceTypeService.GetAllValuesAsync()).ToList()[0],
+            Brand = (await BrandService.GetAllValuesAsync()).ToList()[0],
             Model = "Test",
             DevicePassword = null,
             Operator = UserInfoHolder.CurrentUser!,
@@ -107,10 +107,10 @@
             Facilities = null,
             Money = 0
         };
-        var res = await OrderService.Create(newOrder);
+        var res = await OrderService.CreateAsync(newOrder);
         if (res.Success)
         {
-            _orders = (await OrderService.GetAllOrders()).ToList();
+            _orders = (await OrderService.GetAllOrdersAsync()).ToList();
             StateHasChanged();
         }
     }

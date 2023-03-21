@@ -38,7 +38,7 @@ public class ClientService : IClientService
         return await _clientRepository.GetClientById(id);
     }
 
-    public async Task<BaseResult> ChangeClientData(string name, string surname, string? email, string? phoneNumber,
+    public async Task<BaseResult> ChangeClientDataAsync(string name, string surname, string? email, string? phoneNumber,
         Client changeClient, Source? source)
     {
         var newClient = new Client
@@ -55,7 +55,7 @@ public class ClientService : IClientService
         return new BaseResult {Success = true};
     }
 
-    public async Task<IEnumerable<Client>> GetAllClients()
+    public async Task<IEnumerable<Client>> GetAllClientsAsync()
     {
         return await _clientRepository.GetAllClients();
     }

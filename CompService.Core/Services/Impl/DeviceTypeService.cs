@@ -12,7 +12,7 @@ public class DeviceTypeService : IReferenceService<DeviceType>
     {
         _defectRepository = defectRepository;
     }
-    public async Task<BaseResult> Create(string newRefName)
+    public async Task<BaseResult> CreateAsync(string newRefName)
     {
         var newRef = new DeviceType
         {
@@ -23,12 +23,12 @@ public class DeviceTypeService : IReferenceService<DeviceType>
         return new BaseResult{Success = true};
     }
 
-    public async Task<DeviceType?> GetReferenceById(string? id)
+    public async Task<DeviceType?> GetReferenceByIdAsync(string? id)
     {
         return await _defectRepository.GetReferenceById(id);
     }
 
-    public async Task<BaseResult> UpdateReference(DeviceType? currentRef, string newRefName)
+    public async Task<BaseResult> UpdateReferenceAsync(DeviceType? currentRef, string newRefName)
     {
         if (currentRef is null)
         {
@@ -43,7 +43,7 @@ public class DeviceTypeService : IReferenceService<DeviceType>
         return new BaseResult {Success = true};
     }
 
-    public async Task<IEnumerable<DeviceType>> GetAllValues()
+    public async Task<IEnumerable<DeviceType>> GetAllValuesAsync()
     {
         return await _defectRepository.GetAllValues();
     }

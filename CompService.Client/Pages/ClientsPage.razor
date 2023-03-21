@@ -74,7 +74,7 @@
         {
             return;
         }
-        _clients = (await ClientService.GetAllClients()).ToList();
+        _clients = (await ClientService.GetAllClientsAsync()).ToList();
         await base.OnInitializedAsync();
     }
 
@@ -87,7 +87,7 @@
 
         if (!result.Canceled)
         {
-            _clients = (await ClientService.GetAllClients()).ToList();
+            _clients = (await ClientService.GetAllClientsAsync()).ToList();
             StateHasChanged();
         }
     }
@@ -120,7 +120,7 @@
 
         if (!result.Canceled)
         {
-            _clients = (await ClientService.GetAllClients()).ToList();
+            _clients = (await ClientService.GetAllClientsAsync()).ToList();
             StateHasChanged();
         }
     }

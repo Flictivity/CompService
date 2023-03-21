@@ -52,13 +52,13 @@
         };
         if (_isEditing && SelectedFacility is not null)
         {
-            await FacilityService.UpdateFacility(SelectedFacility, newFacility.Name, newFacility.Cost);
+            await FacilityService.UpdateFacilityAsync(SelectedFacility, newFacility.Name, newFacility.Cost);
             Snackbar.Add("Успешно", Severity.Success);
             MudDialog?.Close(DialogResult.Ok(true));  
             return;
         }
 
-        var res = await FacilityService.Create(newFacility);
+        var res = await FacilityService.CreateAsync(newFacility);
 
         if (res.Success)
         {

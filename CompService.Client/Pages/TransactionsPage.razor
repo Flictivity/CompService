@@ -102,7 +102,7 @@
 
     protected override async Task OnInitializedAsync()
     {
-        var transactions = await TransactionService.GetAllTransactions();
+        var transactions = await TransactionService.GetAllTransactionsAsync();
         _balance = transactions.TransactionResult.Profit;
         _arrival = transactions.TransactionResult.Arrival;
         _expense = transactions.TransactionResult.Expense;
@@ -124,7 +124,7 @@
 
         if (!result.Canceled)
         {
-            var transactions = await TransactionService.GetAllTransactions();
+            var transactions = await TransactionService.GetAllTransactionsAsync();
             _balance = transactions.TransactionResult.Profit;
             _arrival = transactions.TransactionResult.Arrival;
             _expense = transactions.TransactionResult.Expense;
@@ -136,7 +136,7 @@
     private async Task RefreshTransactions()
     {
         var transactions = await TransactionService
-            .GetAllTransactionsForPeriod(_dateRange.Start ?? DateTime.Now,
+            .GetAllTransactionsForPeriodAsync(_dateRange.Start ?? DateTime.Now,
                 _dateRange.End ?? DateTime.Now.AddDays(7));
 
         _balance = transactions.TransactionResult.Profit;

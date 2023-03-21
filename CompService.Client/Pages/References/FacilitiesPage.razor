@@ -42,7 +42,7 @@
 
     protected override async Task OnInitializedAsync()
     {
-        _facilities = (await FacilityService.GetAllFacilities()).ToList();
+        _facilities = (await FacilityService.GetAllFacilitiesAsync()).ToList();
         await base.OnInitializedAsync();
     }
     
@@ -70,7 +70,7 @@
 
         if (!result.Canceled)
         {
-            _facilities = (await FacilityService.GetAllFacilities()).ToList();
+            _facilities = (await FacilityService.GetAllFacilitiesAsync()).ToList();
             Snackbar.Add("Успешно", Severity.Success);
             StateHasChanged();
         }
@@ -88,7 +88,7 @@
 
         if (!result.Canceled)
         {
-            _facilities = (await FacilityService.GetAllFacilities()).ToList();
+            _facilities = (await FacilityService.GetAllFacilitiesAsync()).ToList();
             StateHasChanged();
         }
     }

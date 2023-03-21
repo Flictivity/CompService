@@ -64,7 +64,7 @@
         {
             return;
         }
-        _spareParts = (await SparePartService.GetAllSpareParts()).ToList();
+        _spareParts = (await SparePartService.GetAllSparePartsAsync()).ToList();
         await base.OnInitializedAsync();
     }
     
@@ -78,7 +78,7 @@
 
         if (!result.Canceled)
         {
-            _spareParts = (await SparePartService.GetAllSpareParts()).ToList();
+            _spareParts = (await SparePartService.GetAllSparePartsAsync()).ToList();
             StateHasChanged();
         }
     }
@@ -106,7 +106,7 @@
 
         if (!result.Canceled)
         {
-            _spareParts = (await SparePartService.GetAllSpareParts()).ToList();
+            _spareParts = (await SparePartService.GetAllSparePartsAsync()).ToList();
             Snackbar.Add("Успешно", Severity.Success);
             StateHasChanged();
         }

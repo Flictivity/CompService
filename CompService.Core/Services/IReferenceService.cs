@@ -4,9 +4,9 @@ namespace CompService.Core.Services;
 
 public interface IReferenceService<TReference>
 {
-    public Task<BaseResult> Create(string newRefName);
-    public Task<TReference?> GetReferenceById(string? id);
-    public Task<BaseResult> UpdateReference(TReference currentRef, string newRefName);
+    public Task<BaseResult> CreateAsync(string newRefName);
+    public Task<TReference?> GetReferenceByIdAsync(string? id);
+    public Task<BaseResult> UpdateReferenceAsync(TReference currentRef, string newRefName);
     
-    public Task<IEnumerable<TReference>> GetAllValues();
+    public Task<IEnumerable<TReference>> GetAllValuesAsync();
 }

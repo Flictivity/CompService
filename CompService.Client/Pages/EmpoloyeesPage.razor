@@ -74,7 +74,7 @@
         {
             return;
         }
-        _employees = (await UserService.GetAllUsers()).ToList();
+        _employees = (await UserService.GetAllUsersAsync()).ToList();
         await base.OnInitializedAsync();
     }
 
@@ -87,7 +87,7 @@
 
         if (!result.Canceled)
         {
-            _employees = (await UserService.GetAllUsers()).ToList();
+            _employees = (await UserService.GetAllUsersAsync()).ToList();
             StateHasChanged();
         }
     }
@@ -122,7 +122,7 @@
 
         if (!result.Canceled)
         {
-            _employees = (await UserService.GetAllUsers()).ToList();
+            _employees = (await UserService.GetAllUsersAsync()).ToList();
             StateHasChanged();
         }
     }

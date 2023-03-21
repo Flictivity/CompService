@@ -39,7 +39,7 @@
 
     protected override async Task OnInitializedAsync()
     {
-        _sources = (await ReferenceService.GetAllValues()).ToList();
+        _sources = (await ReferenceService.GetAllValuesAsync()).ToList();
         await base.OnInitializedAsync();
     }
     
@@ -56,7 +56,7 @@
 
         if (!result.Canceled)
         {
-            _sources = (await ReferenceService.GetAllValues()).ToList();
+            _sources = (await ReferenceService.GetAllValuesAsync()).ToList();
             StateHasChanged();
         }
     }
@@ -88,7 +88,7 @@
 
         if (!result.Canceled)
         {
-            _sources = (await ReferenceService.GetAllValues()).ToList();
+            _sources = (await ReferenceService.GetAllValuesAsync()).ToList();
             Snackbar.Add("Успешно", Severity.Success);
             StateHasChanged();
         }

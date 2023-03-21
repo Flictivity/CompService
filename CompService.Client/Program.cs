@@ -36,6 +36,7 @@ builder.Services.AddSingleton<IReferenceRepository<DeviceType>, DeviceTypeReposi
 builder.Services.AddSingleton<IReferenceRepository<SparePartCategory>, SparePartCategoryRepository>();
 builder.Services.AddSingleton<ITransactionRepository, TransactionRepository>();
 builder.Services.AddSingleton<IOrderRepository, OrderRepository>();
+builder.Services.AddSingleton<IDevicePlaceRepository, DevicePlaceRepository>();
 
 builder.Services.AddScoped<IAuthorizationService, AuthorizationService>();
 builder.Services.AddScoped<IUserService, UserService>();
@@ -51,6 +52,7 @@ builder.Services.AddScoped<IFacilityService, FacilityService>();
 builder.Services.AddScoped<ISparePartService, SparePartService>();
 builder.Services.AddScoped<ITransactionService, TransactionService>();
 builder.Services.AddScoped<IOrderService, OrderService>();
+builder.Services.AddScoped<IDevicePlaceService, DevicePlaceService>();
 
 builder.Services.AddBlazoredLocalStorage();
 builder.Services.AddSingleton<AppState>();

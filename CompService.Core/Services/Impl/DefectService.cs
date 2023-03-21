@@ -12,7 +12,7 @@ public class DefectService : IReferenceService<Defect>
     {
         _defectRepository = defectRepository;
     }
-    public async Task<BaseResult> Create(string newRefName)
+    public async Task<BaseResult> CreateAsync(string newRefName)
     {
         var newRef = new Defect
         {
@@ -23,12 +23,12 @@ public class DefectService : IReferenceService<Defect>
         return new BaseResult{Success = true};
     }
 
-    public async Task<Defect?> GetReferenceById(string? id)
+    public async Task<Defect?> GetReferenceByIdAsync(string? id)
     {
         return await _defectRepository.GetReferenceById(id);
     }
 
-    public async Task<BaseResult> UpdateReference(Defect? currentRef, string newRefName)
+    public async Task<BaseResult> UpdateReferenceAsync(Defect? currentRef, string newRefName)
     {
         if (currentRef is null)
         {
@@ -43,7 +43,7 @@ public class DefectService : IReferenceService<Defect>
         return new BaseResult {Success = true};
     }
 
-    public async Task<IEnumerable<Defect>> GetAllValues()
+    public async Task<IEnumerable<Defect>> GetAllValuesAsync()
     {
         return await _defectRepository.GetAllValues();
     }
