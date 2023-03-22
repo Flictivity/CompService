@@ -15,7 +15,7 @@ public class TransactionDb
     public double ExpenseMoney { get; set; }
     public int PaymentMethod { get; set; }
     public int TransactionBasis { get; set; }
-    public OrderDb? Order { get; set; }
-    public UserDb User { get; set; } = null!;
+    public string? OrderId { get; set; }
+    public string UserId { get; set; } = null!;
     public string? Comment { get; set; } 
 }

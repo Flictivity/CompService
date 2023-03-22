@@ -23,9 +23,9 @@ public class ClientService : IClientService
             return new BaseResult{Success = false, Message = UserMessages.UserAlreadyExisting};
         }
             
-       await _clientRepository.CreateClient(client);
+        await _clientRepository.CreateClient(client);
        
-       return new BaseResult{Success = true};
+        return new BaseResult{Success = true};
     }
 
     public async Task<Client?> GetClientByEmailAsync(string? email)

@@ -10,8 +10,9 @@ public class Transaction
     public double ExpenseMoney { get; set; } = 0;
     public PaymentMethods PaymentMethod { get; set; } = 0;
     public TransactionBasis TransactionBasis { get; set; } = 0;
-    public Order? Order { get; set; }
-    public User User { get; set; } = null!;
+    public string? OrderId { get; set; }
+    public string UserId { get; set; } = null!;
+    public string UserSurname { get; set; } = null!;
     
     public string? Comment { get; set; } 
 }

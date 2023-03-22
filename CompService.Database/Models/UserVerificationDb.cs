@@ -12,5 +12,6 @@ public class UserVerificationDb
     public string Code { get; set; } = null!;
     public bool IsActual { get; set; } = true;
     public DateTime ExpyreTime { get; set; }
-    public UserDb User { get; set; } = null!;
+    public string UserId { get; set; } = null!;
+    public string UserEmail { get; set; } = null!;
 }

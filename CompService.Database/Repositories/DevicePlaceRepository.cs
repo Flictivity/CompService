@@ -32,15 +32,7 @@ public class DevicePlaceRepository : IDevicePlaceRepository
 
     public async Task<DevicePlace?> GetPlaceById(string id)
     {
-        var res = (await _places.FindAsync(x => x.PlaceId == id)).FirstOrDefault();
-        return res is null
-            ? null
-            : EntityConverter.ConvertDevicePlace(res);
-    }
-
-    public async Task<DevicePlace?> GetPlaceByOrder(string orderId)
-    {
-        var res = (await _places.FindAsync(x => x.Order.OrderId == orderId))
+        var res = (await _places.FindAsync(x => x.PlaceId == id))
             .FirstOrDefault();
         return res is null
             ? null
@@ -53,8 +45,7 @@ public class DevicePlaceRepository : IDevicePlaceRepository
         {
             PlaceId = currentPlace.PlaceId,
             Info = newPlace.Info,
-            Order = newPlace.Order is null ? null : EntityConverter.ConvertOrder(newPlace.Order),
-            IsOccupied = false
+            IsOccupied = newPlace.IsOccupied
         };
 
         await _places.ReplaceOneAsync(x => x.PlaceId == currentPlace.PlaceId, newDbPlace);

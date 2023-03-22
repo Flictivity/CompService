@@ -24,11 +24,6 @@ public class DevicePlaceService : IDevicePlaceService
         return await _devicePlaceRepository.GetPlaceById(id);
     }
 
-    public async Task<DevicePlace?> GetClientByOrderAsync(string orderId)
-    {
-        return await _devicePlaceRepository.GetPlaceByOrder(orderId);
-    }
-
     public async Task<BaseResult> UpdateDevicePlaceAsync(DevicePlace currentPlace, DevicePlace newPlace)
     {
         await _devicePlaceRepository.UpdateDevicePlace(currentPlace, newPlace);

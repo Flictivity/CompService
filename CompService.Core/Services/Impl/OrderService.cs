@@ -1,4 +1,6 @@
-﻿using CompService.Core.Models;
+﻿using CompService.Core.Enums;
+using CompService.Core.Extensions;
+using CompService.Core.Models;
 using CompService.Core.Repositories;
 using CompService.Core.Results;
 
@@ -33,5 +35,10 @@ public class OrderService : IOrderService
     public async Task<IEnumerable<Order>> GetAllOrdersAsync()
     {
         return await _orderRepository.GetAllOrders();
+    }
+
+    public async Task<IEnumerable<OrderTableModel>> GetAllOrdersForTableAsync()
+    {
+        return await _orderRepository.GetAllOrdersForTable();
     }
 }

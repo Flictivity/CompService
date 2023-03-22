@@ -66,8 +66,7 @@
             ExpenseMoney = _model.ExpenseMoney,
             PaymentMethod = _model.PaymentMethod,
             TransactionBasis = _model.TransactionBasis,
-            Order = _model.TransactionBasis == TransactionBasis.Order ? _model.Order : null,
-            User = UserInfoHolder.CurrentUser
+            UserId = UserInfoHolder.CurrentUser.UserId
         };
 
         var res = await TransactionService.CreateAsync(newTransaction);

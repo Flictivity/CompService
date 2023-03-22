@@ -10,9 +10,10 @@ public static class EntityConverter
     {
         return new SparePartDb
         {
+            SparePartId = sparePart.SparePartId,
             Name = sparePart.Name,
             Article = sparePart.Article,
-            Category = ConvertSparePartCategory(sparePart.Category),
+            CategoryId = sparePart.Category.CategoryId,
             Count = sparePart.Count,
             PurchasePrice = sparePart.PurchasePrice,
             RetailPrice = sparePart.RetailPrice
@@ -26,7 +27,6 @@ public static class EntityConverter
             SparePartId = sparePart.SparePartId,
             Name = sparePart.Name,
             Article = sparePart.Article,
-            Category = ConvertSparePartCategory(sparePart.Category),
             Count = sparePart.Count,
             PurchasePrice = sparePart.PurchasePrice,
             RetailPrice = sparePart.PurchasePrice
@@ -37,6 +37,7 @@ public static class EntityConverter
     {
         return new UserDb
         {
+            UserId = user.UserId,
             Name = user.Name,
             Email = user.Email,
             Password = user.Password,
@@ -51,6 +52,7 @@ public static class EntityConverter
     {
         return new User
         {
+            UserId = user.UserId,
             Name = user.Name,
             Email = user.Email,
             Password = user.Password,
@@ -65,11 +67,12 @@ public static class EntityConverter
     {
         return new ClientDb
         {
+            ClientId = client.ClientId,
             Name = client.Name,
             Email = client.Email,
             Surname = client.Surname,
             PhoneNumber = client.PhoneNumber,
-            Source = client.Source is null ? null : ConvertSource(client.Source)
+            SourceId = client.Source?.SourceId
         };
     }
 
@@ -77,11 +80,11 @@ public static class EntityConverter
     {
         return new Client
         {
+            ClientId = client.ClientId,
             Name = client.Name,
             Email = client.Email,
             Surname = client.Surname,
-            PhoneNumber = client.PhoneNumber,
-            Source = client.Source is null ? null : ConvertSource(client.Source)
+            PhoneNumber = client.PhoneNumber
         };
     }
 
@@ -89,15 +92,14 @@ public static class EntityConverter
     {
         return new TransactionDb
         {
+            TransactionId = transaction.TransactionId,
             TransactionTime = transaction.TransactionTime,
             ArrivalMoney = transaction.ArrivalMoney,
             ExpenseMoney = transaction.ExpenseMoney,
             PaymentMethod = (int) transaction.PaymentMethod,
             TransactionBasis = (int) transaction.TransactionBasis,
-            Order = transaction.Order is null
-                ? null
-                : ConvertOrder(transaction.Order),
-            User = ConvertUser(transaction.User),
+            OrderId = transaction.OrderId,
+            UserId = transaction.UserId,
             Comment = transaction.Comment
         };
     }
@@ -106,15 +108,13 @@ public static class EntityConverter
     {
         return new Transaction
         {
+            TransactionId = transaction.TransactionId,
             TransactionTime = transaction.TransactionTime,
             ArrivalMoney = transaction.ArrivalMoney,
             ExpenseMoney = transaction.ExpenseMoney,
             PaymentMethod = (PaymentMethods) transaction.PaymentMethod,
             TransactionBasis = (TransactionBasis) transaction.TransactionBasis,
-            Order = transaction.Order is null
-                ? null
-                : ConvertOrder(transaction.Order),
-            User = ConvertUser(transaction.User),
+            OrderId = transaction.OrderId,
             Comment = transaction.Comment
         };
     }
@@ -145,7 +145,6 @@ public static class EntityConverter
         {
             PlaceId = devicePlace.PlaceId,
             Info = devicePlace.Info,
-            Order = ConvertOrder(devicePlace.Order),
             IsOccupied = devicePlace.IsOccupied
         };
     }
@@ -155,7 +154,6 @@ public static class EntityConverter
         {
             PlaceId = devicePlace.PlaceId,
             Info = devicePlace.Info,
-            Order = ConvertOrder(devicePlace.Order),
             IsOccupied = devicePlace.IsOccupied
         };
     }
@@ -166,19 +164,19 @@ public static class EntityConverter
         {
             OrderId = order.OrderId,
             OrderDate = order.OrderDate,
-            Client = ConvertClient(order.Client),
-            Defect = ConvertDefect(order.Defect),
-            Appearance = ConvertAppearance(order.Appearance),
-            DeviceType = ConvertDeviceType(order.DeviceType),
-            Brand = ConvertBrand(order.Brand),
+            ClientId = order.ClientId,
+            DefectId = order.DefectId,
+            AppearanceId = order.AppearanceId,
+            DeviceTypeId = order.DeviceTypeId,
+            BrandId = order.BrandId,
             Model = order.Model,
             DevicePassword = order.DevicePassword,
-            Operator = ConvertUser(order.Operator),
-            Master = ConvertUser(order.Master),
-            Status = (OrdersStatuses) order.Status,
-            SpareParts = order.SpareParts?.Select(ConvertSparePart).ToList(),
-            Facilities = order.Facilities?.Select(ConvertFacility).ToList(),
+            OperatorId = order.OperatorId,
+            MasterId = order.MasterId,
+            Status = (OrdersStatuses)order.Status,
+            RepairType = (RepairTypes)order.RepairType,
             Money = order.Money,
+            DevicePlaceId = order.DevicePlaceId
         };
     }
 
@@ -188,19 +186,19 @@ public static class EntityConverter
         {
             OrderId = order.OrderId,
             OrderDate = order.OrderDate,
-            Client = ConvertClient(order.Client),
-            Defect = ConvertDefect(order.Defect),
-            Appearance = ConvertAppearance(order.Appearance),
-            DeviceType = ConvertDeviceType(order.DeviceType),
-            Brand = ConvertBrand(order.Brand),
+            ClientId = order.ClientId,
+            DefectId = order.DefectId,
+            AppearanceId = order.AppearanceId,
+            DeviceTypeId = order.DeviceTypeId,
+            BrandId = order.BrandId,
             Model = order.Model,
             DevicePassword = order.DevicePassword,
-            Operator = ConvertUser(order.Operator),
-            Master = ConvertUser(order.Master),
-            Status = (int) order.Status,
-            SpareParts = order.SpareParts?.Select(ConvertSparePart).ToList(),
-            Facilities = order.Facilities?.Select(ConvertFacility).ToList(),
-            Money = order.Money
+            OperatorId = order.OperatorId,
+            MasterId = order.MasterId,
+            Status = (int)order.Status,
+            RepairType = (int)order.RepairType,
+            Money = order.Money,
+            DevicePlaceId = order.DevicePlaceId
         };
     }
 
@@ -219,7 +217,6 @@ public static class EntityConverter
     {
         return new DefectDb
         {
-            DefectId = defect.DefectId,
             Name = defect.Name
         };
     }
@@ -237,7 +234,6 @@ public static class EntityConverter
     {
         return new AppearanceDb
         {
-            AppearanceId = appearance.AppearanceId,
             Name = appearance.Name
         };
     }
@@ -255,7 +251,6 @@ public static class EntityConverter
     {
         return new BrandDb
         {
-            BrandId = brand.BrandId,
             Name = brand.Name
         };
     }
@@ -273,7 +268,6 @@ public static class EntityConverter
     {
         return new DeviceTypeDb
         {
-            DeviceTypeId = deviceType.DeviceTypeId,
             Name = deviceType.Name
         };
     }
@@ -282,7 +276,6 @@ public static class EntityConverter
     {
         return new SourceDb
         {
-            SourceId = source.SourceId,
             Name = source.Name
         };
     }
@@ -309,7 +302,6 @@ public static class EntityConverter
     {
         return new SparePartCategoryDb
         {
-            CategoryId = sparePartCategory.CategoryId,
             Name = sparePartCategory.Name
         };
     }

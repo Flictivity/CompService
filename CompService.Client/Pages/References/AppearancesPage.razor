@@ -75,9 +75,8 @@
     private async void RowClickEvent(TableRowClickEventArgs<Appearance> tableRowClickEventArgs)
     {
         DialogOptions closeOnEscapeKey = new DialogOptions {CloseOnEscapeKey = true};
-        DialogParameters parameters;
-        
-        parameters = new DialogParameters
+
+        var parameters = new DialogParameters
         {
             {"SelectedReferenceName", tableRowClickEventArgs.Item.Name},
             {"SelectedReference", tableRowClickEventArgs.Item}

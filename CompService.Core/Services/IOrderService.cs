@@ -9,4 +9,5 @@ public interface IOrderService
     public Task<Order?> GetOrderByIdAsync(string? id);
     public Task<BaseResult> UpdateOrderAsync(Order currentOrder, Order newOrder);
     public Task<IEnumerable<Order>> GetAllOrdersAsync();
+    public Task<IEnumerable<OrderTableModel>> GetAllOrdersForTableAsync();
 }

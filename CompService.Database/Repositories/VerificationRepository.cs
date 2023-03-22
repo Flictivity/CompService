@@ -12,9 +12,10 @@ public class VerificationRepository : IVerificationRepository
 {
     private readonly IMongoCollection<UserVerificationDb> _verifications;
     private readonly ILogger<VerificationRepository> _logger;
+    private readonly IUserRepository _userRepository;
 
     public VerificationRepository(IOptions<DatabaseConnectionSettings> databaseConnectionSettings,
-        ILogger<VerificationRepository> logger)
+        ILogger<VerificationRepository> logger, IUserRepository userRepository)
     {
         var mongoClient = new MongoClient(
             databaseConnectionSettings.Value.ConnectionString);
@@ -25,6 +26,7 @@ public class VerificationRepository : IVerificationRepository
         _verifications = mongoDatabase.GetCollection<UserVerificationDb>(
             databaseConnectionSettings.Value.UserVerificationCollectionName);
         _logger = logger;
+        _userRepository = userRepository;
     }
 
     public async Task CreateVerification(UserVerification verification)
@@ -35,22 +37,15 @@ public class VerificationRepository : IVerificationRepository
             return;
         }
 
-        var verificationUser = new UserDb
-        {
-            UserId = verification.User.UserId,
-            Name = verification.User.Name,
-            Surname = verification.User.Surname,
-            Patronymic = verification.User.Patronymic,
-            Email = verification.User.Email,
-            Password = verification.User.Password,
-            PhoneNumber = verification.User.PhoneNumber
-        };
+        var verificationUser = EntityConverter.ConvertUser(verification.User);
+        
         var verificationDb = new UserVerificationDb
         {
             IsActual = verification.IsActual,
             Code = verification.Code,
-            User = verificationUser,
-            ExpyreTime = verification.ExpyreTime
+            UserId = verificationUser.UserId,
+            ExpyreTime = verification.ExpyreTime,
+            UserEmail = verificationUser.Email
         };
         await _verifications.InsertOneAsync(verificationDb);
     }
@@ -58,7 +53,7 @@ public class VerificationRepository : IVerificationRepository
     public async Task<UserVerification?> VerifyUser(string email)
     {
         var res = (await _verifications.FindAsync(x =>
-            x.User.Email == email && x.IsActual)).FirstOrDefault();
+            x.UserEmail == email && x.IsActual)).FirstOrDefault();
 
         return res is null
             ? null
@@ -67,16 +62,7 @@ public class VerificationRepository : IVerificationRepository
                 VerificationId = res.VerificationId,
                 Code = res.Code,
                 IsActual = res.IsActual,
-                User = new User
-                {
-                    UserId = res.User.UserId,
-                    Name = res.User.Name,
-                    Email = res.User.Email,
-                    Surname = res.User.Surname,
-                    Patronymic = res.User.Patronymic,
-                    Password = res.User.Password,
-                    PhoneNumber = res.User.PhoneNumber
-                }
+                User = await _userRepository.GetUserById(res.UserId)
             };
     }
 

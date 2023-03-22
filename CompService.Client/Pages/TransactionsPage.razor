@@ -54,8 +54,9 @@
         <MudTh>Метод оплаты</MudTh>
         <MudTh>Основание</MudTh>
         <MudTh>
-            <MudTableSortLabel SortBy="new Func<Transaction, object>(x => x.User.Surname)">Сотрудник</MudTableSortLabel>
+            <MudTableSortLabel SortBy="new Func<Transaction, object>(x => x.UserSurname)">Сотрудник</MudTableSortLabel>
         </MudTh>
+        <MudTh>Комментарий</MudTh>
     </HeaderContent>
     <RowTemplate>
         <MudTd DataLabel="Дата">
@@ -84,7 +85,10 @@
             <MudText>@context.TransactionBasis.GetName()</MudText>
         </MudTd>
         <MudTd>
-            <MudText>@context.User.Surname</MudText>
+            <MudText>@context.UserSurname</MudText>
+        </MudTd>
+        <MudTd>
+            <MudText>@context.Comment</MudText>
         </MudTd>
     </RowTemplate>
 </MudTable>

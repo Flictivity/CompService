@@ -7,7 +7,7 @@ public class TransactionModel
 {
     public double ExpenseMoney { get; set; } = 0;
     public PaymentMethods PaymentMethod { get; set; } = 0;
-    public TransactionBasis TransactionBasis { get; set; } = 0;
+    public TransactionBasis TransactionBasis { get; set; } = TransactionBasis.OrderRefund;
     public Order? Order { get; set; }
     public string? Comment { get; set; } 
 }

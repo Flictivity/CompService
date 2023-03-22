@@ -9,6 +9,5 @@ public class DevicePlaceDb
     [BsonRepresentation(BsonType.ObjectId)]
     public string PlaceId { get; set; } = null!;
     public string Info { get; set; } = null!;
-    public OrderDb? Order { get; set; } = null!;
     public bool IsOccupied { get; set; }
 }

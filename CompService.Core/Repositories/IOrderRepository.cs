@@ -8,4 +8,5 @@ public interface IOrderRepository
     public Task<Order?> GetOrderById(string? id);
     public Task UpdateOrder(Order currentOrder, Order newOrder);
     public Task<IEnumerable<Order>> GetAllOrders();
+    public Task<IEnumerable<OrderTableModel>> GetAllOrdersForTable();
 }

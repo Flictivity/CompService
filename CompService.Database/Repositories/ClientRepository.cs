@@ -12,9 +12,10 @@ public class ClientRepository : IClientRepository
 {
     private readonly IMongoCollection<ClientDb> _clients;
     private readonly ILogger<ClientRepository> _logger;
+    private readonly IReferenceRepository<Source> _sourceRepository;
 
     public ClientRepository(IOptions<DatabaseConnectionSettings> databaseConnectionSettings,
-        ILogger<ClientRepository> logger)
+        ILogger<ClientRepository> logger, IReferenceRepository<Source> sourceRepository)
     {
         var mongoClient = new MongoClient(
             databaseConnectionSettings.Value.ConnectionString);
@@ -25,8 +26,9 @@ public class ClientRepository : IClientRepository
         _clients = mongoDatabase.GetCollection<ClientDb>(
             databaseConnectionSettings.Value.ClientsCollectionName);
         _logger = logger;
+        _sourceRepository = sourceRepository;
     }
-    
+
     public async Task<bool> CreateClient(Client client)
     {
         try
@@ -41,7 +43,7 @@ public class ClientRepository : IClientRepository
 
             return true;
         }
-        catch(Exception ex)
+        catch (Exception ex)
         {
             _logger.LogError(ex.Message);
             return false;
@@ -51,14 +53,31 @@ public class ClientRepository : IClientRepository
     public async Task<Client?> GetClientByEmail(string? email)
     {
         var res = (await _clients.FindAsync(x => x.Email == email)).FirstOrDefault();
-        return res is null ? null : EntityConverter.ConvertClient(res);
+        if (res is null)
+        {
+            return null;
+        }
+
+        var source = await _sourceRepository.GetReferenceById(res.SourceId);
+        var client = EntityConverter.ConvertClient(res);
+        client.Source = source;
+
+        return client;
     }
 
     public async Task<Client?> GetClientById(string? id)
     {
         var res = (await _clients.FindAsync(x => x.ClientId == id)).FirstOrDefault();
+        if (res is null)
+        {
+            return null;
+        }
 
-        return res is null ? null : EntityConverter.ConvertClient(res);
+        var source = await _sourceRepository.GetReferenceById(res.SourceId);
+        var client = EntityConverter.ConvertClient(res);
+        client.Source = source;
+
+        return client;
     }
 
     public async Task UpdateClient(Client currentClient, Client newClient)
@@ -70,20 +89,24 @@ public class ClientRepository : IClientRepository
             Surname = newClient.Surname,
             Email = newClient.Email,
             PhoneNumber = newClient.PhoneNumber,
-            Source = new SourceDb
-            {
-                SourceId = newClient.Source!.SourceId,
-                Name = newClient.Source.Name
-            }
+            SourceId = newClient.Source?.SourceId
         };
-            
+
         await _clients.ReplaceOneAsync(x => x.ClientId == currentClient.ClientId, newDbUser);
     }
 
     public async Task<IEnumerable<Client>> GetAllClients()
     {
+        var res = new List<Client>();
         var users = (await _clients.FindAsync(x => true)).ToList();
+        foreach (var user in users)
+        {
+            var source = await _sourceRepository.GetReferenceById(user.SourceId);
+            var client = EntityConverter.ConvertClient(user);
+            client.Source = source;
+            res.Add(client);
+        }
 
-        return users.Select(EntityConverter.ConvertClient).ToList();
+        return res;
     }
 }

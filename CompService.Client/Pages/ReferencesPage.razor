@@ -34,19 +34,20 @@
         "Внешний вид",
         "Тип устройства",
         "Услуги",
-        "Категории запастей"
+        "Категории запастей",
+        "Места хранения техники"
     };
 
     private bool FilterFunc1(string element) => FilterFunc(element, _searchString);
-    
-        private bool FilterFunc(string element, string? searchingString)
-        {
-            if (string.IsNullOrWhiteSpace(searchingString))
-                return true;
-            if (element.Contains(searchingString, StringComparison.OrdinalIgnoreCase))
-                return true;
-            return false;
-        }
+
+    private bool FilterFunc(string element, string? searchingString)
+    {
+        if (string.IsNullOrWhiteSpace(searchingString))
+            return true;
+        if (element.Contains(searchingString, StringComparison.OrdinalIgnoreCase))
+            return true;
+        return false;
+    }
 
     private void RowClickEvent(TableRowClickEventArgs<string> tableRowClickEventArgs)
     {
@@ -72,6 +73,9 @@
                 break;
             case "Категории запастей":
                 NavigationManager.NavigateTo("/sparePartCategories");
+                break;
+            case "Места хранения техники":
+                NavigationManager.NavigateTo("/devicePlaces");
                 break;
         }
     }

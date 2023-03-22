@@ -1,7 +1,6 @@
 ﻿@page "/orders"
 @using CompService.Core.Models
 @using CompService.Core.Services
-@using CompService.Core.Extensions
 @using CompService.Core.Enums
 
 @inject IOrderService OrderService;
@@ -11,8 +10,11 @@
 @inject IReferenceService<Defect> DefectService;
 @inject IReferenceService<DeviceType> DeviceTypeService;
 @inject UserInfoHolder UserInfoHolder;
+@inject ISparePartService SparePartService;
+@inject IFacilityService FacilityService;
+@inject IDevicePlaceService DevicePlaceService;
 
-<MudTable Items="_orders" T="Order" Hover="true">
+<MudTable Items="_orders" T="OrderTableModel" Hover="true">
     <ToolBarContent>
         <MudText Typo="Typo.h6">Заказы</MudText>
         <MudSpacer/>
@@ -20,26 +22,26 @@
     </ToolBarContent>
     <HeaderContent>
         <MudTh>
-            <MudTableSortLabel SortBy="new Func<Order, object>(x => x.OrderId)">Заказ</MudTableSortLabel>
+            <MudTableSortLabel SortBy="new Func<OrderTableModel, object>(x => x.OrderId)">Заказ</MudTableSortLabel>
         </MudTh>
         <MudTh>
-            <MudTableSortLabel SortBy="new Func<Order, object>(x => x.Status.GetName())">Статус</MudTableSortLabel>
+            <MudTableSortLabel SortBy="new Func<OrderTableModel, object>(x => x.Status)">Статус</MudTableSortLabel>
         </MudTh>
         <MudTh>
-            <MudTableSortLabel SortBy="new Func<Order, object>(x => x.Client.Name)">Клиент</MudTableSortLabel>
+            <MudTableSortLabel SortBy="new Func<OrderTableModel, object>(x => x.ClientSurname)">Клиент</MudTableSortLabel>
         </MudTh>
         <MudTh>
-            <MudTableSortLabel SortBy="new Func<Order, object>(x => x.Defect.Name)">Неисправность</MudTableSortLabel>
+            <MudTableSortLabel SortBy="new Func<OrderTableModel, object>(x => x.Defect)">Неисправность</MudTableSortLabel>
         </MudTh>
         <MudTh>
-            <MudTableSortLabel SortBy="new Func<Order, object>(x => x.Operator.Surname)">Оператор</MudTableSortLabel>
+            <MudTableSortLabel SortBy="new Func<OrderTableModel, object>(x => x.OperatorName)">Оператор</MudTableSortLabel>
         </MudTh>
         <MudTh>
-            <MudTableSortLabel SortBy="new Func<Order, object>(x => x.Master.Surname)">Исполнитель</MudTableSortLabel>
+            <MudTableSortLabel SortBy="new Func<OrderTableModel, object>(x => x.MasterName)">Исполнитель</MudTableSortLabel>
         </MudTh>
         <MudTh>Место на стойке</MudTh>
         <MudTh>
-            <MudTableSortLabel SortBy="new Func<Order, object>(x => x.Money)">Итоговая сумма</MudTableSortLabel>
+            <MudTableSortLabel SortBy="new Func<OrderTableModel, object>(x => x.Sum)">Итоговая сумма</MudTableSortLabel>
         </MudTh>
     </HeaderContent>
     <RowTemplate>
@@ -50,28 +52,28 @@
             </MudStack>
         </MudTd>
         <MudTd DataLabel="Статус">
-            <MudText>@context.Status.GetName()</MudText>
+            <MudText>@context.Status</MudText>
         </MudTd>
         <MudTd DataLabel="Клиент">
             <MudStack>
-                <MudText>@context.Client.Surname</MudText>
-                <MudText>@context.Client.PhoneNumber</MudText>
+                <MudText>@context.ClientSurname</MudText>
+                <MudText>@context.ClientPhoneNumber</MudText>
             </MudStack>
         </MudTd>
         <MudTd DataLabel="Неиcправность">
-            <MudText>@context.Defect.Name</MudText>
+            <MudText>@context.Defect</MudText>
         </MudTd>
         <MudTd DataLabel="Оператор">
-            <MudText>@context.Operator.Surname @context.Operator.Name[0]. @context.Operator.Patronymic[0].</MudText>
+            <MudText>@context.OperatorName</MudText>
         </MudTd>
         <MudTd DataLabel="Исполнитель">
-            <MudText>@context.Master.Surname @context.Master.Name[0]. @context.Master.Patronymic[0].</MudText>
+            <MudText>@context.MasterName</MudText>
         </MudTd>
         <MudTd DataLabel="Место на стойке">
-            <MudText></MudText>
+            <MudText>@context.Place</MudText>
         </MudTd>
         <MudTd DataLabel="Итоговая сумма">
-            <MudText>@context.Money</MudText>
+            <MudText>@context.Sum</MudText>
         </MudTd>
     </RowTemplate>
 </MudTable>
@@ -80,11 +82,11 @@
 
 @code {
     private string _searchString = "";
-    private List<Order>? _orders;
+    private List<OrderTableModel>? _orders;
 
     protected override async Task OnInitializedAsync()
     {
-        _orders = (await OrderService.GetAllOrdersAsync()).ToList();
+        _orders = (await OrderService.GetAllOrdersForTableAsync()).ToList();
         await base.OnInitializedAsync();
     }
 
@@ -93,24 +95,26 @@
         var newOrder = new Order
         {
             OrderDate = DateTime.Now,
-            Client = (await ClientService.GetAllClientsAsync()).ToList()[0],
-            Defect = (await DefectService.GetAllValuesAsync()).ToList()[0],
-            Appearance = (await AppearanceService.GetAllValuesAsync()).ToList()[0],
-            DeviceType = (await DeviceTypeService.GetAllValuesAsync()).ToList()[0],
-            Brand = (await BrandService.GetAllValuesAsync()).ToList()[0],
-            Model = "Test",
+            ClientId = (await ClientService.GetAllClientsAsync()).ToList()[0].ClientId,
+            DefectId = (await DefectService.GetAllValuesAsync()).ToList()[0].DefectId,
+            AppearanceId = (await AppearanceService.GetAllValuesAsync()).ToList()[0].AppearanceId,
+            DeviceTypeId = (await DeviceTypeService.GetAllValuesAsync()).ToList()[0].DeviceTypeId,
+            BrandId = (await BrandService.GetAllValuesAsync()).ToList()[0].BrandId,
+            Model = "Xiaomi",
             DevicePassword = null,
-            Operator = UserInfoHolder.CurrentUser!,
-            Master = UserInfoHolder.CurrentUser!,
+            OperatorId = UserInfoHolder.CurrentUser?.UserId!,
+            MasterId = UserInfoHolder.CurrentUser?.UserId!,
             Status = OrdersStatuses.NewOrder,
-            SpareParts = null,
-            Facilities = null,
-            Money = 0
+            RepairType = RepairTypes.Warranty,
+            SpareParts = new List<OrderListModel<SparePart>> {new() {Item = (await SparePartService.GetAllSparePartsAsync()).ToList()[0], Count = 1, Discount = 0, Sum = 1}},
+            Facilities = new List<OrderListModel<Facility>> {new() {Item = (await FacilityService.GetAllFacilitiesAsync()).ToList()[0], Count = 1, Discount = 0, Sum = 1}},
+            Money = 1,
+            DevicePlaceId = (await  DevicePlaceService.GetAllPlacesAsync()).ToList()[0].PlaceId
         };
         var res = await OrderService.CreateAsync(newOrder);
         if (res.Success)
         {
-            _orders = (await OrderService.GetAllOrdersAsync()).ToList();
+            _orders = (await OrderService.GetAllOrdersForTableAsync()).ToList();
             StateHasChanged();
         }
     }

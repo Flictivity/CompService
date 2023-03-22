@@ -12,9 +12,10 @@ public class TransactionRepository : ITransactionRepository
 {
     private readonly IMongoCollection<TransactionDb> _transactions;
     private readonly ILogger<ITransactionRepository> _logger;
+    private readonly IUserRepository _userRepository;
 
     public TransactionRepository(IOptions<DatabaseConnectionSettings> databaseConnectionSettings,
-        ILogger<ITransactionRepository> logger)
+        ILogger<ITransactionRepository> logger, IUserRepository userRepository)
     {
         var mongoClient = new MongoClient(
             databaseConnectionSettings.Value.ConnectionString);
@@ -25,6 +26,7 @@ public class TransactionRepository : ITransactionRepository
         _transactions = mongoDatabase.GetCollection<TransactionDb>(
             databaseConnectionSettings.Value.TransactionsCollectionName);
         _logger = logger;
+        _userRepository = userRepository;
     }
 
     public async Task Create(Transaction newTransaction)
@@ -37,7 +39,16 @@ public class TransactionRepository : ITransactionRepository
     {
         var res = (await _transactions.FindAsync(x => x.TransactionId == id))
             .FirstOrDefault();
-        return res is null ? null : EntityConverter.ConvertTransaction(res);
+        if (res is null)
+        {
+            return null;
+        }
+
+        var user = await _userRepository.GetUserById(res.UserId);
+        var transaction = EntityConverter.ConvertTransaction(res);
+        transaction.UserSurname = user is null ? string.Empty : user.Surname;
+
+        return transaction;
     }
 
     public async Task UpdateTransaction(Transaction currentTransaction, Transaction newTransaction)
@@ -50,24 +61,8 @@ public class TransactionRepository : ITransactionRepository
             ExpenseMoney = newTransaction.ExpenseMoney,
             PaymentMethod = (int) newTransaction.PaymentMethod,
             TransactionBasis = (int) newTransaction.TransactionBasis,
-            Order = newTransaction.Order is null
-                ? null
-                : new OrderDb
-                {
-                    OrderId = newTransaction.Order.OrderId,
-                    OrderDate = newTransaction.Order.OrderDate
-                },
-            User = new UserDb
-            {
-                UserId = newTransaction.User.UserId,
-                Name = newTransaction.User.Name,
-                Surname = newTransaction.User.Surname,
-                Patronymic = newTransaction.User.Patronymic,
-                Email = newTransaction.User.Email,
-                Password = newTransaction.User.Password,
-                PhoneNumber = newTransaction.User.PhoneNumber,
-                Role = (int) newTransaction.User.Roles
-            },
+            OrderId = newTransaction.OrderId,
+            UserId = newTransaction.UserId,
             Comment = newTransaction.Comment
         };
 
@@ -77,8 +72,18 @@ public class TransactionRepository : ITransactionRepository
 
     public async Task<IEnumerable<Transaction>> GetAllTransactions()
     {
+        var res = new List<Transaction>();
         var transactions = (await _transactions.FindAsync(x => true)).ToList();
 
-        return transactions.Select(EntityConverter.ConvertTransaction).ToList();
+        foreach (var transaction in transactions)
+        {
+            var user = await _userRepository.GetUserById(transaction.UserId);
+            var newTransaction = EntityConverter.ConvertTransaction(transaction);
+            newTransaction.UserSurname = user is null ? string.Empty : user.Surname;
+
+            res.Add(newTransaction);
+        }
+
+        return res;
     }
 }

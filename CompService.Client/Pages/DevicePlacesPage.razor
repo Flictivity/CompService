@@ -1,0 +1,93 @@
+﻿@page "/devicePlaces"
+@using CompService.Core.Models
+@using CompService.Core.Services
+@using CompService.Client.Windows
+
+@inject UserInfoHolder UserInfoHolder;
+@inject ISnackbar Snackbar;
+@inject IDialogService DialogService;
+@inject IDevicePlaceService DevicePlaceService;
+
+<MudTable Items="@_places" T="DevicePlace" Filter="new Func<DevicePlace, bool>(FilterFunc1)" Hover="true">
+    <ToolBarContent>
+        <MudText Typo="Typo.h6">Места хранения техники</MudText>
+        <MudSpacer/>
+        <MudTextField @bind-Value="_searchString" Placeholder="Поиск" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Search" IconSize="Size.Medium" Class="mt-0"></MudTextField>
+    </ToolBarContent>
+    <HeaderContent>
+        <MudTh>Место</MudTh>
+        <MudTh>Информация</MudTh>
+        <MudTh>Занятость</MudTh>
+        <MudTh>Действие</MudTh>
+    </HeaderContent>
+    <RowTemplate>
+        <MudTd DataLabel="Место">
+            <MudText>@context.PlaceId</MudText>
+        </MudTd>
+        <MudTd DataLabel="Информация">
+            <MudText>@context.Info</MudText>
+        </MudTd>
+        <MudTd DataLabel="Занятость">
+            <MudCheckBox ReadOnly="true" @bind-Checked="@context.IsOccupied"></MudCheckBox>
+        </MudTd>
+        <MudTd>
+            <MudIconButton Icon="@Icons.Material.Filled.Edit" Color="Color.Secondary" OnClick="@(async () => await OpenEditWindow(context))"></MudIconButton>
+        </MudTd>
+    </RowTemplate>
+</MudTable>
+
+<MudFab Style="position: fixed; bottom: 0; right: 0; margin: 35px 25px;" Color="Color.Primary" Icon="@Icons.Material.Filled.Add" OnClick="async () => await OpenWindow()"/>
+@code {
+    private List<DevicePlace>? _places;
+    string _searchString = "";
+    
+    protected override async Task OnInitializedAsync()
+    {
+        _places = (await DevicePlaceService.GetAllPlacesAsync()).ToList();
+        await base.OnInitializedAsync();
+    }
+    
+    private async Task OpenWindow()
+    {
+        var closeOnEscapeKey = new DialogOptions {CloseOnEscapeKey = true};
+        var parameters = new DialogParameters {
+            {"SelectedPlace", null},
+        };
+        var dialog = await DialogService.ShowAsync<DevicePlaceWindow>("Новая запись",parameters, closeOnEscapeKey);
+        var result = await dialog.Result;
+
+        if (!result.Canceled)
+        {
+            _places = (await DevicePlaceService.GetAllPlacesAsync()).ToList();
+            StateHasChanged();
+        }
+    }
+
+    private async Task OpenEditWindow(DevicePlace place)
+    {
+        var closeOnEscapeKey = new DialogOptions {CloseOnEscapeKey = true};
+        var parameters = new DialogParameters {
+            {"SelectedPlace", place},
+        };
+        var dialog = await DialogService.ShowAsync<DevicePlaceWindow>("Новая запись",parameters, closeOnEscapeKey);
+        var result = await dialog.Result;
+
+        if (!result.Canceled)
+        {
+            _places = (await DevicePlaceService.GetAllPlacesAsync()).ToList();
+            Snackbar.Add("Успешно", Severity.Success);
+            StateHasChanged();
+        }
+    }
+
+    private bool FilterFunc1(DevicePlace element) => FilterFunc(element, _searchString);
+    
+    private bool FilterFunc(DevicePlace element, string? searchingString)
+    {
+        if (string.IsNullOrWhiteSpace(searchingString))
+            return true;
+        if (element.Info.Contains(searchingString, StringComparison.OrdinalIgnoreCase))
+            return true;    
+        return false;
+    }
+}

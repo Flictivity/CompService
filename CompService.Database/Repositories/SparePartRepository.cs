@@ -12,9 +12,10 @@ public class SparePartRepository : ISparePartRepository
 {
     private readonly IMongoCollection<SparePartDb> _spareParts;
     private readonly ILogger<SparePartRepository> _logger;
+    private readonly IReferenceRepository<SparePartCategory> _sparePartCategoryRepository;
 
     public SparePartRepository(IOptions<DatabaseConnectionSettings> databaseConnectionSettings,
-        ILogger<SparePartRepository> logger)
+        ILogger<SparePartRepository> logger, IReferenceRepository<SparePartCategory> sparePartCategoryRepository)
     {
         var mongoClient = new MongoClient(
             databaseConnectionSettings.Value.ConnectionString);
@@ -25,7 +26,9 @@ public class SparePartRepository : ISparePartRepository
         _spareParts = mongoDatabase.GetCollection<SparePartDb>(
             databaseConnectionSettings.Value.SparePartsCollectionName);
         _logger = logger;
+        _sparePartCategoryRepository = sparePartCategoryRepository;
     }
+
     public async Task Create(SparePart newSparePart)
     {
         var sparePartDb = EntityConverter.ConvertSparePart(newSparePart);
@@ -35,19 +38,61 @@ public class SparePartRepository : ISparePartRepository
     public async Task<SparePart?> GetSparePartByName(string? name)
     {
         var res = (await _spareParts.FindAsync(x => x.Name == name)).FirstOrDefault();
-        return res is null ? null : EntityConverter.ConvertSparePart(res);
+        if (res is null)
+        {
+            return null;
+        }
+
+        var category = await _sparePartCategoryRepository.GetReferenceById(res.CategoryId);
+        var sparePart = EntityConverter.ConvertSparePart(res);
+        if (category is null)
+        {
+            return sparePart;
+        }
+
+        sparePart.Category = category;
+
+        return sparePart;
     }
 
     public async Task<SparePart?> GetSparePartById(string? id)
     {
         var res = (await _spareParts.FindAsync(x => x.SparePartId == id)).FirstOrDefault();
-        return res is null ? null : EntityConverter.ConvertSparePart(res);
+        if (res is null)
+        {
+            return null;
+        }
+
+        var category = await _sparePartCategoryRepository.GetReferenceById(res.CategoryId);
+        var sparePart = EntityConverter.ConvertSparePart(res);
+        if (category is null)
+        {
+            return sparePart;
+        }
+
+        sparePart.Category = category;
+
+        return sparePart;
     }
 
     public async Task<SparePart?> GetSparePartByArticle(string? article)
     {
         var res = (await _spareParts.FindAsync(x => x.Article == article)).FirstOrDefault();
-        return res is null ? null : EntityConverter.ConvertSparePart(res);
+        if (res is null)
+        {
+            return null;
+        }
+
+        var category = await _sparePartCategoryRepository.GetReferenceById(res.CategoryId);
+        var sparePart = EntityConverter.ConvertSparePart(res);
+        if (category is null)
+        {
+            return sparePart;
+        }
+
+        sparePart.Category = category;
+
+        return sparePart;
     }
 
     public async Task UpdateSparePart(SparePart currentSparePart, SparePart newSparePart)
@@ -57,24 +102,33 @@ public class SparePartRepository : ISparePartRepository
             SparePartId = currentSparePart.SparePartId,
             Name = newSparePart.Name,
             Article = newSparePart.Article,
-            Category = new SparePartCategoryDb
-            {
-                CategoryId = newSparePart.Category.CategoryId,
-                Name = newSparePart.Category.Name
-            },
+            CategoryId = newSparePart.Category.CategoryId,
             Count = newSparePart.Count,
             PurchasePrice = newSparePart.PurchasePrice,
             RetailPrice = newSparePart.RetailPrice
         };
-            
+
         await _spareParts
             .ReplaceOneAsync(x => x.SparePartId == currentSparePart.SparePartId, newSparePartDb);
     }
 
     public async Task<IEnumerable<SparePart>> GetAllSpareParts()
     {
+        var res = new List<SparePart>();
         var spareParts = (await _spareParts.FindAsync(x => true)).ToList();
 
-        return spareParts.Select(EntityConverter.ConvertSparePart).ToList();
+        foreach (var sparePart in spareParts)
+        {
+            var category = await _sparePartCategoryRepository.GetReferenceById(sparePart.CategoryId);
+            var newSparePart = EntityConverter.ConvertSparePart(sparePart);
+            if (category is not null)
+            {
+                newSparePart.Category = category;
+            }
+
+            res.Add(newSparePart);
+        }
+
+        return res;
     }
 }
