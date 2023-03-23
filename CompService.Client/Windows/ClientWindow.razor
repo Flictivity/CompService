@@ -18,14 +18,15 @@
                               Class="mb-3"/>
                 <MudTextField Required="false" T="string" @bind-Value="_model.PhoneNumber"
                               Label="Телефон" InputType="InputType.Telephone"
-                              Class="mb-3"/>
+                              Class="mb-3"
+                              Mask="@(new PatternMask("+0 (000) 000 00-00") { CleanDelimiters = true })"/>
                 <MudTextField Required="true" T="string" @bind-Value="_model.Email"
                               RequiredError="Обязательное поле"
                               Label="Почта" InputType="InputType.Email" Validation="@(new EmailAddressAttribute {ErrorMessage = "Введенная почта не корректна"})"
                               Class="mb-3"/>
                 @if (_sources is not null && _sources.Count != 0)
                 {
-                    <MudSelect T="Source" @bind-Value="_model.Source" ToStringFunc="@_converter" Label="Откуда узнал"
+                    <MudSelect Clearable="true" T="Source" @bind-Value="_model.Source" ToStringFunc="@_converter" Label="Откуда узнал"
                                Variant="Variant.Text" AnchorOrigin="Origin.BottomCenter">
                         @foreach (Source source in _sources)
                         {
@@ -79,7 +80,7 @@
                 SelectedClient!, _model.Source);
             
             Snackbar.Add("Успешно", Severity.Success);
-            MudDialog?.Close(DialogResult.Ok(true));
+            MudDialog.Close(DialogResult.Ok(true));
 
             return;
         }
@@ -102,8 +103,8 @@
         }
         
         Snackbar.Add("Успешно", Severity.Success);
-        MudDialog?.Close(DialogResult.Ok(true));
+        MudDialog.Close(DialogResult.Ok(true));
     }
 
-    private void Cancel() => MudDialog?.Cancel();
+    private void Cancel() => MudDialog.Cancel();
 }

@@ -33,11 +33,6 @@ public class ClientRepository : IClientRepository
     {
         try
         {
-            if (client.Source is null)
-            {
-                return false;
-            }
-
             var clientDb = EntityConverter.ConvertClient(client);
             await _clients.InsertOneAsync(clientDb);
 

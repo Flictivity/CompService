@@ -16,9 +16,9 @@
 
 <MudStack Row="true" Class="d-flex justify-space-between">
     <MudStack Row="true">
-        <MudStack Row="true" Class="d-flex align-center mr-10">
+        <MudStack Row="true" Class="d-flex align-center ml-4 mr-10">
             <MudText Typo="Typo.h6">Итого</MudText>
-            <MudText Typo="Typo.subtitle1" Color="Color.Secondary">@_balance</MudText>
+            <MudText Typo="Typo.subtitle1" Color="@(_balance > 0 ? Color.Success : Color.Error)">@_balance</MudText>
         </MudStack>
         <MudStack Class="d-flex justify-center align-content-center">
             <MudText Typo="Typo.h6">Приход</MudText>
@@ -93,7 +93,7 @@
     </RowTemplate>
 </MudTable>
 
-<MudFab Style="position: fixed; bottom: 0; right: 0; margin: 35px 25px;" Color="Color.Primary" Icon="@Icons.Material.Filled.Add" OnClick="async () => await OpenWindow()"/>
+<MudFab Style="position: fixed; bottom: 0; right: 0; margin: 35px 25px;" Color="Color.Primary" Icon="@Icons.Material.Filled.Remove" OnClick="async () => await OpenWindow()"/>
 
 @code {
     private DateRange _dateRange = new(DateTime.Now.Date, DateTime.Now.AddDays(7).Date);
@@ -106,7 +106,8 @@
 
     protected override async Task OnInitializedAsync()
     {
-        var transactions = await TransactionService.GetAllTransactionsAsync();
+        var transactions = await TransactionService.GetAllTransactionsForPeriodAsync(
+            _dateRange.Start ?? DateTime.Now, _dateRange.End ?? DateTime.Now.AddDays(7));
         _balance = transactions.TransactionResult.Profit;
         _arrival = transactions.TransactionResult.Arrival;
         _expense = transactions.TransactionResult.Expense;
@@ -128,7 +129,8 @@
 
         if (!result.Canceled)
         {
-            var transactions = await TransactionService.GetAllTransactionsAsync();
+            var transactions = await TransactionService.GetAllTransactionsForPeriodAsync(
+                _dateRange.Start ?? DateTime.Now, _dateRange.End ?? DateTime.Now.AddDays(7));
             _balance = transactions.TransactionResult.Profit;
             _arrival = transactions.TransactionResult.Arrival;
             _expense = transactions.TransactionResult.Expense;
