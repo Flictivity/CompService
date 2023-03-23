@@ -21,9 +21,14 @@ public class OrderService : IOrderService
         return new BaseResult {Success = true};
     }
 
-    public async Task<Order?> GetOrderByIdAsync(string? id)
+    public async Task<Order?> GetOrderByIdAsync(string id)
     {
         return await _orderRepository.GetOrderById(id);
+    }
+
+    public async Task<int> GetMasterOrdersCount(string masterId)
+    {
+        return await _orderRepository.GetMasterOrdersCount(masterId);
     }
 
     public async Task<BaseResult> UpdateOrderAsync(Order currentOrder, Order newOrder)

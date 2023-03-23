@@ -1,4 +1,5 @@
-﻿using CompService.Core.Models;
+﻿using CompService.Core.Enums;
+using CompService.Core.Models;
 using CompService.Core.Repositories;
 using CompService.Core.Results;
 
@@ -7,10 +8,12 @@ namespace CompService.Core.Services.Impl;
 public class UserService : IUserService
 {
     private readonly IUserRepository _userRepository;
+    private readonly IOrderService _orderService;
 
-    public UserService(IUserRepository userRepository)
+    public UserService(IUserRepository userRepository, IOrderService orderService)
     {
         _userRepository = userRepository;
+        _orderService = orderService;
     }
 
     public async Task CreateUserAsync(User user)
@@ -26,6 +29,27 @@ public class UserService : IUserService
     public async Task<User?> GetUserByIdAsync(string? id)
     {
         return await _userRepository.GetUserById(id);
+    }
+
+    public async Task<IEnumerable<User>> GetUsersByRoleAsync(Roles role)
+    {
+        var users = await GetAllUsersAsync();
+        return users.Where(x => x.Roles == role);
+    }
+
+    public async Task<IEnumerable<User>> GetFreeMastersAsync()
+    {
+        var res = new List<User>();
+        var users = await GetAllUsersAsync();
+        foreach (var user in users)
+        {
+            if(user.Roles == Roles.Master && await _orderService.GetMasterOrdersCount(user.UserId) < 3)
+            {
+                res.Add(user);
+            }
+        }
+
+        return res;
     }
 
     public async Task<BaseResult> ChangeUserDataAsync(string name, string surname, string patronymic, string email,

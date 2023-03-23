@@ -1,19 +1,19 @@
 ﻿@page "/orders"
 @using CompService.Core.Models
 @using CompService.Core.Services
-@using CompService.Core.Enums
+@using CompService.Client.Data
+@using CompService.Client.Windows
+@using CompService.Core.Extensions
 
 @inject IOrderService OrderService;
-@inject IClientService ClientService;
-@inject IReferenceService<Appearance> AppearanceService;
-@inject IReferenceService<Brand> BrandService;
-@inject IReferenceService<Defect> DefectService;
-@inject IReferenceService<DeviceType> DeviceTypeService;
-@inject UserInfoHolder UserInfoHolder;
-@inject ISparePartService SparePartService;
-@inject IFacilityService FacilityService;
-@inject IDevicePlaceService DevicePlaceService;
+@inject ISnackbar Snackbar;
+@inject IDialogService DialogService;
 
+@if (_orders is null)
+{
+    <MudProgressCircular Class="d-flex mx-auto align-center" Color="Color.Primary" Style="height:200px;width:200px;"
+     Indeterminate="true" />
+}
 <MudTable Items="_orders" T="OrderTableModel" Hover="true">
     <ToolBarContent>
         <MudText Typo="Typo.h6">Заказы</MudText>
@@ -52,7 +52,7 @@
             </MudStack>
         </MudTd>
         <MudTd DataLabel="Статус">
-            <MudText>@context.Status</MudText>
+            <MudChip Style="@($"color:#FFFFFF; background:{StatusColors.StatusColor[context.Status]};")">@context.Status.GetName()</MudChip>
         </MudTd>
         <MudTd DataLabel="Клиент">
             <MudStack>
@@ -92,29 +92,16 @@
 
     private async Task OpenWindow()
     {
-        var newOrder = new Order
-        {
-            OrderDate = DateTime.Now,
-            ClientId = (await ClientService.GetAllClientsAsync()).ToList()[0].ClientId,
-            DefectId = (await DefectService.GetAllValuesAsync()).ToList()[0].DefectId,
-            AppearanceId = (await AppearanceService.GetAllValuesAsync()).ToList()[0].AppearanceId,
-            DeviceTypeId = (await DeviceTypeService.GetAllValuesAsync()).ToList()[0].DeviceTypeId,
-            BrandId = (await BrandService.GetAllValuesAsync()).ToList()[0].BrandId,
-            Model = "Xiaomi",
-            DevicePassword = null,
-            OperatorId = UserInfoHolder.CurrentUser?.UserId!,
-            MasterId = UserInfoHolder.CurrentUser?.UserId!,
-            Status = OrdersStatuses.NewOrder,
-            RepairType = RepairTypes.Warranty,
-            SpareParts = new List<OrderListModel<SparePart>> {new() {Item = (await SparePartService.GetAllSparePartsAsync()).ToList()[0], Count = 1, Discount = 0, Sum = 1}},
-            Facilities = new List<OrderListModel<Facility>> {new() {Item = (await FacilityService.GetAllFacilitiesAsync()).ToList()[0], Count = 1, Discount = 0, Sum = 1}},
-            Money = 1,
-            DevicePlaceId = (await  DevicePlaceService.GetAllPlacesAsync()).ToList()[0].PlaceId
-        };
-        var res = await OrderService.CreateAsync(newOrder);
-        if (res.Success)
+        var closeOnEscapeKey = new DialogOptions {CloseOnEscapeKey = true, CloseButton = true, MaxWidth = MaxWidth.Large,
+            FullWidth = true };
+        
+        var dialog = await DialogService.ShowAsync<OrderCreateWindow>("Новый заказ", closeOnEscapeKey);
+        var result = await dialog.Result;
+
+        if (!result.Canceled)
         {
             _orders = (await OrderService.GetAllOrdersForTableAsync()).ToList();
+            Snackbar.Add("Успешно", Severity.Success);
             StateHasChanged();
         }
     }

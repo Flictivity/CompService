@@ -1,0 +1,161 @@
+﻿@using CompService.Core.Services
+@using CompService.Core.Models
+@using CompService.Client.Data
+@using CompService.Core.Enums
+@using CompService.Core.Extensions
+
+@inject IOrderService OrderService;
+@inject ISnackbar Snackbar;
+@inject IClientService ClientService;
+@inject IUserService UserService;
+@inject IDevicePlaceService DevicePlaceService;
+@inject IReferenceService<Defect> DefectService;
+@inject IReferenceService<Appearance> AppearanceService;
+@inject IReferenceService<DeviceType> DeviceTypeService;
+@inject IReferenceService<Brand> BrandService;
+
+<MudForm @bind-IsValid="_success" Model="_model" Class="mx-auto">
+    <MudDialog>
+        <DialogContent>
+            <MudStack Row="true">
+                <MudStack>
+                    <MudStack>
+                        <MudStack>
+                            <MudText Typo="Typo.h5">Клиент</MudText>
+                            <MudSelect Required="true" RequiredError="Обязательное поле" T="Client" @bind-Value="_model.Client" ToStringFunc="@_converterClient" Label="Клиент"
+                                       Variant="Variant.Text" AnchorOrigin="Origin.BottomCenter">
+                                @foreach (var client in _clients)
+                                {
+                                    <MudSelectItem Value="client"/>
+                                }
+                            </MudSelect>
+
+                            <MudTextField Value="@_model.Client?.Email" Label="Почта" ReadOnly="@true"></MudTextField>
+                            <MudTextField Value="@_model.Client?.Email" Label="Почта" ReadOnly="@true"></MudTextField>
+                        </MudStack>
+                        <MudStack>
+                            <MudText Typo="Typo.h5">Дополнительно</MudText>
+                            <MudSelect Required="true" RequiredError="Обязательное поле" T="User" @bind-Value="_model.Operator" ToStringFunc="@_converterUser" Label="Оператор"
+                                       Variant="Variant.Text" AnchorOrigin="Origin.BottomCenter">
+                                @foreach (var user in _operators)
+                                {
+                                    <MudSelectItem Value="user"/>
+                                }
+                            </MudSelect>
+                            <MudSelect Required="true" RequiredError="Обязательное поле" T="User" @bind-Value="_model.Master" ToStringFunc="@_converterUser" Label="Мастер"
+                                       Variant="Variant.Text" AnchorOrigin="Origin.BottomCenter">
+                                @foreach (var user in _masters)
+                                {
+                                    <MudSelectItem Value="user"/>
+                                }
+                            </MudSelect>
+                            <MudSelect Required="true" RequiredError="Обязательное поле" T="DevicePlace" @bind-Value="_model.Place" ToStringFunc="@_converterPlace" Label="Место на стойке"
+                                       Variant="Variant.Text" AnchorOrigin="Origin.BottomCenter">
+                                @foreach (var place in _places)
+                                {
+                                    <MudSelectItem Value="place"/>
+                                }
+                            </MudSelect>
+                        </MudStack>
+                    </MudStack>
+                </MudStack>
+                <MudStack>
+                    <MudText Typo="Typo.h5">Информация</MudText>
+                    <MudSelect T="RepairTypes" Required="true" RequiredError="Обязательное поле" @bind-Value="_model.RepairType" ToStringFunc="@_converterRepairType" Label="Тип ремонта"
+                               Variant="Variant.Text" AnchorOrigin="Origin.BottomCenter">
+                        @foreach (RepairTypes type in Enum.GetValues(typeof(RepairTypes)))
+                        {
+                            <MudSelectItem Value="type"/>
+                        }
+                    </MudSelect>
+                    <MudSelect Required="true" RequiredError="Обязательное поле" T="Defect" @bind-Value="_model.Defect" ToStringFunc="@_converterDefect" Label="Причина обращения"
+                               Variant="Variant.Text" AnchorOrigin="Origin.BottomCenter">
+                        @foreach (var defect in _defects)
+                        {
+                            <MudSelectItem Value="defect"/>
+                        }
+                    </MudSelect>
+                    <MudSelect Required="true" RequiredError="Обязательное поле" T="Appearance" @bind-Value="_model.Appearance" ToStringFunc="@_converterAppearance" Label="Внешний вид"
+                               Variant="Variant.Text" AnchorOrigin="Origin.BottomCenter">
+                        @foreach (var appearance in _appearances)
+                        {
+                            <MudSelectItem Value="appearance"/>
+                        }
+                    </MudSelect>
+                    <MudSelect Required="true" RequiredError="Обязательное поле" T="DeviceType" @bind-Value="_model.DeviceType" ToStringFunc="@_converterDeviceType" Label="Вид устройства"
+                               Variant="Variant.Text" AnchorOrigin="Origin.BottomCenter">
+                        @foreach (var deviceType in _deviceTypes)
+                        {
+                            <MudSelectItem Value="deviceType"/>
+                        }
+                    </MudSelect>
+                    <MudSelect Required="true" RequiredError="Обязательное поле" T="Brand" @bind-Value="_model.Brand" ToStringFunc="@_converterBrand" Label="Бренд"
+                               Variant="Variant.Text" AnchorOrigin="Origin.BottomCenter">
+                        @foreach (var brand in _brands)
+                        {
+                            <MudSelectItem Value="brand"/>
+                        }
+                    </MudSelect>
+                    <MudTextField @bind-Value="_model.Model" Required="false"></MudTextField>
+                    <MudTextField @bind-Value="_model.Password" Required="false"></MudTextField>
+                </MudStack>
+            </MudStack>
+        </DialogContent>
+        <DialogActions>
+            <MudButton Class="mx-auto" Variant="Variant.Filled" Color="Color.Primary" OnClick="Submit" Disabled="@(!_success)">Сохранить</MudButton>
+        </DialogActions>
+    </MudDialog>
+</MudForm>
+
+@code {
+
+    [CascadingParameter]
+    MudDialogInstance MudDialog { get; set; } = null!;
+
+    private readonly Func<Client?, string?> _converterClient = p => $"{p?.Surname} {p?.Name}";
+    private readonly Func<User?, string?> _converterUser = p => $"{p?.Surname} {p?.Name} {p?.Email}";
+    private readonly Func<DevicePlace?, string?> _converterPlace = p => p?.Info;
+    private readonly Func<Defect?, string?> _converterDefect = p => p?.Name;
+    private readonly Func<DeviceType?, string?> _converterDeviceType = p => p?.Name;
+    private readonly Func<Appearance?, string?> _converterAppearance = p => p?.Name;
+    private readonly Func<Brand?, string?> _converterBrand = p => p?.Name;
+    private readonly Func<RepairTypes, string?> _converterRepairType = p => p.GetName();
+
+    private bool _success;
+    private OrderModel _model = new();
+    private List<Client> _clients = new();
+    private List<User> _operators = new();
+    private List<User> _masters = new();
+    private List<DevicePlace> _places = new();
+    private List<Defect> _defects = new();
+    private List<Appearance> _appearances = new();
+    private List<DeviceType> _deviceTypes = new();
+    private List<Brand> _brands = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        _clients = (await ClientService.GetAllClientsAsync()).ToList();
+        _operators = (await UserService.GetUsersByRoleAsync(Roles.Operator)).ToList();
+        _masters = (await UserService.GetFreeMastersAsync()).ToList();
+        _places = (await DevicePlaceService.GetFreePlacesAsync()).ToList();
+        _defects = (await DefectService.GetAllValuesAsync()).ToList();
+        _appearances = (await AppearanceService.GetAllValuesAsync()).ToList();
+        _deviceTypes = (await DeviceTypeService.GetAllValuesAsync()).ToList();
+        _brands = (await BrandService.GetAllValuesAsync()).ToList();
+        await base.OnInitializedAsync();
+    }
+
+    private async Task Submit()
+    {
+        var newOrder = new Order();
+        var res = await OrderService.CreateAsync(newOrder);
+
+        if (res.Success)
+        {
+            Snackbar.Add("Успешно", Severity.Success);
+            MudDialog.Close(DialogResult.Ok(true));
+        }
+        Snackbar.Add(res.Message, Severity.Error);
+    }
+
+}

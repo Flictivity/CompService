@@ -10,8 +10,8 @@
                                                Class="mb-3"/>
             </DialogContent>
             <DialogActions>
-                <MudButton OnClick="Cancel">Отмена</MudButton>
-                <MudButton Color="Color.Primary" OnClick="Submit" Disabled="@(!_success)">Сохранить</MudButton>
+                <MudButton Class="mx-auto" Variant="Variant.Filled" Color="Color.Secondary" OnClick="Cancel">Отмена</MudButton>
+                <MudButton Class="mx-auto" Variant="Variant.Filled" Color="Color.Primary" OnClick="Submit" Disabled="@(!_success)">Сохранить</MudButton>
             </DialogActions>
         </MudDialog>
 </MudForm>

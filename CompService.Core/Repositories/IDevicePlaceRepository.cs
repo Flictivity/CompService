@@ -8,4 +8,5 @@ public interface IDevicePlaceRepository
     public Task<DevicePlace?> GetPlaceById(string id);
     public Task UpdateDevicePlace(DevicePlace currentPlace, DevicePlace newPlace);
     public Task<IEnumerable<DevicePlace>> GetAllPlaces();
+    public Task<IEnumerable<DevicePlace>> GetFreePlaces();
 }

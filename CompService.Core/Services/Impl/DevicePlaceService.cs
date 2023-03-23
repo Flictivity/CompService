@@ -34,4 +34,9 @@ public class DevicePlaceService : IDevicePlaceService
     {
         return await _devicePlaceRepository.GetAllPlaces();
     }
+
+    public async Task<IEnumerable<DevicePlace>> GetFreePlacesAsync()
+    {
+        return await _devicePlaceRepository.GetFreePlaces();
+    }
 }

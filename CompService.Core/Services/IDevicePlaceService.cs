@@ -11,4 +11,5 @@ public interface IDevicePlaceService
     public Task<BaseResult> UpdateDevicePlaceAsync(DevicePlace currentPlace, DevicePlace newPlace);
 
     public Task<IEnumerable<DevicePlace>> GetAllPlacesAsync();
+    public Task<IEnumerable<DevicePlace>> GetFreePlacesAsync();
 }

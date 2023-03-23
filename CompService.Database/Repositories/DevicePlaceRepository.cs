@@ -56,4 +56,10 @@ public class DevicePlaceRepository : IDevicePlaceRepository
         var places = (await _places.FindAsync(x => true)).ToList();
         return places.Select(EntityConverter.ConvertDevicePlace);
     }
+
+    public async Task<IEnumerable<DevicePlace>> GetFreePlaces()
+    {
+        var places = (await _places.FindAsync(x => x.IsOccupied == false)).ToList();
+        return places.Select(EntityConverter.ConvertDevicePlace);
+    }
 }

@@ -6,7 +6,8 @@ namespace CompService.Core.Services;
 public interface IOrderService
 {
     public Task<BaseResult> CreateAsync(Order order);
-    public Task<Order?> GetOrderByIdAsync(string? id);
+    public Task<Order?> GetOrderByIdAsync(string id);
+    public Task<int> GetMasterOrdersCount(string masterId);
     public Task<BaseResult> UpdateOrderAsync(Order currentOrder, Order newOrder);
     public Task<IEnumerable<Order>> GetAllOrdersAsync();
     public Task<IEnumerable<OrderTableModel>> GetAllOrdersForTableAsync();

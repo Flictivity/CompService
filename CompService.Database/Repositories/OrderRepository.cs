@@ -96,6 +96,11 @@ public class OrderRepository : IOrderRepository
         return order;
     }
 
+    public async Task<int> GetMasterOrdersCount(string masterId)
+    {
+        return (await _orders.FindAsync(x => x.MasterId == masterId)).ToList().Count;
+    }
+
     public async Task UpdateOrder(Order currentOrder, Order newOrder)
     {
         var spareParts = newOrder.SpareParts?
@@ -202,7 +207,7 @@ public class OrderRepository : IOrderRepository
             {
                 OrderId = order.OrderId,
                 OrderDate = order.OrderDate,
-                Status = ((OrdersStatuses) order.Status).GetName(),
+                Status = (OrdersStatuses) order.Status,
                 ClientSurname = client?.Surname!,
                 ClientPhoneNumber = client?.PhoneNumber ?? string.Empty,
                 Defect = (await _defectRepository.GetReferenceById(order.DefectId))?.Name ?? string.Empty,
