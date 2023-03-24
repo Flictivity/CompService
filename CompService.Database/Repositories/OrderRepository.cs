@@ -95,9 +95,57 @@ public class OrderRepository : IOrderRepository
         return order;
     }
 
+    public async Task<IEnumerable<OrderListModel<SparePart>>> GetOrderSpareParts(string id)
+    {
+        var spareParts = new List<OrderListModel<SparePart>>();
+        var res = (await _orders.FindAsync(x => x.OrderId == id)).FirstOrDefault();
+        if (res is null) return spareParts;
+        if (res.SpareParts is null) return spareParts;
+        
+        foreach (var sparePart in res.SpareParts)
+        {
+            var newSparePart = new OrderListModel<SparePart>
+            {
+                Item = await _sparePartRepository.GetSparePartById(sparePart.Item) ?? new SparePart(),
+                Count = sparePart.Count,
+                Discount = sparePart.Discount,
+                Sum = sparePart.Sum
+            };
+            spareParts.Add(newSparePart);
+        }
+
+        return spareParts;
+    }
+
+    public async Task<IEnumerable<OrderListModel<Facility>>> GetOrderFacilities(string id)
+    {
+        var facilities = new List<OrderListModel<Facility>>();
+        var res = (await _orders.FindAsync(x => x.OrderId == id)).FirstOrDefault();
+        if (res is null) return facilities;
+        if (res.Facilities is null) return facilities;
+        
+        foreach (var facility in res.Facilities)
+        {
+            var newSparePart = new OrderListModel<Facility>
+            {
+                Item = await _facilityRepository.GetFacilityById(facility.Item) ?? new Facility(),
+                Count = facility.Count,
+                Discount = facility.Discount,
+                Sum = facility.Sum
+            };
+            facilities.Add(newSparePart);
+        }
+
+        return facilities;
+    }
+    
     public async Task<int> GetMasterOrdersCount(string masterId)
     {
-        return (await _orders.FindAsync(x => x.MasterId == masterId)).ToList().Count;
+        return (await _orders
+                .FindAsync(x => x.MasterId == masterId && (x.Status != (int) OrdersStatuses.Closed ||
+                                                           x.Status != (int) OrdersStatuses.Finished ||
+                                                           x.Status != (int) OrdersStatuses.ClosedWithProblems)))
+            .ToList().Count;
     }
 
     public async Task UpdateOrder(Order currentOrder, Order newOrder)

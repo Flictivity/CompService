@@ -7,6 +7,7 @@ public interface IOrderService
 {
     public Task<BaseResult> CreateAsync(Order order);
     public Task<Order?> GetOrderByIdAsync(string id);
+    public Task<IEnumerable<OrderListModel<SparePart>>> GetOrderSparePartsAsync(string id);
     public Task<int> GetMasterOrdersCount(string masterId);
     public Task<BaseResult> UpdateOrderAsync(Order currentOrder, Order newOrder);
     public Task<IEnumerable<Order>> GetAllOrdersAsync();

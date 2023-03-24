@@ -32,6 +32,11 @@ public class OrderService : IOrderService
         return await _orderRepository.GetOrderById(id);
     }
 
+    public async Task<IEnumerable<OrderListModel<SparePart>>> GetOrderSparePartsAsync(string id)
+    {
+        return await _orderRepository.GetOrderSpareParts(id);
+    }
+
     public async Task<int> GetMasterOrdersCount(string masterId)
     {
         return await _orderRepository.GetMasterOrdersCount(masterId);

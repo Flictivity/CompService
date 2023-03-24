@@ -1,0 +1,23 @@
+﻿@typeparam TItem
+<MudDialog>
+    <DialogContent>
+        <h3>OrderListItemAdd</h3>
+    </DialogContent>
+    <DialogActions>
+        <MudButton Class="mx-auto" Variant="Variant.Filled" Color="Color.Primary" OnClick="Submit">Сохранить</MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+
+    [CascadingParameter]
+    public MudDialogInstance MudDialog { get; set; } = null!;
+
+    [Parameter]
+    public TItem? SelectedItem { get; set; }
+
+    private void Submit()
+    {
+        MudDialog.Close(DialogResult.Ok(true));
+    }
+}

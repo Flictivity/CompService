@@ -157,18 +157,18 @@
         {
             OrderDate = DateTime.Now,
             ClientId = _model.Client!.ClientId,
-            DefectId = _model.Defect.DefectId,
-            AppearanceId = _model.Appearance.AppearanceId,
-            DeviceTypeId = _model.DeviceType.DeviceTypeId,
-            BrandId = _model.Brand.BrandId,
+            DefectId = _model.Defect!.DefectId,
+            AppearanceId = _model.Appearance!.AppearanceId,
+            DeviceTypeId = _model.DeviceType!.DeviceTypeId,
+            BrandId = _model.Brand!.BrandId,
             Model = _model.Model ?? string.Empty,
             DevicePassword = _model.Password ?? string.Empty,
-            OperatorId = _model.Operator.UserId,
-            MasterId = _model.Master.UserId, 
+            OperatorId = _model.Operator!.UserId,
+            MasterId = _model.Master!.UserId,
             Status = OrdersStatuses.NewOrder,
             RepairType = _model.RepairType,
             SpareParts = null, Facilities = null,
-            Money = 0, DevicePlaceId = _model.Place.PlaceId
+            Money = 0, DevicePlaceId = _model.Place!.PlaceId
         };
         var res = await OrderService.CreateAsync(newOrder);
 
@@ -179,5 +179,4 @@
         }
         Snackbar.Add(res.Message, Severity.Error);
     }
-
 }
