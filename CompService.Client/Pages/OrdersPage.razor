@@ -92,7 +92,7 @@
 
     private async Task OpenWindow()
     {
-        var closeOnEscapeKey = new DialogOptions {CloseOnEscapeKey = true, CloseButton = true, MaxWidth = MaxWidth.Large,
+        var closeOnEscapeKey = new DialogOptions {CloseOnEscapeKey = true, CloseButton = true, MaxWidth = MaxWidth.Medium,
             FullWidth = true };
         
         var dialog = await DialogService.ShowAsync<OrderCreateWindow>("Новый заказ", closeOnEscapeKey);
@@ -100,6 +100,7 @@
 
         if (!result.Canceled)
         {
+            _orders = null;
             _orders = (await OrderService.GetAllOrdersForTableAsync()).ToList();
             Snackbar.Add("Успешно", Severity.Success);
             StateHasChanged();

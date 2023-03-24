@@ -1,5 +1,4 @@
 ﻿using CompService.Core.Enums;
-using CompService.Core.Extensions;
 using CompService.Core.Models;
 using CompService.Core.Repositories;
 using CompService.Core.Settings;

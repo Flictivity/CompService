@@ -1,6 +1,4 @@
-﻿using CompService.Core.Models;
-
-namespace CompService.Core.Results;
+﻿namespace CompService.Core.Results;
 
 public class TransactionResult : BaseResult
 {

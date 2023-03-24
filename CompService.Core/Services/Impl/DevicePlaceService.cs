@@ -19,7 +19,7 @@ public class DevicePlaceService : IDevicePlaceService
         return new BaseResult {Success = true};
     }
 
-    public async Task<DevicePlace?> GetClientByIdAsync(string id)
+    public async Task<DevicePlace?> GetPlaceByIdAsync(string id)
     {
         return await _devicePlaceRepository.GetPlaceById(id);
     }

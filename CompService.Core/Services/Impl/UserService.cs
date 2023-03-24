@@ -40,10 +40,10 @@ public class UserService : IUserService
     public async Task<IEnumerable<User>> GetFreeMastersAsync()
     {
         var res = new List<User>();
-        var users = await GetAllUsersAsync();
+        var users = await GetUsersByRoleAsync(Roles.Master);
         foreach (var user in users)
         {
-            if(user.Roles == Roles.Master && await _orderService.GetMasterOrdersCount(user.UserId) < 3)
+            if(await _orderService.GetMasterOrdersCount(user.UserId) < 3)
             {
                 res.Add(user);
             }
