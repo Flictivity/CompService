@@ -11,14 +11,16 @@
 
 @if (_orders is null)
 {
-    <MudProgressCircular Class="d-flex mx-auto align-center" Color="Color.Primary" Style="height:200px;width:200px;"
-                         Indeterminate="true"/>
+    <MudProgressCircular Class="d-flex mx-auto" Color="Color.Primary" Style="height:200px;width:200px; margin-top: 30vh"
+                             Indeterminate="true"/> 
 }
-<MudTable Items="_orders" T="OrderTableModel" Hover="true" OnRowClick="RowClickEvent">
+<MudTable Items="_orders" T="OrderTableModel" Hover="true" Filter="new Func<OrderTableModel, bool>(FilterFunc1)" 
+          OnRowClick="RowClickEvent">
     <ToolBarContent>
         <MudText Typo="Typo.h6">Заказы</MudText>
         <MudSpacer/>
-        <MudTextField @bind-Value="_searchString" Placeholder="Поиск" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Search" IconSize="Size.Medium" Class="mt-0"></MudTextField>
+        <MudTextField @bind-Value="_searchString" Placeholder="Поиск" Adornment="Adornment.Start" 
+                      AdornmentIcon="@Icons.Material.Filled.Search" IconSize="Size.Medium" Class="mt-0"></MudTextField>
     </ToolBarContent>
     <HeaderContent>
         <MudTh>
@@ -78,7 +80,8 @@
     </RowTemplate>
 </MudTable>
 
-<MudFab Style="position: fixed; bottom: 0; right: 0; margin: 35px 25px;" Color="Color.Primary" Icon="@Icons.Material.Filled.Add" OnClick="async () => await OpenWindow()"/>
+<MudFab Style="position: fixed; bottom: 0; right: 0; margin: 35px 25px;" Color="Color.Primary" 
+        Icon="@Icons.Material.Filled.Add" OnClick="async () => await OpenWindow()"/>
 
 @code {
     private string _searchString = "";
@@ -89,7 +92,26 @@
         _orders = (await OrderService.GetAllOrdersForTableAsync()).ToList();
         await base.OnInitializedAsync();
     }
+    
+    private bool FilterFunc1(OrderTableModel element) => FilterFunc(element, _searchString);
 
+    private bool FilterFunc(OrderTableModel element, string? searchingString)
+    {
+        if (string.IsNullOrWhiteSpace(searchingString))
+            return true;
+        if (element.ClientSurname.Contains(searchingString, StringComparison.OrdinalIgnoreCase))
+            return true;
+        if (element.MasterName.Contains(searchingString, StringComparison.OrdinalIgnoreCase))
+            return true;
+        if (element.OperatorName.Contains(searchingString, StringComparison.OrdinalIgnoreCase))
+            return true;
+        if (element.OrderId.Contains(searchingString, StringComparison.OrdinalIgnoreCase))
+            return true;
+        if (element.Defect.Contains(searchingString, StringComparison.OrdinalIgnoreCase))
+            return true;
+        return false;
+    }
+    
     private async Task OpenWindow()
     {
         var closeOnEscapeKey = new DialogOptions
@@ -114,12 +136,12 @@
     {
         var closeOnEscapeKey = new DialogOptions
         {
-            CloseOnEscapeKey = true, CloseButton = true, 
+            CloseOnEscapeKey = true, CloseButton = true,
             FullScreen = true
         };
         var parameters = new DialogParameters {{"SelectedOrderId", tableRowClickEventArgs.Item.OrderId}};
 
-        var dialog = await DialogService.ShowAsync<OrderEditWindow>("1",parameters, closeOnEscapeKey);
+        var dialog = await DialogService.ShowAsync<OrderEditWindow>("", parameters, closeOnEscapeKey);
         var result = await dialog.Result;
 
         if (result.Canceled) return;
@@ -128,4 +150,6 @@
         _orders = (await OrderService.GetAllOrdersForTableAsync()).ToList();
         StateHasChanged();
     }
+
 }
+
