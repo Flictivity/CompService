@@ -1,4 +1,5 @@
 ﻿using CompService.Core.Models;
+using CompService.Core.Results;
 
 namespace CompService.Core.Repositories;
 
@@ -11,5 +12,6 @@ public interface IOrderRepository
     public Task<int> GetMasterOrdersCount(string masterId);
     public Task UpdateOrder(Order currentOrder, Order newOrder);
     public Task<IEnumerable<Order>> GetAllOrders();
-    public Task<IEnumerable<OrderTableModel>> GetAllOrdersForTable();
+    public Task<ListDataResult<OrderTableModel>> GetAllOrdersForTable(int itemCount, int pageNum,
+        string searchText, string field, bool desc = false);
 }

@@ -53,8 +53,9 @@ public class OrderService : IOrderService
         return await _orderRepository.GetAllOrders();
     }
 
-    public async Task<IEnumerable<OrderTableModel>> GetAllOrdersForTableAsync()
+    public async Task<ListDataResult<OrderTableModel>> GetAllOrdersForTableAsync(int itemCount,
+        int pageNum, string field, bool desc, string searchText)
     {
-        return await _orderRepository.GetAllOrdersForTable();
+        return await _orderRepository.GetAllOrdersForTable(itemCount, pageNum, searchText,field,desc);
     }
 }

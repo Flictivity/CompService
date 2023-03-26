@@ -4,46 +4,45 @@
 @using CompService.Client.Data
 @using CompService.Client.Windows
 @using CompService.Core.Extensions
+@using CompService.Core.Results
 
 @inject IOrderService OrderService;
 @inject ISnackbar Snackbar;
 @inject IDialogService DialogService;
 
-@if (_orders is null)
-{
-    <MudProgressCircular Class="d-flex mx-auto" Color="Color.Primary" Style="height:200px;width:200px; margin-top: 30vh"
-                             Indeterminate="true"/> 
-}
-<MudTable Items="_orders" T="OrderTableModel" Hover="true" Filter="new Func<OrderTableModel, bool>(FilterFunc1)" 
+
+<MudTable T="OrderTableModel" @ref="_table" Hover="true" ServerData="GetData" 
           OnRowClick="RowClickEvent">
     <ToolBarContent>
         <MudText Typo="Typo.h6">Заказы</MudText>
         <MudSpacer/>
-        <MudTextField @bind-Value="_searchString" Placeholder="Поиск" Adornment="Adornment.Start" 
+        <MudTextField T="string" ValueChanged="@(OnSearch)" Placeholder="Поиск" Adornment="Adornment.Start" 
                       AdornmentIcon="@Icons.Material.Filled.Search" IconSize="Size.Medium" Class="mt-0"></MudTextField>
     </ToolBarContent>
     <HeaderContent>
         <MudTh>
-            <MudTableSortLabel SortBy="new Func<OrderTableModel, object>(x => x.OrderId)">Заказ</MudTableSortLabel>
+            <MudTableSortLabel SortLabel="OrderId" T="OrderTableModel">Заказ</MudTableSortLabel>
         </MudTh>
         <MudTh>
-            <MudTableSortLabel SortBy="new Func<OrderTableModel, object>(x => x.Status)">Статус</MudTableSortLabel>
+            <MudTableSortLabel SortLabel="Status" T="OrderTableModel">Статус</MudTableSortLabel>
         </MudTh>
         <MudTh>
-            <MudTableSortLabel SortBy="new Func<OrderTableModel, object>(x => x.ClientSurname)">Клиент</MudTableSortLabel>
+            Клиент
         </MudTh>
         <MudTh>
-            <MudTableSortLabel SortBy="new Func<OrderTableModel, object>(x => x.Defect)">Неисправность</MudTableSortLabel>
+            Неисправность
         </MudTh>
         <MudTh>
-            <MudTableSortLabel SortBy="new Func<OrderTableModel, object>(x => x.OperatorName)">Оператор</MudTableSortLabel>
+            Оператор
         </MudTh>
         <MudTh>
-            <MudTableSortLabel SortBy="new Func<OrderTableModel, object>(x => x.MasterName)">Исполнитель</MudTableSortLabel>
+            Исполнитель
         </MudTh>
-        <MudTh>Место на стойке</MudTh>
         <MudTh>
-            <MudTableSortLabel SortBy="new Func<OrderTableModel, object>(x => x.Sum)">Итоговая сумма</MudTableSortLabel>
+            Место на стойке
+        </MudTh>
+        <MudTh>
+            <MudTableSortLabel T="OrderTableModel" SortLabel="Sum">Итоговая сумма</MudTableSortLabel>
         </MudTh>
     </HeaderContent>
     <RowTemplate>
@@ -78,6 +77,18 @@
             <MudText>@context.Sum</MudText>
         </MudTd>
     </RowTemplate>
+    <NoRecordsContent>
+            <MudText>Не найдено записей</MudText>
+        </NoRecordsContent>
+        <LoadingContent>
+            <MudText>Загрузка...</MudText>
+        </LoadingContent>
+        <PagerContent>
+            <div class="d-flex flex-column align-center">
+                <MudPagination SelectedChanged="PageChanged" Count="@((_table.GetFilteredItemsCount() + _table.RowsPerPage - 1) / _table.RowsPerPage)" Class="pa-4"/>
+                <MudTablePager HidePagination="true" InfoFormat="{first_item}-{last_item} из {all_items}" RowsPerPageString="Отображать строк:"/>
+            </div>
+        </PagerContent>
 </MudTable>
 
 <MudFab Style="position: fixed; bottom: 0; right: 0; margin: 35px 25px;" Color="Color.Primary" 
@@ -85,33 +96,32 @@
 
 @code {
     private string _searchString = "";
-    private List<OrderTableModel>? _orders;
+    private MudTable<OrderTableModel> _table = null!;
+    
 
-    protected override async Task OnInitializedAsync()
+    private async Task<TableData<OrderTableModel>> GetData(TableState state)
     {
-        _orders = (await OrderService.GetAllOrdersForTableAsync()).ToList();
-        await base.OnInitializedAsync();
+        ListDataResult<OrderTableModel> data;
+        if (state.SortLabel is null)
+            data = await OrderService.GetAllOrdersForTableAsync(state.PageSize, state.Page, _searchString);
+        else
+            data = await OrderService.GetAllOrdersForTableAsync(state.PageSize,
+                state.Page, state.SortLabel,
+                state.SortDirection == SortDirection.Descending, _searchString);
+
+        return new TableData<OrderTableModel> { TotalItems = data.TotalItemsCount, Items = data.Items };
     }
     
-    private bool FilterFunc1(OrderTableModel element) => FilterFunc(element, _searchString);
-
-    private bool FilterFunc(OrderTableModel element, string? searchingString)
+    private void OnSearch(string text)
     {
-        if (string.IsNullOrWhiteSpace(searchingString))
-            return true;
-        if (element.ClientSurname.Contains(searchingString, StringComparison.OrdinalIgnoreCase))
-            return true;
-        if (element.MasterName.Contains(searchingString, StringComparison.OrdinalIgnoreCase))
-            return true;
-        if (element.OperatorName.Contains(searchingString, StringComparison.OrdinalIgnoreCase))
-            return true;
-        if (element.OrderId.Contains(searchingString, StringComparison.OrdinalIgnoreCase))
-            return true;
-        if (element.Defect.Contains(searchingString, StringComparison.OrdinalIgnoreCase))
-            return true;
-        return false;
+        _searchString = text;
+        _table.ReloadServerData();
     }
-    
+
+    private void PageChanged(int i)
+    {
+        _table.NavigateTo(i - 1);
+    }
     private async Task OpenWindow()
     {
         var closeOnEscapeKey = new DialogOptions
@@ -125,8 +135,7 @@
 
         if (!result.Canceled)
         {
-            _orders = null;
-            _orders = (await OrderService.GetAllOrdersForTableAsync()).ToList();
+            await _table.ReloadServerData();
             Snackbar.Add("Успешно", Severity.Success);
             StateHasChanged();
         }
@@ -145,9 +154,8 @@
         var result = await dialog.Result;
 
         if (result.Canceled) return;
-
-        _orders = null;
-        _orders = (await OrderService.GetAllOrdersForTableAsync()).ToList();
+        
+        await _table.ReloadServerData();
         StateHasChanged();
     }
 

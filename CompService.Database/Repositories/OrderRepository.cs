@@ -1,7 +1,10 @@
-﻿using CompService.Core.Enums;
+﻿using System.Linq.Expressions;
+using CompService.Core.Enums;
 using CompService.Core.Models;
 using CompService.Core.Repositories;
+using CompService.Core.Results;
 using CompService.Core.Settings;
+using CompService.Database.Extensions;
 using CompService.Database.Models;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
@@ -241,10 +244,32 @@ public class OrderRepository : IOrderRepository
         return res;
     }
 
-    public async Task<IEnumerable<OrderTableModel>> GetAllOrdersForTable()
+    public async Task<ListDataResult<OrderTableModel>> GetAllOrdersForTable(int itemCount, int pageNum,
+        string searchText, string field, bool desc = false)
     {
-        var orders = (await _orders.FindAsync(x => true)).ToList();
-        var res = new List<OrderTableModel>();
+        var orderProperty = GetOrderProperty(field);
+        var search = searchText.ToLower();
+        
+        List<OrderDb> filtered;
+        if (search != "")
+        {
+            filtered = (await _orders.FindAsync(x => 
+            x.OrderId == search
+            || x.Model.ToLower() == search)).ToList();
+        }
+        else
+        {
+            filtered = (await _orders.FindAsync(x => true)).ToList();
+        }
+
+        var orders = filtered
+            .AsQueryable()
+            .OrderBy(orderProperty, desc)
+            .Skip(pageNum * itemCount)
+            .Take(itemCount)
+            .ToList();
+        
+        var convertedOrders = new List<OrderTableModel>();
         foreach (var order in orders)
         {
             var client = await _clientRepository.GetClientById(order.ClientId);
@@ -264,9 +289,28 @@ public class OrderRepository : IOrderRepository
                 Sum = order.Money
             };
 
-            res.Add(model);
+            convertedOrders.Add(model);
         }
 
-        return res;
+        return new ListDataResult<OrderTableModel>
+        {
+            Items = convertedOrders.ToList(),
+            TotalItemsCount = filtered.Count
+        };
+    }
+    
+    private Expression<Func<OrderDb, object>> GetOrderProperty(string field)
+    {
+        if (field == "")
+        {
+            return x => x.OrderId;
+        }
+        return field switch
+        {
+            "OrderId" => x => x.OrderId,
+            "Status" => x => x.Status,
+            "Sum" => x => x.Money,
+            _ => throw new ArgumentOutOfRangeException(nameof(field), field, null)
+        };
     }
 }
