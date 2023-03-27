@@ -9,7 +9,14 @@
 @inject IOrderService OrderService;
 @inject ISnackbar Snackbar;
 @inject IDialogService DialogService;
+@inject UserInfoHolder UserInfoHolder;
 
+@if (UserInfoHolder.CurrentUser is null)
+{
+    <h1>Недостаточно прав</h1>
+    return;
+}
+<PageTitle>Заказы</PageTitle>
 
 <MudTable T="OrderTableModel" @ref="_table" Hover="true" ServerData="GetData" 
           OnRowClick="RowClickEvent">
@@ -81,7 +88,8 @@
             <MudText>Не найдено записей</MudText>
         </NoRecordsContent>
         <LoadingContent>
-            <MudText>Загрузка...</MudText>
+            <MudProgressCircular Class="d-flex mx-auto align-self-center" Color="Color.Primary"
+                                 Style="height:200px;width:200px; margin-top: 10vh;" Indeterminate="true"/>
         </LoadingContent>
         <PagerContent>
             <div class="d-flex flex-column align-center">
@@ -106,8 +114,8 @@
             data = await OrderService.GetAllOrdersForTableAsync(state.PageSize, state.Page, _searchString);
         else
             data = await OrderService.GetAllOrdersForTableAsync(state.PageSize,
-                state.Page, state.SortLabel,
-                state.SortDirection == SortDirection.Descending, _searchString);
+                state.Page, _searchString, state.SortLabel,
+                state.SortDirection == SortDirection.Descending);
 
         return new TableData<OrderTableModel> { TotalItems = data.TotalItemsCount, Items = data.Items };
     }
@@ -135,10 +143,10 @@
 
         if (!result.Canceled)
         {
-            await _table.ReloadServerData();
             Snackbar.Add("Успешно", Severity.Success);
             StateHasChanged();
         }
+        await _table.ReloadServerData();
     }
 
     private async void RowClickEvent(TableRowClickEventArgs<OrderTableModel> tableRowClickEventArgs)

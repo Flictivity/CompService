@@ -3,6 +3,7 @@
 @using CompService.Core.Models
 @using CompService.Core.Services
 @using CompService.Client.Windows
+@using CompService.Core.Enums
 
 @inject UserInfoHolder UserInfoHolder;
 @inject ISnackbar Snackbar;
@@ -14,7 +15,13 @@
     <h1>Недостаточно прав</h1>
     return;
 }
+@if (UserInfoHolder.CurrentUser is not null && UserInfoHolder.CurrentUser.Roles != Roles.Administrator)
+{
+    <h1>Недостаточно прав</h1>
+    return;
+}
 
+<PageTitle>Справочник.Неисправности</PageTitle>
 <MudTable Items="@_defects" T="Defect" OnRowClick="RowClickEvent" Filter="new Func<Defect, bool>(FilterFunc1)" Hover="true">
     <ToolBarContent>
         <MudText Typo="Typo.h6">Неисправности</MudText>

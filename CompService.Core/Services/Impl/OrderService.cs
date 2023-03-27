@@ -54,7 +54,7 @@ public class OrderService : IOrderService
     }
 
     public async Task<ListDataResult<OrderTableModel>> GetAllOrdersForTableAsync(int itemCount,
-        int pageNum, string field, bool desc, string searchText)
+        int pageNum, string searchText, string field, bool desc)
     {
         return await _orderRepository.GetAllOrdersForTable(itemCount, pageNum, searchText,field,desc);
     }

@@ -13,5 +13,5 @@ public interface IOrderService
     public Task<IEnumerable<Order>> GetAllOrdersAsync();
 
     public Task<ListDataResult<OrderTableModel>> GetAllOrdersForTableAsync(int itemCount, int pageNum,
-        string field = "OrderId", bool desc = false, string searchText = "");
+        string searchText = "", string field = "OrderId", bool desc = false);
 }

@@ -2,6 +2,7 @@
 @using CompService.Core.Services
 @using CompService.Core.Models
 @using CompService.Client.Windows
+@using CompService.Core.Enums
 
 @inject UserInfoHolder UserInfoHolder;
 @inject IFacilityService FacilityService;
@@ -13,6 +14,14 @@
     <h1>Недостаточно прав</h1>
     return;
 }
+
+@if (UserInfoHolder.CurrentUser is not null && UserInfoHolder.CurrentUser.Roles != Roles.Administrator)
+{
+    <h1>Недостаточно прав</h1>
+    return;
+}
+
+<PageTitle>Справочник.Услуги</PageTitle>
 
 <MudTable Items="@_facilities" T="Facility" OnRowClick="RowClickEvent" Filter="new Func<Facility, bool>(FilterFunc1)" Hover="true">
     <ToolBarContent>

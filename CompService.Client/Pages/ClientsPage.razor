@@ -14,17 +14,12 @@
     <h1>Недостаточно прав</h1>
     return;
 }
-@if (UserInfoHolder.CurrentUser is not null && UserInfoHolder.CurrentUser.Roles == Roles.Master)
-{
-    <h1>Недостаточно прав</h1>
-    return;
-}
 
 @if (_clients is null)
 {
     return;
 }
-
+<PageTitle>Клиенты</PageTitle>
 <MudTable T="Client" OnRowClick="RowClickEvent" Items="@_clients" Filter="new Func<Client, bool>(FilterFunc1)" Hover="true">
     <ToolBarContent>
         <MudText Typo="Typo.h6">Клиенты</MudText>
@@ -69,8 +64,7 @@
     
     protected override async Task OnInitializedAsync()
     {
-        @if (UserInfoHolder.CurrentUser is null
-             || UserInfoHolder.CurrentUser is not null && UserInfoHolder.CurrentUser.Roles == Roles.Master)
+        @if (UserInfoHolder.CurrentUser is null)
         {
             return;
         }

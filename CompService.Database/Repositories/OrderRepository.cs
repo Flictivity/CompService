@@ -250,12 +250,28 @@ public class OrderRepository : IOrderRepository
         var orderProperty = GetOrderProperty(field);
         var search = searchText.ToLower();
         
-        List<OrderDb> filtered;
+        List<OrderDb> filtered = new();
         if (search != "")
         {
-            filtered = (await _orders.FindAsync(x => 
-            x.OrderId == search
-            || x.Model.ToLower() == search)).ToList();
+            using var cursor = await _orders.FindAsync(x => true);
+            while (await cursor.MoveNextAsync())
+            {
+                var batch = cursor.Current;
+                foreach (var document in batch)
+                {
+                    var operatorDb = await _userRepository.GetUserById(document.OperatorId);
+                    var master = await _userRepository.GetUserById(document.MasterId);
+                    var defect = await _defectRepository.GetReferenceById(document.DefectId);
+                    var place = await _devicePlaceRepository.GetPlaceById(document.DevicePlaceId);
+                    var client = await _clientRepository.GetClientById(document.ClientId);
+                    if (string.Join(" ", operatorDb?.Surname, operatorDb?.Name, operatorDb?.Patronymic, master?.Surname,
+                            master?.Name, master?.Patronymic, client?.Name, defect?.Name, place?.Info, client?.Surname)
+                        .ToLower().Contains(search))
+                    {
+                        filtered.Add(document);
+                    }
+                }
+            }
         }
         else
         {

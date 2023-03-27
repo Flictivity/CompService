@@ -8,6 +8,13 @@
 @inject IDialogService DialogService;
 @inject IDevicePlaceService DevicePlaceService;
 
+@if (UserInfoHolder.CurrentUser is null)
+{
+    <h1>Недостаточно прав</h1>
+    return;
+}
+<PageTitle>Места хранения</PageTitle>
+
 <MudTable Items="@_places" T="DevicePlace" Filter="new Func<DevicePlace, bool>(FilterFunc1)" Hover="true">
     <ToolBarContent>
         <MudText Typo="Typo.h6">Места хранения техники</MudText>

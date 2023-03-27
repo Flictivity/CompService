@@ -1,5 +1,6 @@
 ﻿@page "/references"
 @using CompService.Core.Services
+@using CompService.Core.Enums
 
 @inject UserInfoHolder UserInfoHolder;
 @inject NavigationManager NavigationManager;
@@ -9,7 +10,13 @@
     <h1>Недостаточно прав</h1>
     return;
 }
+@if (UserInfoHolder.CurrentUser is not null && UserInfoHolder.CurrentUser.Roles != Roles.Administrator)
+{
+    <h1>Недостаточно прав</h1>
+    return;
+}
 
+<PageTitle>Справочники</PageTitle>
 <MudTable Items="@_elements" T="string" OnRowClick="RowClickEvent" Filter="new Func<string, bool>(FilterFunc1)" Hover="true">
     <ToolBarContent>
         <MudText Typo="Typo.h6">Справочники</MudText>

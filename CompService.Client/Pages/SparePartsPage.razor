@@ -15,6 +15,12 @@
     return;
 }
 
+@if (UserInfoHolder.CurrentUser.Roles == Roles.Operator)
+{
+    <h1>Недостаточно прав</h1>
+    return;
+}
+<PageTitle>Запчасти</PageTitle>
 <MudTable Items="@_spareParts" T="SparePart" OnRowClick="RowClickEvent" Filter="new Func<SparePart, bool>(FilterFunc1)" Hover="true">
     <ToolBarContent>
         <MudText Typo="Typo.h6">Запчасти</MudText>
