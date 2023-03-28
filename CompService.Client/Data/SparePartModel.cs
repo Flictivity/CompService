@@ -9,6 +9,6 @@ public class SparePartModel
     public string Article { get; set; } = string.Empty;
     public SparePartCategory? Category { get; set; } = null!;
     public int Count { get; set; } = 0;
-    public decimal PurchasePrice { get; set; } = 0;
-    public decimal RetailPrice { get; set; } = 0;
+    public double PurchasePrice { get; set; } = 0;
+    public double RetailPrice { get; set; } = 0;
 }

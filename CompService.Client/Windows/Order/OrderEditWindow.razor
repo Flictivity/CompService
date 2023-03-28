@@ -17,8 +17,8 @@
 
 @if (_isLoaded)
 {
-    <MudProgressCircular Class="d-flex mx-auto align-self-center" Color="Color.Primary" Style="height:200px;width:200px;
-                                                                                margin-top: 30vh;" Indeterminate="true"/>
+    <MudProgressCircular Class="d-flex mx-auto align-self-center" Color="Color.Primary"
+                         Style="height:200px;width:200px; margin-top:30vh;" Indeterminate="true"/>
 }
 else
 {
@@ -38,7 +38,14 @@ else
             </MudContainer>
             <MudContainer Class="d-flex flex-row pa-0">
                 <MudText Typo="Typo.h6" Class="mr-2">Дата: </MudText>
-                <MudText Typo="Typo.body1" Style="line-height: 32px;">@_model.OrderDate.ToString("dd/MM/yyyy")</MudText>
+                <MudText Typo="Typo.body1"
+                         Style="line-height: 32px;">
+                    @_model.OrderDate.ToString("dd/MM/yyyy")
+                </MudText>
+            </MudContainer>
+            <MudContainer Class="d-flex flex-row pa-0 mb-1">
+                <MudText Typo="Typo.h6" Class="mr-2">Итого: </MudText>
+                <MudText Typo="Typo.body1" Style="line-height: 32px;">@_model.Money</MudText>
             </MudContainer>
         </MudStack>
         <MudSelect Class="ml-3" Label="Статус" T="OrdersStatuses" Required="true"
@@ -58,7 +65,8 @@ else
     <MudContainer Class="d-flex flex-column pa-0">
     <MudContainer Class="pa-0">
         <MudTable Class="ma-0 pa-0" Items="_model.SpareParts" T="OrderListModel<SparePart>" Hover="true"
-                  OnRowClick="SparePartRowClickEvent">
+                  OnRowClick="SparePartRowClickEvent" SelectOnRowClick="false"
+                   MultiSelection="true" @bind-SelectedItems="_selectedSpareParts">
             <ToolBarContent>
                 <MudText Typo="Typo.h6">Запчасти</MudText>
                 <MudSpacer/>
@@ -118,14 +126,17 @@ else
             </RowTemplate>
             <FooterContent>
                 <MudButton Class="ma-5" Variant="Variant.Filled" Color="Color.Primary"
-                           OnClick="async () => await OpenListItemAddWindow<SparePart>()">Добавить</MudButton>
-                <MudButton Class="ma-5" Variant="Variant.Filled" Color="Color.Secondary">Удалить</MudButton>
+                           OnClick="@(async () => await OrderSparePartAddWindow())">
+                    Добавить
+                </MudButton>
+                <MudButton Class="ma-5" Variant="Variant.Filled" Color="Color.Secondary"
+                           OnClick="async () => await DeleteSpareParts()">Удалить</MudButton>
             </FooterContent>
         </MudTable>
     </MudContainer>
     <MudContainer Class="pa-0 mt-3">
         <MudTable Class="ma-0 pa-0" Items="_model.Facilities" T="OrderListModel<Facility>" Hover="true"
-                  OnRowClick="FacilityRowClickEvent">
+                  OnRowClick="FacilityRowClickEvent" MultiSelection="true" @bind-SelectedItems="_selectedFacilities">
             <ToolBarContent>
                 <MudText Typo="Typo.h6">Услуги</MudText>
                 <MudSpacer/>
@@ -184,8 +195,10 @@ else
                 </MudTd>
             </RowTemplate>
             <FooterContent>
-                <MudButton Class="ma-5" Variant="Variant.Filled" Color="Color.Primary" 
-                           OnClick="async () => await OpenListItemAddWindow<Facility>()">Добавить</MudButton>
+                <MudButton Class="ma-5" Variant="Variant.Filled" Color="Color.Primary"
+                           OnClick="@(async () => await OrderSparePartAddWindow())">
+                    Добавить
+                </MudButton>
                 <MudButton Class="ma-5" Variant="Variant.Filled" Color="Color.Secondary">Удалить</MudButton>
             </FooterContent>
         </MudTable>
@@ -305,6 +318,7 @@ else
     </MudContainer>
 }
 
+
 @code {
 
     [CascadingParameter]
@@ -326,6 +340,9 @@ else
     private readonly Func<Appearance?, string?> _converterAppearance = p => p?.Name;
     private readonly Func<Brand?, string?> _converterBrand = p => p?.Name;
     private readonly Func<RepairTypes, string?> _converterRepairType = p => p.GetName();
+
+    private HashSet<OrderListModel<Facility>> _selectedFacilities = new();
+    private HashSet<OrderListModel<SparePart>> _selectedSpareParts = new();
 
     private bool _success;
     private OrderModel _model = new();
@@ -378,9 +395,9 @@ else
         await base.OnInitializedAsync();
     }
 
-    private async Task Submit()
+    private Order ConvertToOrder()
     {
-        var newOrder = new Order
+        return new Order
         {
             OrderDate = _model.OrderDate,
             ClientId = _model.Client!.ClientId,
@@ -397,15 +414,6 @@ else
             SpareParts = _model.SpareParts, Facilities = _model.Facilities,
             Money = 0, DevicePlaceId = _model.Place!.PlaceId
         };
-
-        var res = await OrderService.UpdateOrderAsync(_order ?? newOrder, newOrder);
-
-        if (res.Success)
-        {
-            Snackbar.Add("Успешно", Severity.Success);
-            MudDialog.Close(DialogResult.Ok(true));
-        }
-        Snackbar.Add(res.Message, Severity.Error);
     }
 
     private async void SparePartRowClickEvent(TableRowClickEventArgs<OrderListModel<SparePart>> tableRowClickEventArgs)
@@ -413,16 +421,56 @@ else
         var closeOnEscapeKey = new DialogOptions
         {
             CloseOnEscapeKey = true, CloseButton = true,
-            FullScreen = true
         };
-        var parameters = new DialogParameters {{"SelectedItem", tableRowClickEventArgs.Item}};
+        var parameters = new DialogParameters {{"SelectedSparePart", tableRowClickEventArgs.Item}};
 
-        var dialog = await DialogService.ShowAsync<OrderListItemAdd<SparePart>>("", parameters, closeOnEscapeKey);
+        var dialog = await DialogService.ShowAsync<OrderSparePartWindow>("", parameters, closeOnEscapeKey);
         var result = await dialog.Result;
-
+        var sparePart = (OrderListModel<SparePart>) result.Data;
         if (result.Canceled) return;
 
-        _model.SpareParts = (await OrderService.GetOrderSparePartsAsync(_model.OrderId!)).ToList();
+        if (_order is null) return;
+
+        var res = await OrderService.AddSparePart(_model.OrderId!,
+            sparePart.Item.SparePartId, sparePart.Count, sparePart.Discount, true);
+        if (res.Success)
+        {
+            Snackbar.Add("Данные упешно обновлены", Severity.Success);
+        }
+        else
+        {
+            Snackbar.Add(res.Message, Severity.Error);
+        }
+        StateHasChanged();
+    }
+
+
+    private async Task OrderSparePartAddWindow()
+    {
+        var closeOnEscapeKey = new DialogOptions
+        {
+            CloseOnEscapeKey = true, CloseButton = true,
+        };
+        var parameters = new DialogParameters {{"SelectedSparePart", null}};
+
+        var dialog = await DialogService.ShowAsync<OrderSparePartWindow>("", parameters, closeOnEscapeKey);
+        var result = await dialog.Result;
+        var sparePart = (OrderListModel<SparePart>) result.Data;
+        if (result.Canceled) return;
+
+        if (_order is null) return;
+
+        var res = await OrderService.AddSparePart(_model.OrderId!,
+            sparePart.Item.SparePartId, sparePart.Count, sparePart.Discount, false);
+        if (res.Success)
+        {
+            Snackbar.Add("Успешно", Severity.Success);
+            _model.SpareParts = (await OrderService.GetOrderSparePartsAsync(_model.OrderId!)).ToList();
+        }
+        else
+        {
+            Snackbar.Add(res.Message, Severity.Error);
+        }
         StateHasChanged();
     }
 
@@ -435,7 +483,7 @@ else
         };
         var parameters = new DialogParameters {{"SelectedItem", tableRowClickEventArgs.Item}};
 
-        var dialog = await DialogService.ShowAsync<OrderListItemAdd<Facility>>("", parameters, closeOnEscapeKey);
+        var dialog = await DialogService.ShowAsync<OrderSparePartWindow>("", parameters, closeOnEscapeKey);
         var result = await dialog.Result;
 
         if (result.Canceled) return;
@@ -444,15 +492,42 @@ else
         StateHasChanged();
     }
 
-    private async Task OpenListItemAddWindow<TValue>()
+    private async Task OrderFacilityAddWindow()
     {
         var closeOnEscapeKey = new DialogOptions
         {
             CloseOnEscapeKey = true, CloseButton = true,
         };
-        var parameters = new DialogParameters {{"SelectedItem", null}};
+        var parameters = new DialogParameters {{"SelectedFacility", null}};
 
-        var dialog = await DialogService.ShowAsync<OrderListItemAdd<TValue>>("", parameters, closeOnEscapeKey);
+        var dialog = await DialogService.ShowAsync<OrderSparePartWindow>("", parameters, closeOnEscapeKey);
         var result = await dialog.Result;
     }
+
+    private async Task DeleteSpareParts()
+    {
+        if (_selectedSpareParts.Count == 0)
+        {
+            return;
+        }
+        
+        var res = await OrderService.RemoveSparePart(_model.OrderId!,
+            _selectedSpareParts.Select(x => x.Item.SparePartId).ToList());
+
+        if (res.Success)
+        {
+            Snackbar.Add("Успешно", Severity.Success);
+            _model.SpareParts = (await OrderService.GetOrderSparePartsAsync(_model.OrderId!)).ToList();
+        }
+        else
+        {
+            Snackbar.Add(res.Message, Severity.Error);
+        }
+        StateHasChanged();
+    }
+    //
+    // private async Task DeleteFacility()
+    // {
+    //     
+    // }
 }

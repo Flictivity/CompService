@@ -12,6 +12,10 @@ public interface IOrderRepository
     public Task<int> GetMasterOrdersCount(string masterId);
     public Task UpdateOrder(Order currentOrder, Order newOrder);
     public Task<IEnumerable<Order>> GetAllOrders();
+
     public Task<ListDataResult<OrderTableModel>> GetAllOrdersForTable(int itemCount, int pageNum,
         string searchText, string field, bool desc = false);
+    
+    public Task AddSparePart(Order order, OrderListModel<SparePart> sparePart);
+    public Task UpdateSparePart(Order order, OrderListModel<SparePart> sparePart);
 }

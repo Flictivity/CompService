@@ -12,6 +12,6 @@ public class SparePartDb
     public string Article { get; set; } = null!;
     public string CategoryId { get; set; } = null!;
     public int Count { get; set; }
-    public decimal PurchasePrice { get; set; }
-    public decimal RetailPrice { get; set; }
+    public double PurchasePrice { get; set; }
+    public double RetailPrice { get; set; }
 }

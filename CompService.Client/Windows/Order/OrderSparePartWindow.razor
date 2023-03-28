@@ -1,0 +1,76 @@
+﻿@using CompService.Core.Models
+
+@inject IDialogService DialogService;
+@inject ISnackbar Snackbar;
+
+<MudDialog DefaultFocus="DefaultFocus.LastChild">
+    <DialogContent>
+        <MudContainer Class="d-flex justify-start flex-row pa-0 mt-5 align-self-center">
+            <MudText Class="mr-5" Style="line-height: 37px;">Запчасть:</MudText>
+            <MudText Class="mr-5" Style="line-height: 37px;">
+                @(SelectedSparePart is null ? "..." : SelectedSparePart.Item.Name)
+            </MudText>
+            <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="OpenWindow">Выбрать</MudButton>
+        </MudContainer>
+        <MudTextField Required="true" @bind-Value="_count"
+                      RequiredError="Обязательное поле" Label="Количество" InputType="InputType.Number"
+                      Class="mb-3"/>
+        <MudTextField Required="true" @bind-Value="_discount"
+                              RequiredError="Обязательное поле" Label="Скидка" 
+                              Class="mb-3"/>
+    </DialogContent>
+    <DialogActions>
+        <MudButton Color="Color.Primary" OnClick="Submit" 
+                   Class="mx-auto">@(_isEditing ? "Изменить" : "Добавить")</MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    [CascadingParameter]
+    MudDialogInstance MudDialog { get; set; } = null!;
+
+    [Parameter]
+    public OrderListModel<SparePart>? SelectedSparePart { get; set; }
+    
+    private int _count;
+    private double _discount;
+    private bool _isEditing;
+
+    protected override void OnInitialized()
+    {
+        if (SelectedSparePart is not null)
+        {
+            _isEditing = true;
+            _count = SelectedSparePart.Count;
+            _discount = SelectedSparePart.Discount;
+        }
+        base.OnInitialized();
+    }
+
+    private void Submit()
+    {
+        if (SelectedSparePart is null)
+        {
+            Snackbar.Add("Необходимо выбрать запчасть", Severity.Error);
+            return;
+        }
+        SelectedSparePart.Count = _count;
+        SelectedSparePart.Discount = _discount;
+        SelectedSparePart.Sum = SelectedSparePart.Item.RetailPrice * _count
+                                - SelectedSparePart.Item.RetailPrice * _count * _discount * 0.01;
+        MudDialog.Close(DialogResult.Ok(SelectedSparePart));  
+    }
+
+    private async void OpenWindow()
+    {
+        var options = new DialogOptions {CloseOnEscapeKey = true, CloseButton = true};
+        var dialog = await DialogService.ShowAsync<SparePartsWindow>("", options);
+        var result = await dialog.Result;
+
+        if (result.Canceled) return;
+        
+        SelectedSparePart ??= new OrderListModel<SparePart>();
+        SelectedSparePart.Item = (SparePart)result.Data;
+        StateHasChanged();
+    }
+}

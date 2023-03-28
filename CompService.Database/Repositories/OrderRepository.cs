@@ -104,7 +104,7 @@ public class OrderRepository : IOrderRepository
         var res = (await _orders.FindAsync(x => x.OrderId == id)).FirstOrDefault();
         if (res is null) return spareParts;
         if (res.SpareParts is null) return spareParts;
-        
+
         foreach (var sparePart in res.SpareParts)
         {
             var newSparePart = new OrderListModel<SparePart>
@@ -126,7 +126,7 @@ public class OrderRepository : IOrderRepository
         var res = (await _orders.FindAsync(x => x.OrderId == id)).FirstOrDefault();
         if (res is null) return facilities;
         if (res.Facilities is null) return facilities;
-        
+
         foreach (var facility in res.Facilities)
         {
             var newSparePart = new OrderListModel<Facility>
@@ -141,7 +141,7 @@ public class OrderRepository : IOrderRepository
 
         return facilities;
     }
-    
+
     public async Task<int> GetMasterOrdersCount(string masterId)
     {
         return (await _orders
@@ -171,26 +171,11 @@ public class OrderRepository : IOrderRepository
                 Sum = facility.Sum
             })
             .ToList();
-        var newDbOrder = new OrderDb
-        {
-            OrderId = currentOrder.OrderId,
-            OrderDate = newOrder.OrderDate,
-            ClientId = newOrder.ClientId,
-            DefectId = newOrder.DefectId,
-            AppearanceId = newOrder.AppearanceId,
-            DeviceTypeId = newOrder.DeviceTypeId,
-            BrandId = newOrder.BrandId,
-            Model = newOrder.Model,
-            DevicePassword = newOrder.DevicePassword,
-            OperatorId = newOrder.OperatorId,
-            MasterId = newOrder.MasterId,
-            Status = (int) newOrder.Status,
-            RepairType = (int) newOrder.RepairType,
-            SpareParts = spareParts,
-            Facilities = facilities,
-            Money = newOrder.Money,
-            DevicePlaceId = newOrder.DevicePlaceId
-        };
+
+        var newDbOrder = EntityConverter.ConvertOrder(newOrder);
+        newDbOrder.Facilities = facilities;
+        newDbOrder.SpareParts = spareParts;
+        newDbOrder.OrderId = currentOrder.OrderId;
 
         _logger.LogInformation("Данные в таблице успешно изменены");
         await _orders.ReplaceOneAsync(x => x.OrderId == currentOrder.OrderId, newDbOrder);
@@ -249,7 +234,7 @@ public class OrderRepository : IOrderRepository
     {
         var orderProperty = GetOrderProperty(field);
         var search = searchText.ToLower();
-        
+
         List<OrderDb> filtered = new();
         if (search != "")
         {
@@ -284,7 +269,7 @@ public class OrderRepository : IOrderRepository
             .Skip(pageNum * itemCount)
             .Take(itemCount)
             .ToList();
-        
+
         var convertedOrders = new List<OrderTableModel>();
         foreach (var order in orders)
         {
@@ -314,13 +299,44 @@ public class OrderRepository : IOrderRepository
             TotalItemsCount = filtered.Count
         };
     }
-    
+
+    public async Task AddSparePart(Order order, OrderListModel<SparePart> sparePart)
+    {
+        order.SpareParts?.Add(sparePart);
+        order.Money = order.SpareParts!.Sum(x => x.Item.RetailPrice) + 
+                      order.Facilities!.Sum(x => x.Item.Cost);
+
+        await UpdateOrder(order, order);
+    }
+
+    public async Task UpdateSparePart(Order order, OrderListModel<SparePart> sparePart)
+    {
+        if (order.SpareParts is null)
+        {
+            return;
+        }
+
+        var orderSparePart = order.SpareParts.FirstOrDefault(x => 
+            x.Item.SparePartId == sparePart.Item.SparePartId);
+        
+        orderSparePart!.Item = sparePart.Item;
+        orderSparePart.Discount = sparePart.Discount;
+        orderSparePart.Sum = sparePart.Sum;
+        orderSparePart.Count = sparePart.Count;
+        
+        order.Money = order.SpareParts!.Sum(x => x.Item.RetailPrice) + 
+                      order.Facilities!.Sum(x => x.Item.Cost);
+        
+        await UpdateOrder(order, order);
+    }
+
     private Expression<Func<OrderDb, object>> GetOrderProperty(string field)
     {
         if (field == "")
         {
             return x => x.OrderId;
         }
+
         return field switch
         {
             "OrderId" => x => x.OrderId,
