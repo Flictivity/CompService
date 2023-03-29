@@ -38,8 +38,8 @@
                                           Class="mb-3"/>
                         </MudStack>
                         <MudTextField T="string" @bind-Value="_model.PhoneNumber"
-                                      InputType="InputType.Number" Label="Телефон"
-                                      Class="mb-3"/>
+                                      InputType="InputType.Telephone" Label="Телефон" Class="mb-3" 
+                                      Mask="@(new PatternMask("+0 (000) 000 00-00") { CleanDelimiters = true })"/>
                         <MudStack Row="true">
                             <MudTextField Required="true" RequiredError="Обязательное поле" T="string"
                                           @bind-Value="_model.Surname" Label="Фамилия"
@@ -102,7 +102,8 @@ else
             Patronymic = _currentUser.Patronymic,
             Email = _currentUser.Email,
             Password = _currentUser.Password,
-            PhoneNumber = _currentUser.PhoneNumber
+            PhoneNumber = _currentUser.PhoneNumber,
+            Roles = _currentUser.Roles
         };
         _role = _model.Roles.GetName();
         _isUserLoaded = true;

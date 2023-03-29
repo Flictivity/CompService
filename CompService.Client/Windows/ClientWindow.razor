@@ -22,7 +22,8 @@
                               Mask="@(new PatternMask("+0 (000) 000 00-00") { CleanDelimiters = true })"/>
                 <MudTextField Required="true" T="string" @bind-Value="_model.Email"
                               RequiredError="Обязательное поле"
-                              Label="Почта" InputType="InputType.Email" Validation="@(new EmailAddressAttribute {ErrorMessage = "Введенная почта не корректна"})"
+                              Label="Почта" InputType="InputType.Email" 
+                              Validation="@(new EmailAddressAttribute {ErrorMessage = "Введенная почта не корректна"})"
                               Class="mb-3"/>
                 @if (_sources is not null && _sources.Count != 0)
                 {

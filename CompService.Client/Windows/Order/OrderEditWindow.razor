@@ -14,6 +14,7 @@
 @inject IReferenceService<DeviceType> DeviceTypeService;
 @inject IReferenceService<Brand> BrandService;
 @inject IDialogService DialogService;
+@inject UserInfoHolder UserInfoHolder;
 
 @if (_isLoaded)
 {
@@ -47,26 +48,110 @@ else
             </MudContainer>
             <MudContainer Class="d-flex flex-row pa-0 mb-1">
                 <MudText Typo="Typo.h6" Class="mr-2">Итого: </MudText>
-                <MudText Typo="Typo.subtitle1" Style="line-height: 32px;"><b>@_model.Money</b></MudText>
+                <MudText Typo="Typo.subtitle1" Style="line-height: 32px;" Color="Color.Success">
+                    <b>@_model.Money</b>
+                </MudText>
             </MudContainer>
         </MudStack>
-        <MudSelect Class="ml-3" Label="Статус" T="OrdersStatuses" Required="true"
-                   RequiredError="Обязательное поле" @bind-Value="@_model.Status"
+        <MudSelect Class="ml-3 mt-2" Label="Статус" T="OrdersStatuses" Required="true"
+                   RequiredError="Обязательное поле" @bind-Value="_model.Status"
                    Variant="Variant.Outlined">
-            @foreach (OrdersStatuses status in Enum.GetValues(typeof(OrdersStatuses)))
+            @switch (UserInfoHolder.CurrentUser?.Roles)
             {
-                <MudSelectItem Value="status">
-                    <MudChip Class="ma-0"
-                             Style="@($"color:#FFFFFF; background:{StatusColors.StatusColor[status]};")">
-                        @status.GetName()
-                    </MudChip>
-                </MudSelectItem>
+                case Roles.Administrator:
+                {
+                    foreach (OrdersStatuses status in Enum.GetValues((typeof(OrdersStatuses))))
+                    {
+                        <MudSelectItem Value="@status">
+                            <MudChip Class="ma-0"
+                                     Style="@($"color:#FFFFFF; background:{StatusColors.StatusColor[status]};")">
+                                @status.GetName()
+                            </MudChip>
+                        </MudSelectItem>
+                    }
+                    break;
+                }
+                case Roles.Operator:
+                    <MudSelectItem Value="@OrdersStatuses.NewOrder">
+                        <MudChip Class="ma-0"
+                                 Style="@($"color:#FFFFFF; background:{StatusColors.StatusColor[OrdersStatuses.NewOrder]};")">
+                            @OrdersStatuses.NewOrder.GetName()
+                        </MudChip>
+                    </MudSelectItem>
+                    <MudSelectItem Value="@OrdersStatuses.InAgreement">
+                        <MudChip Class="ma-0"
+                                 Style="@($"color:#FFFFFF; background:{StatusColors.StatusColor[OrdersStatuses.InWork]};")">
+                            @OrdersStatuses.InAgreement.GetName()
+                        </MudChip>
+                    </MudSelectItem>
+                    <MudSelectItem Value="@OrdersStatuses.WaitSparePart">
+                        <MudChip Class="ma-0"
+                                 Style="@($"color:#FFFFFF; background:{StatusColors.StatusColor[OrdersStatuses.WaitSparePart]};")">
+                            @OrdersStatuses.WaitSparePart.GetName()
+                        </MudChip>
+                    </MudSelectItem>
+                    <MudSelectItem Value="@OrdersStatuses.Finished">
+                        <MudChip Class="ma-0"
+                                 Style="@($"color:#FFFFFF; background:{StatusColors.StatusColor[OrdersStatuses.Finished]};")">
+                            @OrdersStatuses.Finished.GetName()
+                        </MudChip>
+                    </MudSelectItem>
+                    <MudSelectItem Value="@OrdersStatuses.Closed">
+                        <MudChip Class="ma-0"
+                                 Style="@($"color:#FFFFFF; background:{StatusColors.StatusColor[OrdersStatuses.Closed]};")">
+                            @OrdersStatuses.Closed.GetName()
+                        </MudChip>
+                    </MudSelectItem>
+                    <MudSelectItem Value="@OrdersStatuses.ClosedWithProblems">
+                        <MudChip Class="ma-0"
+                                 Style="@($"color:#FFFFFF; background:{StatusColors.StatusColor[OrdersStatuses.ClosedWithProblems]};")">
+                            @OrdersStatuses.ClosedWithProblems.GetName()
+                        </MudChip>
+                    </MudSelectItem>
+                    break;
+                case Roles.Master:
+                    <MudSelectItem Value="@OrdersStatuses.NewOrder">
+                        <MudChip Class="ma-0"
+                                 Style="@($"color:#FFFFFF; background:{StatusColors.StatusColor[OrdersStatuses.NewOrder]};")">
+                            @OrdersStatuses.NewOrder.GetName()
+                        </MudChip>
+                    </MudSelectItem>
+                    <MudSelectItem Value="@OrdersStatuses.InWork">
+                        <MudChip Class="ma-0"
+                                 Style="@($"color:#FFFFFF; background:{StatusColors.StatusColor[OrdersStatuses.InWork]};")">
+                            @OrdersStatuses.InWork.GetName()
+                        </MudChip>
+                    </MudSelectItem>
+                    <MudSelectItem Value="@OrdersStatuses.InAgreement">
+                        <MudChip Class="ma-0"
+                                 Style="@($"color:#FFFFFF; background:{StatusColors.StatusColor[OrdersStatuses.InAgreement]};")">
+                            @OrdersStatuses.InAgreement.GetName()
+                        </MudChip>
+                    </MudSelectItem>
+                    <MudSelectItem Value="@OrdersStatuses.WaitSparePart">
+                        <MudChip Class="ma-0"
+                                 Style="@($"color:#FFFFFF; background:{StatusColors.StatusColor[OrdersStatuses.WaitSparePart]};")">
+                            @OrdersStatuses.WaitSparePart.GetName()
+                        </MudChip>
+                    </MudSelectItem>
+                    <MudSelectItem Value="@OrdersStatuses.Finished">
+                        <MudChip Class="ma-0"
+                                 Style="@($"color:#FFFFFF; background:{StatusColors.StatusColor[OrdersStatuses.Finished]};")">
+                            @OrdersStatuses.Finished.GetName()
+                        </MudChip>
+                    </MudSelectItem>
+                    break;
+                case null:
+                    break;
+                default:
+                    throw new ArgumentOutOfRangeException();
             }
         </MudSelect>
     </MudContainer>
     <MudContainer Class="d-flex flex-column pa-0">
     <MudContainer Class="pa-0">
-        <MudTable Class="ma-0 pa-0" @ref="_sparePartTable" Items="_model.SpareParts" T="OrderListModel<SparePart>"
+        <MudTable ReadOnly="@(!_canEdit)" Class="ma-0 pa-0" @ref="_sparePartTable"
+                  Items="_model.SpareParts" T="OrderListModel<SparePart>"
                   Hover="true" OnRowClick="SparePartRowClickEvent" SelectOnRowClick="false"
                   MultiSelection="true" @bind-SelectedItems="_selectedSpareParts">
             <ToolBarContent>
@@ -127,11 +212,11 @@ else
                 </MudTd>
             </RowTemplate>
             <FooterContent>
-                <MudButton Class="ma-5" Variant="Variant.Filled" Color="Color.Primary"
+                <MudButton Disabled="@(!_canEdit)" Class="ma-5" Variant="Variant.Filled" Color="Color.Primary"
                            OnClick="@(async () => await OrderSparePartAddWindow())">
                     Добавить
                 </MudButton>
-                <MudButton Class="ma-5" Variant="Variant.Filled" Color="Color.Secondary"
+                <MudButton Disabled="@(!_canEdit)" Class="ma-5" Variant="Variant.Filled" Color="Color.Secondary"
                            OnClick="DeleteSpareParts">
                     Удалить
                 </MudButton>
@@ -139,8 +224,8 @@ else
         </MudTable>
     </MudContainer>
     <MudContainer Class="pa-0 mt-3">
-        <MudTable Class="ma-0 pa-0" @ref="_facilityTable" Items="_model.Facilities" T="OrderListModel<Facility>"
-                  Hover="true" OnRowClick="FacilityRowClickEvent" MultiSelection="true" 
+        <MudTable ReadOnly="@(!_canEdit)" Class="ma-0 pa-0" @ref="_facilityTable" Items="_model.Facilities" T="OrderListModel<Facility>"
+                  Hover="true" OnRowClick="FacilityRowClickEvent" MultiSelection="true"
                   @bind-SelectedItems="_selectedFacilities">
             <ToolBarContent>
                 <MudText Typo="Typo.h6">Услуги</MudText>
@@ -200,12 +285,14 @@ else
                 </MudTd>
             </RowTemplate>
             <FooterContent>
-                <MudButton Class="ma-5" Variant="Variant.Filled" Color="Color.Primary"
+                <MudButton Disabled="@(!_canEdit)" Class="ma-5" Variant="Variant.Filled" Color="Color.Primary"
                            OnClick="@(async () => await OrderFacilityAddWindow())">
                     Добавить
                 </MudButton>
                 <MudButton Class="ma-5" Variant="Variant.Filled" Color="Color.Secondary"
-                           OnClick="@(async () => await DeleteFacilities())">Удалить</MudButton>
+                           OnClick="@(async () => await DeleteFacilities())" Disabled="@(!_canEdit)">
+                    Удалить
+                </MudButton>
             </FooterContent>
         </MudTable>
     </MudContainer>
@@ -216,7 +303,7 @@ else
                 <MudSelect Class="ma-3" Required="true"
                            RequiredError="Обязательное поле" T="Client" @bind-Value="_model.Client"
                            ToStringFunc="@_converterClient" Label="Клиент"
-                           Variant="Variant.Text" AnchorOrigin="Origin.BottomCenter">
+                           Variant="Variant.Text" AnchorOrigin="Origin.BottomCenter" ReadOnly="@(!_canEdit)">
                     @foreach (var client in _clients)
                     {
                         <MudSelectItem Value="client"/>
@@ -233,7 +320,7 @@ else
                 <MudText Class="mb-3" Typo="Typo.h5">Дополнительно</MudText>
                 <MudSelect Class="ma-3" Required="true" RequiredError="Обязательное поле" T="User"
                            @bind-Value="_model.Operator" ToStringFunc="@_converterUser" Label="Оператор"
-                           Variant="Variant.Text" AnchorOrigin="Origin.BottomCenter">
+                           Variant="Variant.Text" AnchorOrigin="Origin.BottomCenter" ReadOnly="@(!_canEdit)">
                     @foreach (var user in _operators)
                     {
                         <MudSelectItem Value="user"/>
@@ -241,7 +328,7 @@ else
                 </MudSelect>
                 <MudSelect Class="ma-3" Required="true" RequiredError="Обязательное поле" T="User"
                            @bind-Value="_model.Master" ToStringFunc="@_converterUser" Label="Мастер"
-                           Variant="Variant.Text" AnchorOrigin="Origin.BottomCenter">
+                           Variant="Variant.Text" AnchorOrigin="Origin.BottomCenter" ReadOnly="@(!_canEdit)">
                     @foreach (var user in _masters)
                     {
                         <MudSelectItem Value="user"/>
@@ -249,7 +336,7 @@ else
                 </MudSelect>
                 <MudSelect Class="ma-3" Required="true" RequiredError="Обязательное поле" T="DevicePlace"
                            @bind-Value="_model.Place" ToStringFunc="@_converterPlace" Label="Место на стойке"
-                           Variant="Variant.Text" AnchorOrigin="Origin.BottomCenter">
+                           Variant="Variant.Text" AnchorOrigin="Origin.BottomCenter" ReadOnly="@(!_canEdit)">
                     @foreach (var place in _places)
                     {
                         <MudSelectItem Value="place"/>
@@ -264,7 +351,7 @@ else
                     <MudSelect Class="ma-3" T="RepairTypes" Required="true"
                                RequiredError="Обязательное поле" @bind-Value="_model.RepairType"
                                ToStringFunc="@_converterRepairType" Label="Тип ремонта"
-                               Variant="Variant.Text" AnchorOrigin="Origin.BottomCenter">
+                               Variant="Variant.Text" AnchorOrigin="Origin.BottomCenter" ReadOnly="@(!_canEdit)">
                         @foreach (RepairTypes type in Enum.GetValues(typeof(RepairTypes)))
                         {
                             <MudSelectItem Value="type"/>
@@ -272,7 +359,7 @@ else
                     </MudSelect>
                     <MudSelect Class="ma-3" Required="true" RequiredError="Обязательное поле" T="Defect"
                                @bind-Value="_model.Defect" ToStringFunc="@_converterDefect"
-                               Label="Причина обращения"
+                               Label="Причина обращения" ReadOnly="@(!_canEdit)"
                                Variant="Variant.Text" AnchorOrigin="Origin.BottomCenter">
                         @foreach (var defect in _defects)
                         {
@@ -282,7 +369,7 @@ else
                     <MudSelect Class="ma-3" Required="true" RequiredError="Обязательное поле" T="Appearance"
                                @bind-Value="_model.Appearance"
                                ToStringFunc="@_converterAppearance" Label="Внешний вид"
-                               Variant="Variant.Text" AnchorOrigin="Origin.BottomCenter">
+                               Variant="Variant.Text" AnchorOrigin="Origin.BottomCenter" ReadOnly="@(!_canEdit)">
                         @foreach (var appearance in _appearances)
                         {
                             <MudSelectItem Value="appearance"/>
@@ -291,7 +378,7 @@ else
                     <MudSelect Class="ma-3" Required="true" RequiredError="Обязательное поле"
                                T="DeviceType" @bind-Value="_model.DeviceType"
                                ToStringFunc="@_converterDeviceType" Label="Вид устройства"
-                               Variant="Variant.Text" AnchorOrigin="Origin.BottomCenter">
+                               Variant="Variant.Text" AnchorOrigin="Origin.BottomCenter" ReadOnly="@(!_canEdit)">
                         @foreach (var deviceType in _deviceTypes)
                         {
                             <MudSelectItem Value="deviceType"/>
@@ -300,17 +387,17 @@ else
                     <MudSelect Class="ma-3" Required="true" RequiredError="Обязательное поле"
                                T="Brand" @bind-Value="_model.Brand" ToStringFunc="@_converterBrand"
                                Label="Бренд"
-                               Variant="Variant.Text" AnchorOrigin="Origin.BottomCenter">
+                               Variant="Variant.Text" AnchorOrigin="Origin.BottomCenter" ReadOnly="@(!_canEdit)">
                         @foreach (var brand in _brands)
                         {
                             <MudSelectItem Value="brand"/>
                         }
                     </MudSelect>
                     <MudTextField Class="ma-3" @bind-Value="_model.Model" Label="Модель"
-                                  Required="false">
+                                  Required="false" ReadOnly="@(!_canEdit)">
                     </MudTextField>
                     <MudTextField Class="ma-3" @bind-Value="_model.Password" Label="Пароль"
-                                  Required="false">
+                                  Required="false" ReadOnly="@(!_canEdit)">
                     </MudTextField>
                 </MudContainer>
             </MudPaper>
@@ -359,6 +446,7 @@ else
     private HashSet<OrderListModel<SparePart>> _selectedSpareParts = new();
 
     private bool _success;
+    private bool _canEdit = true;
     private OrderModel _model = new();
     private List<Client> _clients = new();
     private List<User> _operators = new();
@@ -390,6 +478,9 @@ else
         _brands = (await BrandService.GetAllValuesAsync()).ToList();
 
         _isLoaded = false;
+
+        StatusChanged();
+
         await base.OnInitializedAsync();
     }
 
@@ -565,22 +656,25 @@ else
         {
             return;
         }
-        
+
         var closeOnEscapeKey = new DialogOptions
         {
             CloseOnEscapeKey = true, CloseButton = true, DisableBackdropClick = true
         };
-        var parameters = new DialogParameters {{"ContentText", "Удаленные записи придется добавить заного. Вы уверены?"},
+        var parameters = new DialogParameters
+        {
+            {"ContentText", "Удаленные записи придется добавить заного. Вы уверены?"},
             {"ButtonText", "Удалить"},
-            {"Color", Color.Error}};
-        
+            {"Color", Color.Error}
+        };
+
         var dialog = await DialogService.ShowAsync<CloseWindow>("Закрыть", parameters, closeOnEscapeKey);
         var result = await dialog.Result;
         if (!result.Canceled)
         {
             return;
         }
-        
+
         foreach (var selectedSparePart in _selectedSpareParts)
         {
             _model.SpareParts.Remove(selectedSparePart);
@@ -600,22 +694,25 @@ else
         {
             return;
         }
-        
+
         var closeOnEscapeKey = new DialogOptions
         {
             CloseOnEscapeKey = true, CloseButton = true, DisableBackdropClick = true
         };
-        var parameters = new DialogParameters {{"ContentText", "Удаленные записи придется добавить заного. Вы уверены?"},
+        var parameters = new DialogParameters
+        {
+            {"ContentText", "Удаленные записи придется добавить заного. Вы уверены?"},
             {"ButtonText", "Удалить"},
-            {"Color", Color.Error}};
-        
+            {"Color", Color.Error}
+        };
+
         var dialog = await DialogService.ShowAsync<CloseWindow>("Закрыть", parameters, closeOnEscapeKey);
         var result = await dialog.Result;
         if (!result.Canceled)
         {
             return;
         }
-        
+
         foreach (var selectedFacility in _selectedFacilities)
         {
             _model.Facilities.Remove(selectedFacility);
@@ -628,12 +725,31 @@ else
     private async Task SaveChanges()
     {
         var order = await OrderService.GetOrderByIdAsync(_model.OrderId!);
+        if (_model.Status == OrdersStatuses.Closed && _model.Status != order?.Status)
+        {
+            var closeOnEscapeKey = new DialogOptions
+            {
+                CloseOnEscapeKey = true, CloseButton = true, DisableBackdropClick = true
+            };
+            var parameters = new DialogParameters
+            {
+                {"Money", _model.Money},
+            };
+
+            var dialog = await DialogService.ShowAsync<PaymentWindow>("Оплата заказа", parameters, closeOnEscapeKey);
+            var result = await dialog.Result;
+            if (!result.Canceled)
+            {
+                Snackbar.Add("Оплата оформлена успешно", Severity.Success);
+            }
+        }
         var res = await OrderService.UpdateOrderAsync(order!, ConvertToOrder());
 
         if (res.Success)
         {
-            Snackbar.Add("Успешно", Severity.Success);
+            Snackbar.Add("Заказ успешно сохранен", Severity.Success);
         }
+        StatusChanged();
     }
 
     private async Task CloseWindow()
@@ -642,10 +758,13 @@ else
         {
             CloseOnEscapeKey = true, CloseButton = true, DisableBackdropClick = true
         };
-        var parameters = new DialogParameters {{"ContentText", "Все не сохраненные изменения будут утеряны"},
+        var parameters = new DialogParameters
+        {
+            {"ContentText", "Все не сохраненные изменения будут утеряны"},
             {"ButtonText", "Закрыть"},
-            {"Color", Color.Error}};
-        
+            {"Color", Color.Error}
+        };
+
         var dialog = await DialogService.ShowAsync<CloseWindow>("Закрыть", parameters, closeOnEscapeKey);
         var result = await dialog.Result;
         if (!result.Canceled)
@@ -653,4 +772,13 @@ else
             MudDialog.Close();
         }
     }
+
+    private void StatusChanged()
+    {
+        if (_model.Status is OrdersStatuses.Closed or OrdersStatuses.ClosedWithProblems or OrdersStatuses.Finished)
+        {
+            _canEdit = false;
+        }
+    }
+
 }

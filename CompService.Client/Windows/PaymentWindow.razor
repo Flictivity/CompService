@@ -1,0 +1,67 @@
+﻿@using CompService.Core.Services
+@using CompService.Core.Enums
+@using CompService.Core.Extensions
+@using CompService.Core.Models
+
+@inject ITransactionService TransactionService;
+@inject UserInfoHolder UserInfoHolder;
+@inject ISnackbar Snackbar;
+
+<MudDialog>
+    <DialogContent>
+        <MudText Typo="Typo.h6">Выберите способ оплаты:</MudText>
+        <MudRadioGroup T="PaymentMethods"  @bind-SelectedOption="@SelectedOption">
+            <MudRadio Option="@(PaymentMethods.Card)" Color="Color.Primary">@(PaymentMethods.Card.GetName())</MudRadio>
+            <MudRadio Option="@(PaymentMethods.Cash)" Color="Color.Primary">@(PaymentMethods.Cash.GetName())</MudRadio>
+        </MudRadioGroup>
+    </DialogContent>
+    <DialogActions>
+        <MudButton Variant="Variant.Filled" Color="Color.Primary" Class="mx-auto" 
+                   OnClick="async () => await CreateTransaction()">@Money</MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+
+    [CascadingParameter]
+    MudDialogInstance MudDialog { get; set; } = null!;
+    
+    [Parameter]
+    public double Money { get; set; }
+
+    [Parameter]
+    public string OrderId { get; set; } = null!;
+
+    private PaymentMethods SelectedOption { get; set; }
+
+    private async Task CreateTransaction()
+    {
+        var newTransaction = new Transaction
+        {
+            TransactionTime = DateTime.Now,
+            ArrivalMoney = Money,
+            ExpenseMoney = 0,
+            PaymentMethod = SelectedOption,
+            TransactionBasis = TransactionBasis.Order,
+            OrderId = OrderId,
+            UserId = UserInfoHolder.CurrentUser!.UserId,
+            UserSurname = UserInfoHolder.CurrentUser!.Surname,
+            Comment = string.Empty
+        };
+
+        var res = await TransactionService.CreateAsync(newTransaction);
+
+        if (res.Success)
+        {
+            Snackbar.Add("Успешно", Severity.Success);
+            MudDialog.Close(DialogResult.Ok(true));
+        }
+        else
+        {
+            Snackbar.Add("Произошла ошибка при добавлении прихода денежных средств", Severity.Error);
+            MudDialog.Close(DialogResult.Ok(false));
+        }
+        
+    }
+    
+}
