@@ -20,7 +20,7 @@
                               Class="mb-3"/>
     </DialogContent>
     <DialogActions>
-        <MudButton Color="Color.Primary" OnClick="Submit" 
+        <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="Submit" 
                    Class="mx-auto">@(_isEditing ? "Изменить" : "Добавить")</MudButton>
     </DialogActions>
 </MudDialog>
@@ -52,6 +52,21 @@
         if (SelectedSparePart is null)
         {
             Snackbar.Add("Необходимо выбрать запчасть", Severity.Error);
+            return;
+        }
+        if (_count <= 0)
+        {
+            Snackbar.Add("Используемое количество должно быть больше 0", Severity.Error);
+            return;
+        }
+        if (_discount < 0)
+        {
+            Snackbar.Add("Скидка не может быть отрицательной", Severity.Error);
+            return;
+        }
+        if (SelectedSparePart.Item.Count - _count < 0)
+        {
+            Snackbar.Add("Недостаточно запчастей на складе", Severity.Error);
             return;
         }
         SelectedSparePart.Count = _count;

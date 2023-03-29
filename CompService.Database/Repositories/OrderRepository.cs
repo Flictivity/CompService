@@ -176,6 +176,9 @@ public class OrderRepository : IOrderRepository
         newDbOrder.Facilities = facilities;
         newDbOrder.SpareParts = spareParts;
         newDbOrder.OrderId = currentOrder.OrderId;
+        
+        newDbOrder.Money = newOrder.SpareParts!.Sum(x => x.Sum) + 
+                           newOrder.Facilities!.Sum(x => x.Sum);
 
         _logger.LogInformation("Данные в таблице успешно изменены");
         await _orders.ReplaceOneAsync(x => x.OrderId == currentOrder.OrderId, newDbOrder);
@@ -303,8 +306,6 @@ public class OrderRepository : IOrderRepository
     public async Task AddSparePart(Order order, OrderListModel<SparePart> sparePart)
     {
         order.SpareParts?.Add(sparePart);
-        order.Money = order.SpareParts!.Sum(x => x.Item.RetailPrice) + 
-                      order.Facilities!.Sum(x => x.Item.Cost);
 
         await UpdateOrder(order, order);
     }
@@ -324,8 +325,6 @@ public class OrderRepository : IOrderRepository
         orderSparePart.Sum = sparePart.Sum;
         orderSparePart.Count = sparePart.Count;
         
-        order.Money = order.SpareParts!.Sum(x => x.Item.RetailPrice) + 
-                      order.Facilities!.Sum(x => x.Item.Cost);
         
         await UpdateOrder(order, order);
     }

@@ -45,7 +45,7 @@ else
             </MudContainer>
             <MudContainer Class="d-flex flex-row pa-0 mb-1">
                 <MudText Typo="Typo.h6" Class="mr-2">Итого: </MudText>
-                <MudText Typo="Typo.body1" Style="line-height: 32px;">@_model.Money</MudText>
+                <MudText Typo="Typo.subtitle1" Style="line-height: 32px;" >@_model.Money</MudText>
             </MudContainer>
         </MudStack>
         <MudSelect Class="ml-3" Label="Статус" T="OrdersStatuses" Required="true"
@@ -64,9 +64,9 @@ else
     </MudContainer>
     <MudContainer Class="d-flex flex-column pa-0">
     <MudContainer Class="pa-0">
-        <MudTable Class="ma-0 pa-0" Items="_model.SpareParts" T="OrderListModel<SparePart>" Hover="true"
-                  OnRowClick="SparePartRowClickEvent" SelectOnRowClick="false"
-                   MultiSelection="true" @bind-SelectedItems="_selectedSpareParts">
+        <MudTable Class="ma-0 pa-0" Items="_model.SpareParts" T="OrderListModel<SparePart>"
+                  Hover="true" OnRowClick="SparePartRowClickEvent" SelectOnRowClick="false"
+                  MultiSelection="true" @bind-SelectedItems="_selectedSpareParts">
             <ToolBarContent>
                 <MudText Typo="Typo.h6">Запчасти</MudText>
                 <MudSpacer/>
@@ -135,7 +135,7 @@ else
         </MudTable>
     </MudContainer>
     <MudContainer Class="pa-0 mt-3">
-        <MudTable Class="ma-0 pa-0" Items="_model.Facilities" T="OrderListModel<Facility>" Hover="true"
+        <MudTable Class="ma-0 pa-0"  T="OrderListModel<Facility>" Hover="true"
                   OnRowClick="FacilityRowClickEvent" MultiSelection="true" @bind-SelectedItems="_selectedFacilities">
             <ToolBarContent>
                 <MudText Typo="Typo.h6">Услуги</MudText>
@@ -364,6 +364,25 @@ else
         {
             return;
         }
+        ConvertToModel();
+
+        _clients = (await ClientService.GetAllClientsAsync()).ToList();
+        _operators = (await UserService.GetUsersByRoleAsync(Roles.Operator)).ToList();
+        _masters = (await UserService.GetFreeMastersAsync()).ToList();
+        _places = (await DevicePlaceService.GetFreePlacesAsync()).ToList();
+        _defects = (await DefectService.GetAllValuesAsync()).ToList();
+        _appearances = (await AppearanceService.GetAllValuesAsync()).ToList();
+        _deviceTypes = (await DeviceTypeService.GetAllValuesAsync()).ToList();
+        _brands = (await BrandService.GetAllValuesAsync()).ToList();
+
+        _isLoaded = false;
+        await base.OnInitializedAsync();
+    }
+
+    private async void ConvertToModel()
+    {
+        if (_order is null) return;
+        
         _model.Appearance = await AppearanceService.GetReferenceByIdAsync(_order.AppearanceId);
         _model.Client = await ClientService.GetClientByIdAsync(_order.ClientId);
         _model.Operator = await UserService.GetUserByIdAsync(_order.OperatorId);
@@ -381,39 +400,6 @@ else
         _model.OrderId = _order.OrderId;
         _model.OrderDate = _order.OrderDate;
         _model.Status = _order.Status;
-
-        _clients = (await ClientService.GetAllClientsAsync()).ToList();
-        _operators = (await UserService.GetUsersByRoleAsync(Roles.Operator)).ToList();
-        _masters = (await UserService.GetFreeMastersAsync()).ToList();
-        _places = (await DevicePlaceService.GetFreePlacesAsync()).ToList();
-        _defects = (await DefectService.GetAllValuesAsync()).ToList();
-        _appearances = (await AppearanceService.GetAllValuesAsync()).ToList();
-        _deviceTypes = (await DeviceTypeService.GetAllValuesAsync()).ToList();
-        _brands = (await BrandService.GetAllValuesAsync()).ToList();
-
-        _isLoaded = false;
-        await base.OnInitializedAsync();
-    }
-
-    private Order ConvertToOrder()
-    {
-        return new Order
-        {
-            OrderDate = _model.OrderDate,
-            ClientId = _model.Client!.ClientId,
-            DefectId = _model.Defect!.DefectId,
-            AppearanceId = _model.Appearance!.AppearanceId,
-            DeviceTypeId = _model.DeviceType!.DeviceTypeId,
-            BrandId = _model.Brand!.BrandId,
-            Model = _model.Model ?? string.Empty,
-            DevicePassword = _model.Password ?? string.Empty,
-            OperatorId = _model.Operator!.UserId,
-            MasterId = _model.Master!.UserId,
-            Status = _model.Status,
-            RepairType = _model.RepairType,
-            SpareParts = _model.SpareParts, Facilities = _model.Facilities,
-            Money = 0, DevicePlaceId = _model.Place!.PlaceId
-        };
     }
 
     private async void SparePartRowClickEvent(TableRowClickEventArgs<OrderListModel<SparePart>> tableRowClickEventArgs)
@@ -441,6 +427,8 @@ else
         {
             Snackbar.Add(res.Message, Severity.Error);
         }
+        _model.SpareParts = (await OrderService.GetOrderSparePartsAsync(_model.OrderId!)).ToList();
+        _model.Money = (await OrderService.GetOrderByIdAsync(_model.OrderId!))!.Money;
         StateHasChanged();
     }
 
@@ -465,12 +453,13 @@ else
         if (res.Success)
         {
             Snackbar.Add("Успешно", Severity.Success);
-            _model.SpareParts = (await OrderService.GetOrderSparePartsAsync(_model.OrderId!)).ToList();
         }
         else
         {
             Snackbar.Add(res.Message, Severity.Error);
         }
+        _model.SpareParts = (await OrderService.GetOrderSparePartsAsync(_model.OrderId!)).ToList();
+        _model.Money = (await OrderService.GetOrderByIdAsync(_model.OrderId!))!.Money;
         StateHasChanged();
     }
 
@@ -488,7 +477,7 @@ else
 
         if (result.Canceled) return;
 
-        _model.SpareParts = (await OrderService.GetOrderSparePartsAsync(_model.OrderId!)).ToList();
+        //_model.SpareParts = (await OrderService.GetOrderSparePartsAsync(_model.OrderId!)).ToList();
         StateHasChanged();
     }
 
@@ -518,6 +507,7 @@ else
         {
             Snackbar.Add("Успешно", Severity.Success);
             _model.SpareParts = (await OrderService.GetOrderSparePartsAsync(_model.OrderId!)).ToList();
+            _model.Money = (await OrderService.GetOrderByIdAsync(_model.OrderId!))!.Money;
         }
         else
         {

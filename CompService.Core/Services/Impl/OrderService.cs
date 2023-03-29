@@ -97,6 +97,7 @@ public class OrderService : IOrderService
                     Success = false,
                     Message = "Такая запчасть уже добавлена. Пожалуйста поменяйте количество"
                 };
+            
             await _orderRepository.AddSparePart(order, model);
 
             if (sparePart.Count - count < 0)
