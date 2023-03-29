@@ -8,6 +8,7 @@ namespace CompService.Core.Services.Impl;
 public class EmailService : IEmailService
 {
     private readonly ILogger<IEmailService> _logger;
+    private static readonly SemaphoreSlim Semaphore = new(1, 1);
 
     public EmailService(ILogger<IEmailService> logger)
     {
@@ -16,6 +17,7 @@ public class EmailService : IEmailService
 
     public async Task<BaseResult> SendEmailAsync(string? email, string subject, string message)
     {
+        await Semaphore.WaitAsync();
         var sendMessage = new MimeMessage();
         sendMessage.From.Add(new MailboxAddress("Компьютерный сервис", "computerservlse@mail.ru"));
         sendMessage.To.Add(MailboxAddress.Parse(email));
@@ -44,6 +46,7 @@ public class EmailService : IEmailService
         {
             client.Disconnect(true);
             client.Dispose();
+            Semaphore.Release();
         }
     }
 }

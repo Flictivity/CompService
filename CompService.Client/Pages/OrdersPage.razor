@@ -134,7 +134,7 @@
     {
         var closeOnEscapeKey = new DialogOptions
         {
-            CloseOnEscapeKey = true, CloseButton = true, MaxWidth = MaxWidth.Medium,
+            CloseOnEscapeKey = false, DisableBackdropClick = true, CloseButton = false, MaxWidth = MaxWidth.Medium,
             FullWidth = true
         };
 
@@ -153,8 +153,7 @@
     {
         var closeOnEscapeKey = new DialogOptions
         {
-            CloseOnEscapeKey = true, CloseButton = true,
-            FullScreen = true
+            CloseButton = false, FullScreen = true, CloseOnEscapeKey = false, DisableBackdropClick = true,
         };
         var parameters = new DialogParameters {{"SelectedOrderId", tableRowClickEventArgs.Item.OrderId}};
 

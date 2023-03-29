@@ -131,4 +131,13 @@ public class SparePartRepository : ISparePartRepository
 
         return res;
     }
+
+    public async Task UpdateCount(string sparePartId, int count)
+    {
+        var sparePart = await GetSparePartById(sparePartId);
+        if(sparePart is null) return;
+        
+        sparePart.Count += count;
+        await UpdateSparePart(sparePart,sparePart);
+    }
 }

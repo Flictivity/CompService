@@ -15,7 +15,4 @@ public interface IOrderRepository
 
     public Task<ListDataResult<OrderTableModel>> GetAllOrdersForTable(int itemCount, int pageNum,
         string searchText, string field, bool desc = false);
-    
-    public Task AddSparePart(Order order, OrderListModel<SparePart> sparePart);
-    public Task UpdateSparePart(Order order, OrderListModel<SparePart> sparePart);
 }

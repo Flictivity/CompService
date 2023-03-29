@@ -1,21 +1,19 @@
 ﻿@using CompService.Core.Models
-@using CompService.Core.Services
 
 @inject IDialogService DialogService;
 @inject ISnackbar Snackbar;
-@inject ISparePartService SparePartService;
 
 <MudDialog DefaultFocus="DefaultFocus.LastChild">
     <DialogContent>
         <MudContainer Class="d-flex justify-start flex-row pa-0 mt-5 align-self-center">
-            <MudText Class="mr-5" Style="line-height: 37px;">Запчасть:</MudText>
+            <MudText Class="mr-5" Style="line-height: 37px;">Услуга:</MudText>
             <MudText Class="mr-5" Style="line-height: 37px;">
-                @(SelectedSparePart is null ? "..." : SelectedSparePart.Item.Name)
+                @(SelectedFacility is null ? "..." : SelectedFacility.Item.Name)
             </MudText>
             <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="OpenWindow">Выбрать</MudButton>
         </MudContainer>
         <MudNumericField T="int" Min="0" 
-                         Max="@(_oldCount + _sparePartDbCount)"
+                         Max="10"
                          Required="true" @bind-Value="_count" RequiredError="Обязательное поле" 
                          Label="Количество" Class="mb-3"/>
         <MudTextField Required="true" @bind-Value="_discount"
@@ -33,33 +31,28 @@
     MudDialogInstance MudDialog { get; set; } = null!;
 
     [Parameter]
-    public OrderListModel<SparePart>? SelectedSparePart { get; set; }
+    public OrderListModel<Facility>? SelectedFacility { get; set; }
     
     private int _count;
-    private int _oldCount;
-    private int _sparePartDbCount;
     private double _discount;
     private bool _isEditing;
 
     protected override async Task OnInitializedAsync()
     {
-        if (SelectedSparePart is not null)
+        if (SelectedFacility is not null)
         {
             _isEditing = true;
-            _count = SelectedSparePart.Count;
-            _oldCount = SelectedSparePart.Count;
-            _discount = SelectedSparePart.Discount;
+            _count = SelectedFacility.Count;
+            _discount = SelectedFacility.Discount;
         }
-        var dbSparePart = await SparePartService.GetSparePartByIdAsync(SelectedSparePart?.Item.SparePartId);
-        _sparePartDbCount = dbSparePart?.Count ?? 0;
         await base.OnInitializedAsync();
     }
 
     private void Submit()
     {
-        if (SelectedSparePart is null)
+        if (SelectedFacility is null)
         {
-            Snackbar.Add("Необходимо выбрать запчасть", Severity.Error);
+            Snackbar.Add("Необходимо выбрать услугу", Severity.Error);
             return;
         }
         if (_count <= 0)
@@ -72,27 +65,11 @@
             Snackbar.Add("Скидка не может быть отрицательной", Severity.Error);
             return;
         }
-        if (_isEditing)
-        {
-            if (SelectedSparePart.Item.Count + _oldCount - _count < 0)
-            {
-                Snackbar.Add("Недостаточно запчастей на складе", Severity.Error);
-                return;
-            }
-        }
-        else
-        {
-            if (SelectedSparePart.Item.Count - _count < 0)
-            {
-                Snackbar.Add("Недостаточно запчастей на складе", Severity.Error);
-                return;
-            }
-        }
-        SelectedSparePart.Count = _count;
-        SelectedSparePart.Discount = _discount;
-        SelectedSparePart.Sum = SelectedSparePart.Item.RetailPrice * _count
-                                - SelectedSparePart.Item.RetailPrice * _count * _discount * 0.01;
-        MudDialog.Close(DialogResult.Ok(SelectedSparePart));  
+        SelectedFacility.Count = _count;
+        SelectedFacility.Discount = _discount;
+        SelectedFacility.Sum = SelectedFacility.Item.Cost * _count
+                                - SelectedFacility.Item.Cost * _count * _discount * 0.01;
+        MudDialog.Close(DialogResult.Ok(SelectedFacility));  
     }
 
     private async void OpenWindow()
@@ -103,15 +80,13 @@
                 
         };
 
-        var dialog = await DialogService.ShowAsync<SparePartsWindow>("", options);
+        var dialog = await DialogService.ShowAsync<FacilitiesWindow>("", options);
         var result = await dialog.Result;
 
         if (result.Canceled) return;
         
-        SelectedSparePart ??= new OrderListModel<SparePart>();
-        SelectedSparePart.Item = (SparePart)result.Data;
-        var dbSparePart = await SparePartService.GetSparePartByIdAsync(SelectedSparePart?.Item.SparePartId);
-        _sparePartDbCount = dbSparePart?.Count ?? 0;
+        SelectedFacility ??= new OrderListModel<Facility>();
+        SelectedFacility.Item = (Facility)result.Data;
         StateHasChanged();
     }
 }

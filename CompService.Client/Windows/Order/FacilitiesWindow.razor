@@ -1,0 +1,61 @@
+﻿@using CompService.Core.Services
+@using CompService.Core.Models
+@using CompService.Client.Windows
+
+@inject IFacilityService FacilityService;
+@inject IDialogService DialogService;
+@inject ISnackbar Snackbar;
+
+<MudDialog DefaultFocus="DefaultFocus.LastChild">
+    <DialogContent>
+    <MudTable Items="@_facilities" T="Facility" OnRowClick="RowClickEvent" Filter="new Func<Facility, bool>(FilterFunc1)" Hover="true">
+        <ToolBarContent>
+            <MudText Typo="Typo.h6">Услуги</MudText>
+            <MudSpacer/>
+            <MudTextField @bind-Value="_searchString" Placeholder="Поиск" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Search" IconSize="Size.Medium" Class="mt-0"></MudTextField>
+        </ToolBarContent>
+        <HeaderContent>
+            <MudTh><MudTableSortLabel SortBy="new Func<Facility, object>(x => x.Name)">Название</MudTableSortLabel></MudTh>
+            <MudTh><MudTableSortLabel SortBy="new Func<Facility, object>(x => x.Cost)">Стоимость</MudTableSortLabel></MudTh>
+        </HeaderContent>
+        <RowTemplate>
+            <MudTd DataLabel="Название">
+                <MudText>@context.Name</MudText>
+            </MudTd>
+            <MudTd DataLabel="Стоимость">
+                <MudText>@context.Cost</MudText>
+            </MudTd>
+        </RowTemplate>
+    </MudTable>
+    </DialogContent>
+</MudDialog>
+
+@code {
+    [CascadingParameter]
+    MudDialogInstance MudDialog { get; set; } = null!;
+    
+    private List<Facility>? _facilities;
+    string _searchString = "";
+
+    protected override async Task OnInitializedAsync()
+    {
+        _facilities = (await FacilityService.GetAllFacilitiesAsync()).ToList();
+        await base.OnInitializedAsync();
+    }
+    
+    private bool FilterFunc1(Facility element) => FilterFunc(element, _searchString);
+    
+    private bool FilterFunc(Facility element, string? searchingString)
+    {
+        if (string.IsNullOrWhiteSpace(searchingString))
+            return true;
+        if (element.Name.Contains(searchingString, StringComparison.OrdinalIgnoreCase))
+            return true;
+        return false;
+    }
+    
+    private void RowClickEvent(TableRowClickEventArgs<Facility> tableRowClickEventArgs)
+    {
+        MudDialog.Close(DialogResult.Ok(tableRowClickEventArgs.Item));
+    }
+}

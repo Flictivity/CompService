@@ -14,7 +14,4 @@ public interface IOrderService
 
     public Task<ListDataResult<OrderTableModel>> GetAllOrdersForTableAsync(int itemCount, int pageNum,
         string searchText = "", string field = "OrderId", bool desc = false);
-
-    public Task<BaseResult> AddSparePart(string orderId, string sparePartId, int count, double discount, bool isEdit);
-    public Task<BaseResult> RemoveSparePart(string orderId, List<string> sparePartsIds);
 }

@@ -10,4 +10,5 @@ public interface ISparePartRepository
     public Task<SparePart?> GetSparePartByArticle(string? article);
     public Task UpdateSparePart(SparePart currentSparePart, SparePart newSparePart);
     public Task<IEnumerable<SparePart>> GetAllSpareParts();
+    public Task UpdateCount(string sparePartId, int count);
 }

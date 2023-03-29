@@ -180,6 +180,23 @@ public class OrderRepository : IOrderRepository
         newDbOrder.Money = newOrder.SpareParts!.Sum(x => x.Sum) + 
                            newOrder.Facilities!.Sum(x => x.Sum);
 
+        if (currentOrder.SpareParts is not null)
+        {
+                    
+            foreach (var sparePart in currentOrder.SpareParts)
+            {
+                await _sparePartRepository.UpdateCount(sparePart.Item.SparePartId,sparePart.Count);
+            }   
+        }
+
+        if (newDbOrder.SpareParts is not null)
+        {
+            foreach (var sparePart in newDbOrder.SpareParts)
+            {
+                await _sparePartRepository.UpdateCount(sparePart.Item,sparePart.Count * -1);
+            }   
+        }
+
         _logger.LogInformation("Данные в таблице успешно изменены");
         await _orders.ReplaceOneAsync(x => x.OrderId == currentOrder.OrderId, newDbOrder);
     }
@@ -301,32 +318,6 @@ public class OrderRepository : IOrderRepository
             Items = convertedOrders.ToList(),
             TotalItemsCount = filtered.Count
         };
-    }
-
-    public async Task AddSparePart(Order order, OrderListModel<SparePart> sparePart)
-    {
-        order.SpareParts?.Add(sparePart);
-
-        await UpdateOrder(order, order);
-    }
-
-    public async Task UpdateSparePart(Order order, OrderListModel<SparePart> sparePart)
-    {
-        if (order.SpareParts is null)
-        {
-            return;
-        }
-
-        var orderSparePart = order.SpareParts.FirstOrDefault(x => 
-            x.Item.SparePartId == sparePart.Item.SparePartId);
-        
-        orderSparePart!.Item = sparePart.Item;
-        orderSparePart.Discount = sparePart.Discount;
-        orderSparePart.Sum = sparePart.Sum;
-        orderSparePart.Count = sparePart.Count;
-        
-        
-        await UpdateOrder(order, order);
     }
 
     private Expression<Func<OrderDb, object>> GetOrderProperty(string field)
