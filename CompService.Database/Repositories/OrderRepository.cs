@@ -70,7 +70,7 @@ public class OrderRepository : IOrderRepository
                 var newSparePart = new OrderListModel<SparePart>
                 {
                     Item = await _sparePartRepository.GetSparePartById(sparePart.Item) ?? new SparePart(),
-                    Count = sparePart.Count,
+                    ItemCount = sparePart.ItemCount,
                     Discount = sparePart.Discount,
                     Sum = sparePart.Sum
                 };
@@ -85,7 +85,7 @@ public class OrderRepository : IOrderRepository
                 var newFacility = new OrderListModel<Facility>
                 {
                     Item = await _facilityRepository.GetFacilityById(facility.Item) ?? new Facility(),
-                    Count = facility.Count,
+                    ItemCount = facility.ItemCount,
                     Discount = facility.Discount,
                     Sum = facility.Sum
                 };
@@ -110,7 +110,7 @@ public class OrderRepository : IOrderRepository
             var newSparePart = new OrderListModel<SparePart>
             {
                 Item = await _sparePartRepository.GetSparePartById(sparePart.Item) ?? new SparePart(),
-                Count = sparePart.Count,
+                ItemCount = sparePart.ItemCount,
                 Discount = sparePart.Discount,
                 Sum = sparePart.Sum
             };
@@ -132,7 +132,7 @@ public class OrderRepository : IOrderRepository
             var newSparePart = new OrderListModel<Facility>
             {
                 Item = await _facilityRepository.GetFacilityById(facility.Item) ?? new Facility(),
-                Count = facility.Count,
+                ItemCount = facility.ItemCount,
                 Discount = facility.Discount,
                 Sum = facility.Sum
             };
@@ -157,7 +157,7 @@ public class OrderRepository : IOrderRepository
             .Select(sparePart => new OrderListModel<string>
             {
                 Item = sparePart.Item.SparePartId,
-                Count = sparePart.Count,
+                ItemCount = sparePart.ItemCount,
                 Discount = sparePart.Discount,
                 Sum = sparePart.Sum
             })
@@ -166,7 +166,7 @@ public class OrderRepository : IOrderRepository
             .Select(facility => new OrderListModel<string>
             {
                 Item = facility.Item.FacilityId,
-                Count = facility.Count,
+                ItemCount = facility.ItemCount,
                 Discount = facility.Discount,
                 Sum = facility.Sum
             })
@@ -176,25 +176,24 @@ public class OrderRepository : IOrderRepository
         newDbOrder.Facilities = facilities;
         newDbOrder.SpareParts = spareParts;
         newDbOrder.OrderId = currentOrder.OrderId;
-        
-        newDbOrder.Money = newOrder.SpareParts!.Sum(x => x.Sum) + 
+
+        newDbOrder.Money = newOrder.SpareParts!.Sum(x => x.Sum) +
                            newOrder.Facilities!.Sum(x => x.Sum);
 
         if (currentOrder.SpareParts is not null)
         {
-                    
             foreach (var sparePart in currentOrder.SpareParts)
             {
-                await _sparePartRepository.UpdateCount(sparePart.Item.SparePartId,sparePart.Count);
-            }   
+                await _sparePartRepository.UpdateCount(sparePart.Item.SparePartId, sparePart.ItemCount);
+            }
         }
 
         if (newDbOrder.SpareParts is not null)
         {
             foreach (var sparePart in newDbOrder.SpareParts)
             {
-                await _sparePartRepository.UpdateCount(sparePart.Item,sparePart.Count * -1);
-            }   
+                await _sparePartRepository.UpdateCount(sparePart.Item, sparePart.ItemCount * -1);
+            }
         }
 
         _logger.LogInformation("Данные в таблице успешно изменены");
@@ -218,7 +217,7 @@ public class OrderRepository : IOrderRepository
                     var newSparePart = new OrderListModel<SparePart>
                     {
                         Item = await _sparePartRepository.GetSparePartById(sparePart.Item) ?? new SparePart(),
-                        Count = sparePart.Count,
+                        ItemCount = sparePart.ItemCount,
                         Discount = sparePart.Discount,
                         Sum = sparePart.Sum
                     };
@@ -233,7 +232,7 @@ public class OrderRepository : IOrderRepository
                     var newFacility = new OrderListModel<Facility>
                     {
                         Item = await _facilityRepository.GetFacilityById(facility.Item) ?? new Facility(),
-                        Count = facility.Count,
+                        ItemCount = facility.ItemCount,
                         Discount = facility.Discount,
                         Sum = facility.Sum
                     };
@@ -249,16 +248,23 @@ public class OrderRepository : IOrderRepository
         return res;
     }
 
-    public async Task<ListDataResult<OrderTableModel>> GetAllOrdersForTable(int itemCount, int pageNum,
+    public async Task<ListDataResult<OrderTableModel>> GetAllOrdersForTable(int itemCount, int pageNum, User user,
         string searchText, string field, bool desc = false)
     {
         var orderProperty = GetOrderProperty(field);
         var search = searchText.ToLower();
 
+        Expression<Func<OrderDb, bool>> filter = user.Roles switch
+        {
+            Roles.Operator => x => x.OperatorId == user.UserId,
+            Roles.Master => x => x.MasterId == user.UserId,
+            _ => x => true
+        };
+
         List<OrderDb> filtered = new();
         if (search != "")
         {
-            using var cursor = await _orders.FindAsync(x => true);
+            using var cursor = await _orders.FindAsync(filter);
             while (await cursor.MoveNextAsync())
             {
                 var batch = cursor.Current;
@@ -280,7 +286,7 @@ public class OrderRepository : IOrderRepository
         }
         else
         {
-            filtered = (await _orders.FindAsync(x => true)).ToList();
+            filtered = (await _orders.FindAsync(filter)).ToList();
         }
 
         var orders = filtered

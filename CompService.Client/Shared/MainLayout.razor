@@ -6,6 +6,7 @@
 @inject AppState AppState;
 @inject UserInfoHolder UserInfoHolder;
 @inject IUserService UserService;
+
 <PageTitle>CompService.Client</PageTitle>
 <MudThemeProvider Theme="new MudTheme {Palette = new Palette {Primary = _primaryColor, Secondary = _secondaryColor}}"/>
 <MudDialogProvider/>
@@ -14,6 +15,8 @@
 
 <MudLayout>
     <MudAppBar>
+        <MudAvatar Size="Size.Medium" Class="mr-4"><MudImage Src="logo.png"></MudImage></MudAvatar>
+        <MudText Typo="Typo.h5">Компьютерный сервис</MudText>
         <MudSpacer></MudSpacer>
         @if (AppState.LoggedIn && UserInfoHolder.CurrentUser is not null)
         {

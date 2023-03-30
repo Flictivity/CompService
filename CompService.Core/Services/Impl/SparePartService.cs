@@ -15,12 +15,17 @@ public class SparePartService : ISparePartService
     }
     public async Task<BaseResult> CreateAsync(SparePart newSparePart)
     {
-        var sparePartInDb = await GetSparePartByNameAsync(newSparePart.Name);
+        var sparePartInDbByName = await GetSparePartByNameAsync(newSparePart.Name);
+        var sparePartInDbByArticle = await GetSparePartByArticleAsync(newSparePart.Article);
 
-        if (sparePartInDb is not null)
+        if (sparePartInDbByName is not null)
         {
-            await UpdateSparePartCountAsync(sparePartInDb.SparePartId, sparePartInDb.Count + newSparePart.Count);
-            return new BaseResult {Success = true};
+            return new BaseResult {Success = false, Message = "Запчасть с таким именем уже существует"};
+        }
+
+        if (sparePartInDbByArticle is not null)
+        {
+            return new BaseResult {Success = false, Message = "Запчасть с таким артикулом уже существует"};
         }
 
         await _sparePartRepository.Create(newSparePart);
@@ -39,7 +44,7 @@ public class SparePartService : ISparePartService
 
     public async Task<SparePart?> GetSparePartByArticleAsync(string? article)
     {
-        return await _sparePartRepository.GetSparePartById(article);
+        return await _sparePartRepository.GetSparePartByArticle(article);
     }
 
     public async Task<BaseResult> UpdateSparePartAsync(SparePart currentSparePart, SparePart newSparePart)

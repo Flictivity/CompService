@@ -96,7 +96,7 @@
             await SparePartService.UpdateSparePartAsync(SelectedSparePart!, newSparePart);
 
             Snackbar.Add("Успешно", Severity.Success);
-            MudDialog?.Close(DialogResult.Ok(true));
+            MudDialog.Close(DialogResult.Ok(true));
 
             return;
         }
@@ -110,7 +110,7 @@
         }
 
         Snackbar.Add("Успешно", Severity.Success);
-        MudDialog?.Close(DialogResult.Ok(true));
+        MudDialog.Close(DialogResult.Ok(true));
     }
 
     private void Cancel() => MudDialog.Cancel();

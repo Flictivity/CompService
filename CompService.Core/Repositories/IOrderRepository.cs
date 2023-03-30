@@ -13,6 +13,6 @@ public interface IOrderRepository
     public Task UpdateOrder(Order currentOrder, Order newOrder);
     public Task<IEnumerable<Order>> GetAllOrders();
 
-    public Task<ListDataResult<OrderTableModel>> GetAllOrdersForTable(int itemCount, int pageNum,
+    public Task<ListDataResult<OrderTableModel>> GetAllOrdersForTable(int itemCount, int pageNum, User user,
         string searchText, string field, bool desc = false);
 }

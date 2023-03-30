@@ -177,7 +177,7 @@ else
                 </MudTh>
                 <MudTh>
                     <MudTableSortLabel
-                        SortBy="new Func<OrderListModel<SparePart>, object>(x => x.Count)">
+                        SortBy="new Func<OrderListModel<SparePart>, object>(x => x.ItemCount)">
                         Количество
                     </MudTableSortLabel>
                 </MudTh>
@@ -202,7 +202,7 @@ else
                     <MudText>@context.Item.RetailPrice</MudText>
                 </MudTd>
                 <MudTd DataLabel="Количество">
-                    <MudText>@context.Count</MudText>
+                    <MudText>@context.ItemCount</MudText>
                 </MudTd>
                 <MudTd DataLabel="Скидка">
                     <MudText>@context.Discount</MudText>
@@ -250,7 +250,7 @@ else
                 </MudTh>
                 <MudTh>
                     <MudTableSortLabel
-                        SortBy="new Func<OrderListModel<Facility>, object>(x => x.Count)">
+                        SortBy="new Func<OrderListModel<Facility>, object>(x => x.ItemCount)">
                         Количество
                     </MudTableSortLabel>
                 </MudTh>
@@ -275,7 +275,7 @@ else
                     <MudText>@context.Item.Cost</MudText>
                 </MudTd>
                 <MudTd DataLabel="Количество">
-                    <MudText>@context.Count</MudText>
+                    <MudText>@context.ItemCount</MudText>
                 </MudTd>
                 <MudTd DataLabel="Скидка">
                     <MudText>@context.Discount</MudText>
@@ -538,7 +538,22 @@ else
             CloseOnEscapeKey = true, CloseButton = true,
             FullWidth = true, MaxWidth = MaxWidth.Medium
         };
-        var parameters = new DialogParameters {{"SelectedSparePart", tableRowClickEventArgs.Item}};
+        var order = await OrderService.GetOrderByIdAsync(_model.OrderId!);
+        int maxCount;
+        if (order?.SpareParts?
+            .FirstOrDefault(x => x.Item.SparePartId == tableRowClickEventArgs.Item.Item.SparePartId) is not null)
+        {
+            maxCount = tableRowClickEventArgs.Item.ItemCount +tableRowClickEventArgs.Item.Item.Count;
+        }
+        else
+        {
+            maxCount = tableRowClickEventArgs.Item.ItemCount;
+        }
+        var parameters = new DialogParameters
+        {
+            {"SelectedSparePart", tableRowClickEventArgs.Item},
+            {"MaxCount", maxCount}
+        };
 
         var dialog = await DialogService.ShowAsync<OrderSparePartWindow>("", parameters, closeOnEscapeKey);
         var result = await dialog.Result;
@@ -556,7 +571,7 @@ else
             .FirstOrDefault(x => x.Item.SparePartId == tableRowClickEventArgs.Item.Item.SparePartId);
 
         editSparePart!.Item = sparePart.Item;
-        editSparePart.Count = sparePart.Count;
+        editSparePart.ItemCount = sparePart.ItemCount;
         editSparePart.Discount = sparePart.Discount;
         _sparePartTable.UpdateSelection();
 
@@ -585,7 +600,8 @@ else
             return;
         }
         _model.SpareParts.Add(sparePart);
-        _model.Money += sparePart.Sum;
+        _model.Money = _model.SpareParts.Sum(x => x.Sum)
+                       + _model.Facilities!.Sum(x => x.Sum);
     }
 
     private async void FacilityRowClickEvent(TableRowClickEventArgs<OrderListModel<Facility>> tableRowClickEventArgs)
@@ -613,7 +629,7 @@ else
             .FirstOrDefault(x => x.Item.FacilityId == tableRowClickEventArgs.Item.Item.FacilityId);
 
         editSparePart!.Item = sparePart.Item;
-        editSparePart.Count = sparePart.Count;
+        editSparePart.ItemCount = sparePart.ItemCount;
         editSparePart.Discount = sparePart.Discount;
         _facilityTable.UpdateSelection();
 
@@ -642,7 +658,8 @@ else
             return;
         }
         _model.Facilities.Add(sparePart);
-        _model.Money += sparePart.Sum;
+        _model.Money = _model.SpareParts!.Sum(x => x.Sum)
+                       + _model.Facilities!.Sum(x => x.Sum);
     }
 
     private async Task DeleteSpareParts()
@@ -670,7 +687,7 @@ else
 
         var dialog = await DialogService.ShowAsync<CloseWindow>("Закрыть", parameters, closeOnEscapeKey);
         var result = await dialog.Result;
-        if (!result.Canceled)
+        if (result.Canceled)
         {
             return;
         }
@@ -679,7 +696,9 @@ else
         {
             _model.SpareParts.Remove(selectedSparePart);
         }
-        _model.Money -= _selectedSpareParts.Sum(x => x.Sum);
+        
+        _model.Money = _model.SpareParts.Sum(x => x.Sum)
+                       + _model.Facilities!.Sum(x => x.Sum);
         Snackbar.Add("Успешно", Severity.Success);
     }
 
@@ -708,7 +727,7 @@ else
 
         var dialog = await DialogService.ShowAsync<CloseWindow>("Закрыть", parameters, closeOnEscapeKey);
         var result = await dialog.Result;
-        if (!result.Canceled)
+        if (result.Canceled)
         {
             return;
         }
@@ -717,7 +736,8 @@ else
         {
             _model.Facilities.Remove(selectedFacility);
         }
-        _model.Money -= _selectedFacilities.Sum(x => x.Sum);
+        _model.Money = _model.SpareParts!.Sum(x => x.Sum)
+                       + _model.Facilities!.Sum(x => x.Sum);
         Snackbar.Add("Успешно", Severity.Success);
     }
 

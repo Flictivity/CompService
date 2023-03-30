@@ -12,6 +12,6 @@ public interface IOrderService
     public Task<BaseResult> UpdateOrderAsync(Order currentOrder, Order newOrder);
     public Task<IEnumerable<Order>> GetAllOrdersAsync();
 
-    public Task<ListDataResult<OrderTableModel>> GetAllOrdersForTableAsync(int itemCount, int pageNum,
+    public Task<ListDataResult<OrderTableModel>> GetAllOrdersForTableAsync(int itemCount, int pageNum, User user,
         string searchText = "", string field = "OrderId", bool desc = false);
 }

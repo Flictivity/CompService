@@ -57,9 +57,9 @@ public class OrderService : IOrderService
     }
 
     public async Task<ListDataResult<OrderTableModel>> GetAllOrdersForTableAsync(int itemCount,
-        int pageNum, string searchText, string field, bool desc)
+        int pageNum, User user, string searchText, string field, bool desc)
     {
-        return await _orderRepository.GetAllOrdersForTable(itemCount, pageNum, searchText, field, desc);
+        return await _orderRepository.GetAllOrdersForTable(itemCount, pageNum, user, searchText, field, desc);
     }
 
     public async Task<BaseResult> RemoveSparePart(string orderId, List<string> sparePartIds)
@@ -79,7 +79,7 @@ public class OrderService : IOrderService
             var orderSparePart = order.SpareParts?.FirstOrDefault(x =>
                 x.Item.SparePartId == sparePartId);
 
-            sparePart.Count += orderSparePart!.Count;
+            sparePart.Count += orderSparePart!.ItemCount;
 
             order.SpareParts?.Remove(orderSparePart);
 

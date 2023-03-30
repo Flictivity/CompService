@@ -111,10 +111,11 @@
     {
         ListDataResult<OrderTableModel> data;
         if (state.SortLabel is null)
-            data = await OrderService.GetAllOrdersForTableAsync(state.PageSize, state.Page, _searchString);
+            data = await OrderService.GetAllOrdersForTableAsync(state.PageSize, state.Page,
+                UserInfoHolder.CurrentUser!, _searchString);
         else
             data = await OrderService.GetAllOrdersForTableAsync(state.PageSize,
-                state.Page, _searchString, state.SortLabel,
+                state.Page, UserInfoHolder.CurrentUser!, _searchString, state.SortLabel,
                 state.SortDirection == SortDirection.Descending);
 
         return new TableData<OrderTableModel> { TotalItems = data.TotalItemsCount, Items = data.Items };
@@ -134,7 +135,7 @@
     {
         var closeOnEscapeKey = new DialogOptions
         {
-            CloseOnEscapeKey = false, DisableBackdropClick = true, CloseButton = false, MaxWidth = MaxWidth.Medium,
+            CloseOnEscapeKey = true, DisableBackdropClick = true, CloseButton = true, MaxWidth = MaxWidth.Medium,
             FullWidth = true
         };
 

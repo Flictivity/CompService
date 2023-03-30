@@ -1,9 +1,7 @@
 ﻿@using CompService.Core.Models
-@using CompService.Core.Services
 
 @inject IDialogService DialogService;
 @inject ISnackbar Snackbar;
-@inject ISparePartService SparePartService;
 
 <MudDialog DefaultFocus="DefaultFocus.LastChild">
     <DialogContent>
@@ -15,7 +13,7 @@
             <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="OpenWindow">Выбрать</MudButton>
         </MudContainer>
         <MudNumericField T="int" Min="0" 
-                         Max="@(_oldCount + _sparePartDbCount)"
+                         Max="@MaxCount"
                          Required="true" @bind-Value="_count" RequiredError="Обязательное поле" 
                          Label="Количество" Class="mb-3"/>
         <MudTextField Required="true" @bind-Value="_discount"
@@ -35,9 +33,10 @@
     [Parameter]
     public OrderListModel<SparePart>? SelectedSparePart { get; set; }
     
+    [Parameter]
+    public int MaxCount { get; set; }
+    
     private int _count;
-    private int _oldCount;
-    private int _sparePartDbCount;
     private double _discount;
     private bool _isEditing;
 
@@ -46,12 +45,9 @@
         if (SelectedSparePart is not null)
         {
             _isEditing = true;
-            _count = SelectedSparePart.Count;
-            _oldCount = SelectedSparePart.Count;
+            _count = SelectedSparePart.ItemCount;
             _discount = SelectedSparePart.Discount;
         }
-        var dbSparePart = await SparePartService.GetSparePartByIdAsync(SelectedSparePart?.Item.SparePartId);
-        _sparePartDbCount = dbSparePart?.Count ?? 0;
         await base.OnInitializedAsync();
     }
 
@@ -72,23 +68,7 @@
             Snackbar.Add("Скидка не может быть отрицательной", Severity.Error);
             return;
         }
-        if (_isEditing)
-        {
-            if (SelectedSparePart.Item.Count + _oldCount - _count < 0)
-            {
-                Snackbar.Add("Недостаточно запчастей на складе", Severity.Error);
-                return;
-            }
-        }
-        else
-        {
-            if (SelectedSparePart.Item.Count - _count < 0)
-            {
-                Snackbar.Add("Недостаточно запчастей на складе", Severity.Error);
-                return;
-            }
-        }
-        SelectedSparePart.Count = _count;
+        SelectedSparePart.ItemCount = _count;
         SelectedSparePart.Discount = _discount;
         SelectedSparePart.Sum = SelectedSparePart.Item.RetailPrice * _count
                                 - SelectedSparePart.Item.RetailPrice * _count * _discount * 0.01;
@@ -110,8 +90,7 @@
         
         SelectedSparePart ??= new OrderListModel<SparePart>();
         SelectedSparePart.Item = (SparePart)result.Data;
-        var dbSparePart = await SparePartService.GetSparePartByIdAsync(SelectedSparePart?.Item.SparePartId);
-        _sparePartDbCount = dbSparePart?.Count ?? 0;
+        MaxCount = SelectedSparePart.Item.Count;
         StateHasChanged();
     }
 }

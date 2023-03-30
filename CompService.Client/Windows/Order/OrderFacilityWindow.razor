@@ -42,7 +42,7 @@
         if (SelectedFacility is not null)
         {
             _isEditing = true;
-            _count = SelectedFacility.Count;
+            _count = SelectedFacility.ItemCount;
             _discount = SelectedFacility.Discount;
         }
         await base.OnInitializedAsync();
@@ -65,7 +65,7 @@
             Snackbar.Add("Скидка не может быть отрицательной", Severity.Error);
             return;
         }
-        SelectedFacility.Count = _count;
+        SelectedFacility.ItemCount = _count;
         SelectedFacility.Discount = _discount;
         SelectedFacility.Sum = SelectedFacility.Item.Cost * _count
                                 - SelectedFacility.Item.Cost * _count * _discount * 0.01;
