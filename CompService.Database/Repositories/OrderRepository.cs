@@ -98,50 +98,6 @@ public class OrderRepository : IOrderRepository
         return order;
     }
 
-    public async Task<IEnumerable<OrderListModel<SparePart>>> GetOrderSpareParts(string id)
-    {
-        var spareParts = new List<OrderListModel<SparePart>>();
-        var res = (await _orders.FindAsync(x => x.OrderId == id)).FirstOrDefault();
-        if (res is null) return spareParts;
-        if (res.SpareParts is null) return spareParts;
-
-        foreach (var sparePart in res.SpareParts)
-        {
-            var newSparePart = new OrderListModel<SparePart>
-            {
-                Item = await _sparePartRepository.GetSparePartById(sparePart.Item) ?? new SparePart(),
-                ItemCount = sparePart.ItemCount,
-                Discount = sparePart.Discount,
-                Sum = sparePart.Sum
-            };
-            spareParts.Add(newSparePart);
-        }
-
-        return spareParts;
-    }
-
-    public async Task<IEnumerable<OrderListModel<Facility>>> GetOrderFacilities(string id)
-    {
-        var facilities = new List<OrderListModel<Facility>>();
-        var res = (await _orders.FindAsync(x => x.OrderId == id)).FirstOrDefault();
-        if (res is null) return facilities;
-        if (res.Facilities is null) return facilities;
-
-        foreach (var facility in res.Facilities)
-        {
-            var newSparePart = new OrderListModel<Facility>
-            {
-                Item = await _facilityRepository.GetFacilityById(facility.Item) ?? new Facility(),
-                ItemCount = facility.ItemCount,
-                Discount = facility.Discount,
-                Sum = facility.Sum
-            };
-            facilities.Add(newSparePart);
-        }
-
-        return facilities;
-    }
-
     public async Task<int> GetMasterOrdersCount(string masterId)
     {
         return (await _orders
@@ -256,7 +212,6 @@ public class OrderRepository : IOrderRepository
 
         Expression<Func<OrderDb, bool>> filter = user.Roles switch
         {
-            Roles.Operator => x => x.OperatorId == user.UserId,
             Roles.Master => x => x.MasterId == user.UserId,
             _ => x => true
         };
@@ -276,7 +231,8 @@ public class OrderRepository : IOrderRepository
                     var place = await _devicePlaceRepository.GetPlaceById(document.DevicePlaceId);
                     var client = await _clientRepository.GetClientById(document.ClientId);
                     if (string.Join(" ", operatorDb?.Surname, operatorDb?.Name, operatorDb?.Patronymic, master?.Surname,
-                            master?.Name, master?.Patronymic, client?.Name, defect?.Name, place?.Info, client?.Surname)
+                            master?.Name, master?.Patronymic, client?.Name, defect?.Name, place?.Info, client?.Surname,
+                            document.OrderId)
                         .ToLower().Contains(search))
                     {
                         filtered.Add(document);
@@ -337,6 +293,7 @@ public class OrderRepository : IOrderRepository
         {
             "OrderId" => x => x.OrderId,
             "Status" => x => x.Status,
+            "OrderDate" => x => x.OrderDate,
             "Sum" => x => x.Money,
             _ => throw new ArgumentOutOfRangeException(nameof(field), field, null)
         };

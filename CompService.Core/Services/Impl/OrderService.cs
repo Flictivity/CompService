@@ -1,4 +1,5 @@
-﻿using CompService.Core.Models;
+﻿using CompService.Core.Enums;
+using CompService.Core.Models;
 using CompService.Core.Repositories;
 using CompService.Core.Results;
 
@@ -35,11 +36,6 @@ public class OrderService : IOrderService
         return await _orderRepository.GetOrderById(id);
     }
 
-    public async Task<IEnumerable<OrderListModel<SparePart>>> GetOrderSparePartsAsync(string id)
-    {
-        return await _orderRepository.GetOrderSpareParts(id);
-    }
-
     public async Task<int> GetMasterOrdersCount(string masterId)
     {
         return await _orderRepository.GetMasterOrdersCount(masterId);
@@ -47,6 +43,32 @@ public class OrderService : IOrderService
 
     public async Task<BaseResult> UpdateOrderAsync(Order currentOrder, Order newOrder)
     {
+        var placeInDbOrder = await _devicePlaceService.GetPlaceByIdAsync(currentOrder.DevicePlaceId);
+        if (placeInDbOrder is null) return new BaseResult {Success = false};
+        
+        var placeInNewOrder = await _devicePlaceService.GetPlaceByIdAsync(newOrder.DevicePlaceId);
+        if (placeInNewOrder is null) return new BaseResult {Success = false};
+        
+
+        if (!placeInNewOrder.IsOccupied)
+        {
+            placeInNewOrder.IsOccupied = true;
+        }
+        
+        if (newOrder.Status is OrdersStatuses.Closed or OrdersStatuses.ClosedWithProblems)
+        {
+            placeInDbOrder.IsOccupied = false;
+            placeInNewOrder.IsOccupied = false;
+        }
+
+        if (placeInDbOrder.PlaceId != placeInNewOrder.PlaceId)
+        {
+            placeInDbOrder.IsOccupied = false;
+        }
+
+        await _devicePlaceService.UpdateDevicePlaceAsync(placeInDbOrder, placeInDbOrder);
+        await _devicePlaceService.UpdateDevicePlaceAsync(placeInNewOrder, placeInNewOrder);
+
         await _orderRepository.UpdateOrder(currentOrder, newOrder);
         return new BaseResult {Success = true};
     }

@@ -19,9 +19,14 @@ public class TransactionService : ITransactionService
         return new BaseResult {Success = true};
     }
 
-    public async Task<Transaction?> GetTransactionByIdAsync(string? id)
+    public async Task<Transaction?> GetTransactionByIdAsync(string id)
     {
         return await _transactionRepository.GetTransactionById(id);
+    }
+
+    public async Task<Transaction?> GetTransactionByOrderAsync(string orderId)
+    {
+        return await _transactionRepository.GetTransactionByOrder(orderId);
     }
 
     public async Task<BaseResult> UpdateTransactionAsync(Transaction currentTransaction, Transaction newTransaction)
@@ -63,7 +68,7 @@ public class TransactionService : ITransactionService
         var balance = new TransactionResult
         {
             Success = true,
-            Profit = arrival - expense,
+            Profit = Math.Round(arrival - expense, 2),
             Arrival = arrival,
             Expense = expense
         };

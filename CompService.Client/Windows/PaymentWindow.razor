@@ -16,8 +16,10 @@
         </MudRadioGroup>
     </DialogContent>
     <DialogActions>
-        <MudButton Variant="Variant.Filled" Color="Color.Primary" Class="mx-auto" 
-                   OnClick="async () => await CreateTransaction()">@Money</MudButton>
+        <MudButton Variant="Variant.Filled" Color="Color.Primary" Class="mx-auto"
+                   OnClick="async () => await CreateTransaction()">
+            @Money
+        </MudButton>
     </DialogActions>
 </MudDialog>
 
@@ -53,13 +55,12 @@
 
         if (res.Success)
         {
-            Snackbar.Add("Успешно", Severity.Success);
             MudDialog.Close(DialogResult.Ok(true));
         }
         else
         {
             Snackbar.Add("Произошла ошибка при добавлении прихода денежных средств", Severity.Error);
-            MudDialog.Close(DialogResult.Ok(false));
+            MudDialog.Cancel();
         }
         
     }

@@ -15,6 +15,7 @@
 @inject IReferenceService<Brand> BrandService;
 @inject IDialogService DialogService;
 @inject UserInfoHolder UserInfoHolder;
+@inject ITransactionService TransactionService;
 
 @if (_isLoaded)
 {
@@ -55,7 +56,8 @@ else
         </MudStack>
         <MudSelect Class="ml-3 mt-2" Label="Статус" T="OrdersStatuses" Required="true"
                    RequiredError="Обязательное поле" @bind-Value="_model.Status"
-                   Variant="Variant.Outlined">
+                   Variant="Variant.Outlined" 
+                   Readonly="@(UserInfoHolder.CurrentUser?.Roles != Roles.Administrator && !_canEdit)">
             @switch (UserInfoHolder.CurrentUser?.Roles)
             {
                 case Roles.Administrator:
@@ -90,7 +92,7 @@ else
                             @OrdersStatuses.WaitSparePart.GetName()
                         </MudChip>
                     </MudSelectItem>
-                    <MudSelectItem Value="@OrdersStatuses.Finished">
+                    <MudSelectItem Disabled="true" Value="@OrdersStatuses.Finished">
                         <MudChip Class="ma-0"
                                  Style="@($"color:#FFFFFF; background:{StatusColors.StatusColor[OrdersStatuses.Finished]};")">
                             @OrdersStatuses.Finished.GetName()
@@ -575,8 +577,8 @@ else
         editSparePart.Discount = sparePart.Discount;
         _sparePartTable.UpdateSelection();
 
-        _model.Money = _model.SpareParts.Sum(x => x.Sum)
-                       + _model.Facilities!.Sum(x => x.Sum);
+        _model.Money = Math.Round(_model.SpareParts!.Sum(x => x.Sum)
+                                         + _model.Facilities!.Sum(x => x.Sum), 2);
     }
 
     private async Task OrderSparePartAddWindow()
@@ -600,8 +602,8 @@ else
             return;
         }
         _model.SpareParts.Add(sparePart);
-        _model.Money = _model.SpareParts.Sum(x => x.Sum)
-                       + _model.Facilities!.Sum(x => x.Sum);
+        _model.Money = Math.Round(_model.SpareParts!.Sum(x => x.Sum)
+                                         + _model.Facilities!.Sum(x => x.Sum), 2);
     }
 
     private async void FacilityRowClickEvent(TableRowClickEventArgs<OrderListModel<Facility>> tableRowClickEventArgs)
@@ -633,8 +635,8 @@ else
         editSparePart.Discount = sparePart.Discount;
         _facilityTable.UpdateSelection();
 
-        _model.Money = _model.SpareParts!.Sum(x => x.Sum)
-                       + _model.Facilities!.Sum(x => x.Sum);
+        _model.Money = Math.Round(_model.SpareParts!.Sum(x => x.Sum)
+                                         + _model.Facilities!.Sum(x => x.Sum), 2);
     }
 
     private async Task OrderFacilityAddWindow()
@@ -658,8 +660,8 @@ else
             return;
         }
         _model.Facilities.Add(sparePart);
-        _model.Money = _model.SpareParts!.Sum(x => x.Sum)
-                       + _model.Facilities!.Sum(x => x.Sum);
+        _model.Money = Math.Round(_model.SpareParts!.Sum(x => x.Sum)
+                                         + _model.Facilities!.Sum(x => x.Sum), 2);
     }
 
     private async Task DeleteSpareParts()
@@ -697,8 +699,8 @@ else
             _model.SpareParts.Remove(selectedSparePart);
         }
         
-        _model.Money = _model.SpareParts.Sum(x => x.Sum)
-                       + _model.Facilities!.Sum(x => x.Sum);
+        _model.Money = Math.Round(_model.SpareParts!.Sum(x => x.Sum)
+                                         + _model.Facilities!.Sum(x => x.Sum), 2);
         Snackbar.Add("Успешно", Severity.Success);
     }
 
@@ -736,8 +738,8 @@ else
         {
             _model.Facilities.Remove(selectedFacility);
         }
-        _model.Money = _model.SpareParts!.Sum(x => x.Sum)
-                       + _model.Facilities!.Sum(x => x.Sum);
+        _model.Money = Math.Round(_model.SpareParts!.Sum(x => x.Sum)
+                       + _model.Facilities!.Sum(x => x.Sum), 2);
         Snackbar.Add("Успешно", Severity.Success);
     }
 
@@ -745,15 +747,18 @@ else
     private async Task SaveChanges()
     {
         var order = await OrderService.GetOrderByIdAsync(_model.OrderId!);
-        if (_model.Status == OrdersStatuses.Closed && _model.Status != order?.Status)
+        var transaction = await TransactionService.GetTransactionByOrderAsync(order?.OrderId!);
+        
+        if (_model.Status == OrdersStatuses.Closed && transaction is null)
         {
             var closeOnEscapeKey = new DialogOptions
             {
-                CloseOnEscapeKey = true, CloseButton = true, DisableBackdropClick = true
+                CloseOnEscapeKey = false, CloseButton = false, DisableBackdropClick = true
             };
             var parameters = new DialogParameters
             {
                 {"Money", _model.Money},
+                {"OrderId", _model.OrderId!},
             };
 
             var dialog = await DialogService.ShowAsync<PaymentWindow>("Оплата заказа", parameters, closeOnEscapeKey);
@@ -768,6 +773,7 @@ else
         if (res.Success)
         {
             Snackbar.Add("Заказ успешно сохранен", Severity.Success);
+            _places = (await DevicePlaceService.GetFreePlacesAsync()).ToList();
         }
         StatusChanged();
     }
@@ -795,10 +801,12 @@ else
 
     private void StatusChanged()
     {
-        if (_model.Status is OrdersStatuses.Closed or OrdersStatuses.ClosedWithProblems or OrdersStatuses.Finished)
+        if (_model.Status is OrdersStatuses.Closed or OrdersStatuses.ClosedWithProblems)
         {
             _canEdit = false;
+            return;
         }
+        _canEdit = true;
     }
 
 }

@@ -35,9 +35,25 @@ public class TransactionRepository : ITransactionRepository
         await _transactions.InsertOneAsync(newTransactionDb);
     }
 
-    public async Task<Transaction?> GetTransactionById(string? id)
+    public async Task<Transaction?> GetTransactionById(string id)
     {
         var res = (await _transactions.FindAsync(x => x.TransactionId == id))
+            .FirstOrDefault();
+        if (res is null)
+        {
+            return null;
+        }
+
+        var user = await _userRepository.GetUserById(res.UserId);
+        var transaction = EntityConverter.ConvertTransaction(res);
+        transaction.UserSurname = user is null ? string.Empty : user.Surname;
+
+        return transaction;
+    }
+
+    public async Task<Transaction?> GetTransactionByOrder(string orderId)
+    {
+        var res = (await _transactions.FindAsync(x => x.OrderId == orderId))
             .FirstOrDefault();
         if (res is null)
         {

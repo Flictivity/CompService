@@ -10,7 +10,7 @@
             <MudTextField Required="true" T="string" @bind-Value="_info"
                           RequiredError="Обязательное поле" Label="Информация" InputType="InputType.Text"
                           Class="mb-3"/>
-            <MudCheckBox @bind-Checked="_isOcuppied" Label="Занятость"></MudCheckBox>
+            <MudCheckBox class="pa-0" @bind-Checked="_isOcuppied" Label="Занятость"></MudCheckBox>
         </DialogContent>
         <DialogActions>
             <MudButton OnClick="Cancel">Отмена</MudButton>
@@ -61,7 +61,7 @@
         if (res.Success)
         {
             Snackbar.Add("Успешно", Severity.Success);
-            MudDialog?.Close(DialogResult.Ok(true));   
+            MudDialog.Close(DialogResult.Ok(true));   
         }
         Snackbar.Add(res.Message, Severity.Error);
     }
