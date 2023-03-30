@@ -15,7 +15,7 @@
     <h1>Недостаточно прав</h1>
     return;
 }
-@if (UserInfoHolder.CurrentUser is not null && UserInfoHolder.CurrentUser.Roles != Roles.Administrator)
+@if (UserInfoHolder.CurrentUser is not null && UserInfoHolder.CurrentUser.Roles == Roles.Master)
 {
     <h1>Недостаточно прав</h1>
     return;
@@ -23,7 +23,7 @@
 
 <PageTitle>Справочник.Типы устройств</PageTitle>
 
-<MudTable Items="@_defects" T="DeviceType" OnRowClick="RowClickEvent" Filter="new Func<DeviceType, bool>(FilterFunc1)" Hover="true">
+<MudTable Items="@_deviceTypes" T="DeviceType" OnRowClick="RowClickEvent" Filter="new Func<DeviceType, bool>(FilterFunc1)" Hover="true">
     <ToolBarContent>
         <MudText Typo="Typo.h6">Типы устройств</MudText>
         <MudSpacer/>
@@ -42,12 +42,12 @@
 <MudFab Style="position: fixed; bottom: 0; right: 0; margin: 35px 25px;" Color="Color.Primary" Icon="@Icons.Material.Filled.Add" OnClick="async () => await OpenWindow()"/>
 
 @code {
-    private List<DeviceType>? _defects;
+    private List<DeviceType>? _deviceTypes;
     string _searchString = "";
 
     protected override async Task OnInitializedAsync()
     {
-        _defects = (await ReferenceService.GetAllValuesAsync()).ToList();
+        _deviceTypes = (await ReferenceService.GetAllValuesAsync()).ToList();
         await base.OnInitializedAsync();
     }
     
@@ -64,7 +64,7 @@
 
         if (!result.Canceled)
         {
-            _defects = (await ReferenceService.GetAllValuesAsync()).ToList();
+            _deviceTypes = (await ReferenceService.GetAllValuesAsync()).ToList();
             StateHasChanged();
         }
     }
@@ -96,7 +96,7 @@
 
         if (!result.Canceled)
         {
-            _defects = (await ReferenceService.GetAllValuesAsync()).ToList();
+            _deviceTypes = (await ReferenceService.GetAllValuesAsync()).ToList();
             Snackbar.Add("Успешно", Severity.Success);
             StateHasChanged();
         }

@@ -15,7 +15,7 @@
     <h1>Недостаточно прав</h1>
     return;
 }
-@if (UserInfoHolder.CurrentUser is not null && UserInfoHolder.CurrentUser.Roles != Roles.Administrator)
+@if (UserInfoHolder.CurrentUser is not null && UserInfoHolder.CurrentUser.Roles == Roles.Master)
 {
     <h1>Недостаточно прав</h1>
     return;

@@ -142,6 +142,18 @@ else
                             @OrdersStatuses.Finished.GetName()
                         </MudChip>
                     </MudSelectItem>
+                    <MudSelectItem Disabled="true" Value="@OrdersStatuses.Closed">
+                        <MudChip Class="ma-0"
+                                 Style="@($"color:#FFFFFF; background:{StatusColors.StatusColor[OrdersStatuses.Closed]};")">
+                            @OrdersStatuses.Closed.GetName()
+                        </MudChip>
+                    </MudSelectItem>
+                    <MudSelectItem Disabled="true" Value="@OrdersStatuses.ClosedWithProblems">
+                        <MudChip Class="ma-0"
+                                 Style="@($"color:#FFFFFF; background:{StatusColors.StatusColor[OrdersStatuses.ClosedWithProblems]};")">
+                            @OrdersStatuses.ClosedWithProblems.GetName()
+                        </MudChip>
+                    </MudSelectItem>
                     break;
                 case null:
                     break;
@@ -303,14 +315,14 @@ else
             <MudPaper Class="pa-4">
                 <MudText Typo="Typo.h5" Class="mb-3">Клиент</MudText>
                 <MudSelect Class="ma-3" Required="true"
-                           RequiredError="Обязательное поле" T="Client" @bind-Value="_model.Client"
-                           ToStringFunc="@_converterClient" Label="Клиент"
-                           Variant="Variant.Text" AnchorOrigin="Origin.BottomCenter" ReadOnly="@(!_canEdit)">
-                    @foreach (var client in _clients)
-                    {
-                        <MudSelectItem Value="client"/>
-                    }
-                </MudSelect>
+                               RequiredError="Обязательное поле" T="Client" @bind-Value="_model.Client"
+                               ToStringFunc="@_converterClient" Label="Клиент"
+                               Variant="Variant.Text" AnchorOrigin="Origin.BottomCenter" ReadOnly="@(!_canEdit)">
+                        @foreach (var client in _clients)
+                        {
+                            <MudSelectItem Value="client"/>
+                        }
+                    </MudSelect>
                 <MudTextField Class="ma-3" Value="@_model.Client?.PhoneNumber" Label="Телефон"
                               ReadOnly="@true">
                 </MudTextField>
@@ -337,13 +349,13 @@ else
                     }
                 </MudSelect>
                 <MudSelect Class="ma-3" Required="true" RequiredError="Обязательное поле" T="DevicePlace"
-                           @bind-Value="_model.Place" ToStringFunc="@_converterPlace" Label="Место на стойке"
-                           Variant="Variant.Text" AnchorOrigin="Origin.BottomCenter" ReadOnly="@(!_canEdit)">
-                    @foreach (var place in _places)
-                    {
-                        <MudSelectItem Value="place"/>
-                    }
-                </MudSelect>
+                               @bind-Value="_model.Place" ToStringFunc="@_converterPlace" Label="Место на стойке"
+                               Variant="Variant.Text" AnchorOrigin="Origin.BottomCenter" ReadOnly="@(!_canEdit)">
+                        @foreach (var place in _places)
+                        {
+                            <MudSelectItem Value="place"/>
+                        }
+                    </MudSelect>
             </MudPaper>
         </MudContainer>
         <MudContainer Class="d-flex flex-column pa-0">
@@ -360,41 +372,41 @@ else
                         }
                     </MudSelect>
                     <MudSelect Class="ma-3" Required="true" RequiredError="Обязательное поле" T="Defect"
-                               @bind-Value="_model.Defect" ToStringFunc="@_converterDefect"
-                               Label="Причина обращения" ReadOnly="@(!_canEdit)"
-                               Variant="Variant.Text" AnchorOrigin="Origin.BottomCenter">
-                        @foreach (var defect in _defects)
-                        {
-                            <MudSelectItem Value="defect"/>
-                        }
-                    </MudSelect>
-                    <MudSelect Class="ma-3" Required="true" RequiredError="Обязательное поле" T="Appearance"
-                               @bind-Value="_model.Appearance"
-                               ToStringFunc="@_converterAppearance" Label="Внешний вид"
-                               Variant="Variant.Text" AnchorOrigin="Origin.BottomCenter" ReadOnly="@(!_canEdit)">
-                        @foreach (var appearance in _appearances)
-                        {
-                            <MudSelectItem Value="appearance"/>
-                        }
-                    </MudSelect>
-                    <MudSelect Class="ma-3" Required="true" RequiredError="Обязательное поле"
-                               T="DeviceType" @bind-Value="_model.DeviceType"
-                               ToStringFunc="@_converterDeviceType" Label="Вид устройства"
-                               Variant="Variant.Text" AnchorOrigin="Origin.BottomCenter" ReadOnly="@(!_canEdit)">
-                        @foreach (var deviceType in _deviceTypes)
-                        {
-                            <MudSelectItem Value="deviceType"/>
-                        }
-                    </MudSelect>
-                    <MudSelect Class="ma-3" Required="true" RequiredError="Обязательное поле"
-                               T="Brand" @bind-Value="_model.Brand" ToStringFunc="@_converterBrand"
-                               Label="Бренд"
-                               Variant="Variant.Text" AnchorOrigin="Origin.BottomCenter" ReadOnly="@(!_canEdit)">
-                        @foreach (var brand in _brands)
-                        {
-                            <MudSelectItem Value="brand"/>
-                        }
-                    </MudSelect>
+                                   @bind-Value="_model.Defect" ToStringFunc="@_converterDefect"
+                                   Label="Причина обращения" ReadOnly="@(!_canEdit)"
+                                   Variant="Variant.Text" AnchorOrigin="Origin.BottomCenter">
+                            @foreach (var defect in _defects)
+                            {
+                                <MudSelectItem Value="defect"/>
+                            }
+                        </MudSelect>
+                        <MudSelect Class="ma-3" Required="true" RequiredError="Обязательное поле" T="Appearance"
+                                   @bind-Value="_model.Appearance"
+                                   ToStringFunc="@_converterAppearance" Label="Внешний вид"
+                                   Variant="Variant.Text" AnchorOrigin="Origin.BottomCenter" ReadOnly="@(!_canEdit)">
+                            @foreach (var appearance in _appearances)
+                            {
+                                <MudSelectItem Value="appearance"/>
+                            }
+                        </MudSelect>
+                        <MudSelect Class="ma-3" Required="true" RequiredError="Обязательное поле"
+                                   T="DeviceType" @bind-Value="_model.DeviceType"
+                                   ToStringFunc="@_converterDeviceType" Label="Вид устройства"
+                                   Variant="Variant.Text" AnchorOrigin="Origin.BottomCenter" ReadOnly="@(!_canEdit)">
+                            @foreach (var deviceType in _deviceTypes)
+                            {
+                                <MudSelectItem Value="deviceType"/>
+                            }
+                        </MudSelect>
+                        <MudSelect Class="ma-3" Required="true" RequiredError="Обязательное поле"
+                                   T="Brand" @bind-Value="_model.Brand" ToStringFunc="@_converterBrand"
+                                   Label="Бренд"
+                                   Variant="Variant.Text" AnchorOrigin="Origin.BottomCenter" ReadOnly="@(!_canEdit)">
+                            @foreach (var brand in _brands)
+                            {
+                                <MudSelectItem Value="brand"/>
+                            }
+                        </MudSelect>
                     <MudTextField Class="ma-3" @bind-Value="_model.Model" Label="Модель"
                                   Required="false" ReadOnly="@(!_canEdit)">
                     </MudTextField>
@@ -808,5 +820,4 @@ else
         }
         _canEdit = true;
     }
-
 }

@@ -13,6 +13,7 @@
 @inject IReferenceService<Appearance> AppearanceService;
 @inject IReferenceService<DeviceType> DeviceTypeService;
 @inject IReferenceService<Brand> BrandService;
+@inject IDialogService DialogService;
 
 <MudForm @bind-IsValid="_success" Style="width: 100%" Model="_model">
     <MudDialog >
@@ -26,39 +27,56 @@
                 <MudContainer Class="d-flex flex-column">
                     <MudPaper Class="pa-4">
                         <MudText Typo="Typo.h5" Class="mb-3">Клиент</MudText>
-                        <MudSelect Class="ma-3" Required="true" RequiredError="Обязательное поле" T="Client" @bind-Value="_model.Client" ToStringFunc="@_converterClient" Label="Клиент"
-                                   Variant="Variant.Text" AnchorOrigin="Origin.BottomCenter">
-                            @foreach (var client in _clients)
-                            {
-                                <MudSelectItem Value="client"/>
-                            }
-                        </MudSelect>
-                        <MudTextField Class="ma-3" Value="@_model.Client?.PhoneNumber" Label="Телефон" ReadOnly="@true"></MudTextField>
-                        <MudTextField Class="ma-3" Value="@_model.Client?.Email" Label="Почта" ReadOnly="@true"></MudTextField>
+                        <MudContainer Class="d-flex justify-space-between align-center pa-0">
+                            <MudSelect Class="ma-3" Required="true" RequiredError="Обязательное поле"
+                                       T="Client" @bind-Value="_model.Client" ToStringFunc="@_converterClient" Label="Клиент"
+                                       Variant="Variant.Text" AnchorOrigin="Origin.BottomCenter">
+                                @foreach (var client in _clients)
+                                {
+                                    <MudSelectItem Value="client"/>
+                                }
+                            </MudSelect>
+                            <MudFab Size="Size.Small" Color="Color.Primary" Icon="@Icons.Material.Filled.Add"
+                                    OnClick="async () => await OpenClientWindow()"/>
+                        </MudContainer>
+                        <MudTextField Class="ma-3" Value="@_model.Client?.PhoneNumber" Label="Телефон"
+                                      ReadOnly="@true">
+                        </MudTextField>
+                        <MudTextField Class="ma-3" Value="@_model.Client?.Email" Label="Почта"
+                                      ReadOnly="@true">
+                        </MudTextField>
                     </MudPaper>
                     <MudPaper Class="pa-4 mt-4">
                         <MudText Class="mb-3" Typo="Typo.h5">Дополнительно</MudText>
-                        <MudSelect Class="ma-3" Required="true" RequiredError="Обязательное поле" T="User" @bind-Value="_model.Operator" ToStringFunc="@_converterUser" Label="Оператор"
+                        <MudSelect Class="ma-3" Required="true" RequiredError="Обязательное поле" T="User"
+                                   @bind-Value="_model.Operator" ToStringFunc="@_converterUser" Label="Оператор"
                                    Variant="Variant.Text" AnchorOrigin="Origin.BottomCenter">
                             @foreach (var user in _operators)
                             {
                                 <MudSelectItem Value="user"/>
                             }
                         </MudSelect>
-                        <MudSelect Class="ma-3" Required="true" RequiredError="Обязательное поле" T="User" @bind-Value="_model.Master" ToStringFunc="@_converterUser" Label="Мастер"
+                        <MudSelect Class="ma-3" Required="true" RequiredError="Обязательное поле" T="User"
+                                   @bind-Value="_model.Master" ToStringFunc="@_converterUser" Label="Мастер"
                                    Variant="Variant.Text" AnchorOrigin="Origin.BottomCenter">
                             @foreach (var user in _masters)
                             {
                                 <MudSelectItem Value="user"/>
                             }
                         </MudSelect>
-                        <MudSelect Class="ma-3" Required="true" RequiredError="Обязательное поле" T="DevicePlace" @bind-Value="_model.Place" ToStringFunc="@_converterPlace" Label="Место на стойке"
-                                   Variant="Variant.Text" AnchorOrigin="Origin.BottomCenter">
-                            @foreach (var place in _places)
-                            {
-                                <MudSelectItem Value="place"/>
-                            }
-                        </MudSelect>
+                        <MudContainer Class="d-flex justify-space-between align-center pa-0">
+                            <MudSelect Class="ma-3" Required="true" RequiredError="Обязательное поле"
+                                       T="DevicePlace" @bind-Value="_model.Place" ToStringFunc="@_converterPlace"
+                                       Label="Место на стойке"
+                                       Variant="Variant.Text" AnchorOrigin="Origin.BottomCenter">
+                                @foreach (var place in _places)
+                                {
+                                    <MudSelectItem Value="place"/>
+                                }
+                            </MudSelect>
+                            <MudFab Size="Size.Small" Color="Color.Primary"
+                                    Icon="@Icons.Material.Filled.Add" OnClick="async () => await OpenPlaceWindow()"/>
+                        </MudContainer>
                     </MudPaper>
                 </MudContainer>
                 <MudContainer Class="d-flex flex-column">
@@ -72,43 +90,71 @@
                                     <MudSelectItem Value="type"/>
                                 }
                             </MudSelect>
-                            <MudSelect Class="ma-3" Required="true" RequiredError="Обязательное поле" T="Defect" @bind-Value="_model.Defect" ToStringFunc="@_converterDefect" Label="Причина обращения"
-                                       Variant="Variant.Text" AnchorOrigin="Origin.BottomCenter">
-                                @foreach (var defect in _defects)
-                                {
-                                    <MudSelectItem Value="defect"/>
-                                }
-                            </MudSelect>
-                            <MudSelect Class="ma-3" Required="true" RequiredError="Обязательное поле" T="Appearance" @bind-Value="_model.Appearance" ToStringFunc="@_converterAppearance" Label="Внешний вид"
-                                       Variant="Variant.Text" AnchorOrigin="Origin.BottomCenter">
-                                @foreach (var appearance in _appearances)
-                                {
-                                    <MudSelectItem Value="appearance"/>
-                                }
-                            </MudSelect>
-                            <MudSelect Class="ma-3" Required="true" RequiredError="Обязательное поле" T="DeviceType" @bind-Value="_model.DeviceType" ToStringFunc="@_converterDeviceType" Label="Вид устройства"
-                                       Variant="Variant.Text" AnchorOrigin="Origin.BottomCenter">
-                                @foreach (var deviceType in _deviceTypes)
-                                {
-                                    <MudSelectItem Value="deviceType"/>
-                                }
-                            </MudSelect>
-                            <MudSelect Class="ma-3" Required="true" RequiredError="Обязательное поле" T="Brand" @bind-Value="_model.Brand" ToStringFunc="@_converterBrand" Label="Бренд"
-                                       Variant="Variant.Text" AnchorOrigin="Origin.BottomCenter">
-                                @foreach (var brand in _brands)
-                                {
-                                    <MudSelectItem Value="brand"/>
-                                }
-                            </MudSelect>
-                            <MudTextField Class="ma-3" @bind-Value="_model.Model" Label="Модель" Required="false"></MudTextField>
-                            <MudTextField Class="ma-3" @bind-Value="_model.Password" Label="Пароль" Required="false"></MudTextField>
+                            <MudContainer Class="d-flex justify-space-between align-center pa-0">
+                                <MudSelect Class="ma-3" Required="true" RequiredError="Обязательное поле"
+                                           T="Defect" @bind-Value="_model.Defect" ToStringFunc="@_converterDefect"
+                                           Label="Причина обращения"
+                                           Variant="Variant.Text" AnchorOrigin="Origin.BottomCenter">
+                                    @foreach (var defect in _defects)
+                                    {
+                                        <MudSelectItem Value="defect"/>
+                                    }
+                                </MudSelect>
+                                <MudFab Size="Size.Small" Color="Color.Primary" Icon="@Icons.Material.Filled.Add"
+                                        OnClick="async () => await OpenDefectWindow()"/>
+                            </MudContainer>
+                            <MudContainer Class="d-flex justify-space-between align-center pa-0">
+                                <MudSelect Class="ma-3" Required="true" RequiredError="Обязательное поле"
+                                           T="Appearance" @bind-Value="_model.Appearance"
+                                           ToStringFunc="@_converterAppearance" Label="Внешний вид"
+                                           Variant="Variant.Text" AnchorOrigin="Origin.BottomCenter">
+                                    @foreach (var appearance in _appearances)
+                                    {
+                                        <MudSelectItem Value="appearance"/>
+                                    }
+                                </MudSelect>
+                                <MudFab Size="Size.Small" Color="Color.Primary" 
+                                        Icon="@Icons.Material.Filled.Add"
+                                        OnClick="async () => await OpenAppearanceWindow()"/>
+                            </MudContainer>
+                            <MudContainer Class="d-flex justify-space-between align-center pa-0">
+                                <MudSelect Class="ma-3" Required="true" RequiredError="Обязательное поле"
+                                           T="DeviceType" @bind-Value="_model.DeviceType" ToStringFunc="@_converterDeviceType" Label="Вид устройства"
+                                           Variant="Variant.Text" AnchorOrigin="Origin.BottomCenter">
+                                    @foreach (var deviceType in _deviceTypes)
+                                    {
+                                        <MudSelectItem Value="deviceType"/>
+                                    }
+                                </MudSelect>
+                                <MudFab Size="Size.Small" Color="Color.Primary"
+                                        Icon="@Icons.Material.Filled.Add"
+                                        OnClick="async () => await OpenDeviceTypeWindow()"/>
+                            </MudContainer>
+                            <MudContainer Class="d-flex justify-space-between align-center pa-0">
+                                <MudSelect Class="ma-3" Required="true" RequiredError="Обязательное поле"
+                                           T="Brand" @bind-Value="_model.Brand" ToStringFunc="@_converterBrand" Label="Бренд"
+                                           Variant="Variant.Text" AnchorOrigin="Origin.BottomCenter">
+                                    @foreach (var brand in _brands)
+                                    {
+                                        <MudSelectItem Value="brand"/>
+                                    }
+                                </MudSelect>
+                                <MudFab Size="Size.Small" Color="Color.Primary"
+                                        Icon="@Icons.Material.Filled.Add"
+                                        OnClick="async () => await OpenBrandWindow()"/>
+                            </MudContainer>
+                            <MudTextField Class="ma-3" @bind-Value="_model.Model" Label="Модель" 
+                                          Required="false"></MudTextField>
+                            <MudTextField Class="ma-3" @bind-Value="_model.Password" Label="Пароль" 
+                                          Required="false"></MudTextField>
                         </MudContainer>
                     </MudPaper>
                 </MudContainer>
             </MudContainer>
         </DialogContent>
         <DialogActions>
-            <MudButton Class="mx-auto" Variant="Variant.Filled" Color="Color.Primary" OnClick="Submit" Disabled="@(!_success)">Сохранить</MudButton>
+            <MudButton Class="mx-auto" Variant="Variant.Filled" Color="Color.Primary" OnClick="Submit" 
+                       Disabled="@(!_success)">Сохранить</MudButton>
         </DialogActions>
     </MudDialog>
 </MudForm>
@@ -178,5 +224,108 @@
             MudDialog.Close(DialogResult.Ok(true));
         }
         Snackbar.Add(res.Message, Severity.Error);
+    }
+
+    private async Task OpenClientWindow()
+    {
+        var options = new DialogOptions {CloseOnEscapeKey = true};
+
+        var dialog = await DialogService.ShowAsync<ClientWindow>("Новый клиент", options);
+        var result = await dialog.Result;
+
+        if (!result.Canceled)
+        {
+            _clients = (await ClientService.GetAllClientsAsync()).ToList();
+            StateHasChanged();
+        }
+    }
+
+    private async Task OpenPlaceWindow()
+    {
+        var closeOnEscapeKey = new DialogOptions {CloseOnEscapeKey = true};
+        var parameters = new DialogParameters
+        {
+            {"SelectedPlace", null},
+        };
+        var dialog = await DialogService.ShowAsync<DevicePlaceWindow>("Новая запись", parameters, closeOnEscapeKey);
+        var result = await dialog.Result;
+
+        if (!result.Canceled)
+        {
+            _places = (await DevicePlaceService.GetAllPlacesAsync()).ToList();
+            StateHasChanged();
+        }
+    }
+
+    private async Task OpenDefectWindow()
+    {
+        var options = new DialogOptions {CloseOnEscapeKey = true};
+        var parameters = new DialogParameters
+        {
+            {"SelectedReferenceName", null},
+            {"SelectedReference", null}
+        };
+        var dialog = await DialogService.ShowAsync<ReferenceWindow<Defect>>("Новая запись", parameters, options);
+        var result = await dialog.Result;
+
+        if (!result.Canceled)
+        {
+            _defects = (await DefectService.GetAllValuesAsync()).ToList();
+            StateHasChanged();
+        }
+    }
+    
+    private async Task OpenAppearanceWindow()
+    {
+        var options = new DialogOptions {CloseOnEscapeKey = true};
+        var parameters = new DialogParameters
+        {
+            {"SelectedReferenceName", null},
+            {"SelectedReference", null}
+        };
+        var dialog = await DialogService.ShowAsync<ReferenceWindow<Appearance>>("Новая запись",parameters, options);
+        var result = await dialog.Result;
+
+        if (!result.Canceled)
+        {
+            _appearances = (await AppearanceService.GetAllValuesAsync()).ToList();
+            StateHasChanged();
+        }
+    }
+
+    private async Task OpenDeviceTypeWindow()
+    {
+        var options = new DialogOptions {CloseOnEscapeKey = true};
+        var parameters = new DialogParameters
+        {
+            {"SelectedReferenceName", null},
+            {"SelectedReference", null}
+        };
+        var dialog = await DialogService.ShowAsync<ReferenceWindow<DeviceType>>("Новая запись",parameters, options);
+        var result = await dialog.Result;
+
+        if (!result.Canceled)
+        {
+            _deviceTypes = (await DeviceTypeService.GetAllValuesAsync()).ToList();
+            StateHasChanged();
+        }
+    }
+
+    private async Task OpenBrandWindow()
+    {
+        var options = new DialogOptions {CloseOnEscapeKey = true};
+        var parameters = new DialogParameters
+        {
+            {"SelectedReferenceName", null},
+            {"SelectedReference", null}
+        };
+        var dialog = await DialogService.ShowAsync<ReferenceWindow<Brand>>("Новая запись",parameters, options);
+        var result = await dialog.Result;
+
+        if (!result.Canceled)
+        {
+            _brands = (await BrandService.GetAllValuesAsync()).ToList();
+            StateHasChanged();
+        }
     }
 }

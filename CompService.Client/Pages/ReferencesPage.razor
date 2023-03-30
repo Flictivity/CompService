@@ -10,14 +10,15 @@
     <h1>Недостаточно прав</h1>
     return;
 }
-@if (UserInfoHolder.CurrentUser is not null && UserInfoHolder.CurrentUser.Roles != Roles.Administrator)
+@if (UserInfoHolder.CurrentUser is not null && UserInfoHolder.CurrentUser.Roles == Roles.Master)
 {
     <h1>Недостаточно прав</h1>
     return;
 }
 
 <PageTitle>Справочники</PageTitle>
-<MudTable Items="@_elements" T="string" OnRowClick="RowClickEvent" Filter="new Func<string, bool>(FilterFunc1)" Hover="true">
+<MudTable Items="@(UserInfoHolder.CurrentUser!.Roles == Roles.Operator ? _operatorElements : _elements)"
+          T="string" OnRowClick="RowClickEvent" Filter="new Func<string, bool>(FilterFunc1)" Hover="true">
     <ToolBarContent>
         <MudText Typo="Typo.h6">Справочники</MudText>
         <MudSpacer/>
@@ -34,7 +35,7 @@
 </MudTable>
 @code {
     string _searchString = "";
-    private readonly IEnumerable<string> _elements = new List<string>(){
+    private readonly IEnumerable<string> _elements = new List<string>{
         "Источники",
         "Неисправности",
         "Бренды",
@@ -42,6 +43,16 @@
         "Тип устройства",
         "Услуги",
         "Категории запастей",
+        "Места хранения техники"
+    };
+
+    private readonly IEnumerable<string> _operatorElements = new List<string>
+    {
+        "Источники",
+        "Неисправности",
+        "Бренды",
+        "Внешний вид",
+        "Тип устройства",
         "Места хранения техники"
     };
 

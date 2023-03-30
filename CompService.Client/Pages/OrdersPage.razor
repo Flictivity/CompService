@@ -3,6 +3,7 @@
 @using CompService.Core.Services
 @using CompService.Client.Data
 @using CompService.Client.Windows.Order
+@using CompService.Core.Enums
 @using CompService.Core.Extensions
 @using CompService.Core.Results
 
@@ -99,8 +100,11 @@
         </PagerContent>
 </MudTable>
 
-<MudFab Style="position: fixed; bottom: 0; right: 0; margin: 35px 25px;" Color="Color.Primary" 
-        Icon="@Icons.Material.Filled.Add" OnClick="async () => await OpenWindow()"/>
+@if (UserInfoHolder.CurrentUser.Roles is Roles.Operator or Roles.Administrator)
+{
+    <MudFab Style="position: fixed; bottom: 0; right: 0; margin: 35px 25px;" Color="Color.Primary" 
+            Icon="@Icons.Material.Filled.Add" OnClick="async () => await OpenWindow()"/>
+}
 
 @code {
     private string _searchString = "";
