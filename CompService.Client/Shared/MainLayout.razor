@@ -1,5 +1,6 @@
 ﻿@using CompService.Core.Models
 @using CompService.Client.Data
+@using CompService.Core.Enums
 @using CompService.Core.Services
 @inherits LayoutComponentBase
 @inject Blazored.LocalStorage.ILocalStorageService Session;
@@ -27,38 +28,58 @@
     </MudAppBar>
     <MudPaper Style="overflow:hidden; position:relative;">
         <MudDrawer ClipMode="DrawerClipMode.Docked" Elevation="1" Variant="DrawerVariant.Mini" OpenMiniOnHover="true">
-            <MudNavMenu>
-                <MudTooltip Text="Сотрудники" Placement="Placement.Right">
-                    <MudNavLink Match="NavLinkMatch.All" Icon="@Icons.Material.Filled.Work" Href="/employees">
-                        Сотрудники
-                    </MudNavLink>
-                </MudTooltip>
-                <MudTooltip Text="Клиенты" Placement="Placement.Right">
-                    <MudNavLink Match="NavLinkMatch.All" Icon="@Icons.Material.Filled.People" Href="/clients">
-                        Клиенты
-                    </MudNavLink>
-                </MudTooltip>
-                <MudTooltip Text="Справочники" Placement="Placement.Right">
-                    <MudNavLink Match="NavLinkMatch.All" Icon="@Icons.Material.Filled.Book" Href="/references">
-                        Справочники
-                    </MudNavLink>
-                </MudTooltip>
-                <MudTooltip Text="Запчасти" Placement="Placement.Right">
-                    <MudNavLink Match="NavLinkMatch.All" Icon="@Icons.Material.Filled.Warehouse" Href="/spareParts">
-                        Справочники
-                    </MudNavLink>
-                </MudTooltip>
-                <MudTooltip Text="Доходы/Расходы" Placement="Placement.Right">
-                    <MudNavLink Match="NavLinkMatch.All" Icon="@Icons.Material.Filled.AttachMoney" Href="/transactions">
-                        Доходы/Расходы
-                    </MudNavLink>
-                </MudTooltip>
-                <MudTooltip Text="Заказы" Placement="Placement.Right">
-                    <MudNavLink Match="NavLinkMatch.All" Icon="@Icons.Material.Filled.AddChart" Href="/orders">
-                        Заказы
-                    </MudNavLink>
-                </MudTooltip>
-            </MudNavMenu>
+            @if (UserInfoHolder.CurrentUser is not null)
+            {
+                <MudNavMenu>
+                    @if (UserInfoHolder.CurrentUser.Roles == Roles.Administrator)
+                    {
+                        <MudTooltip Text="Сотрудники" Placement="Placement.Right">
+                            <MudNavLink Match="NavLinkMatch.All" Icon="@Icons.Material.Filled.Work" Href="/employees">
+                                Сотрудники
+                            </MudNavLink>
+                        </MudTooltip>
+                    }
+                    @if (UserInfoHolder.CurrentUser.Roles != Roles.Master)
+                    {
+                        <MudTooltip Text="Клиенты" Placement="Placement.Right">
+                            <MudNavLink Match="NavLinkMatch.All" Icon="@Icons.Material.Filled.People" Href="/clients">
+                                Клиенты
+                            </MudNavLink>
+                        </MudTooltip>
+                        <MudTooltip Text="Справочники" Placement="Placement.Right">
+                            <MudNavLink Match="NavLinkMatch.All" Icon="@Icons.Material.Filled.Book" Href="/references">
+                                Справочники
+                            </MudNavLink>
+                        </MudTooltip>
+                    }
+                    @if (UserInfoHolder.CurrentUser.Roles != Roles.Operator)
+                    {
+                        <MudTooltip Text="Запчасти" Placement="Placement.Right">
+                            <MudNavLink Match="NavLinkMatch.All" Icon="@Icons.Material.Filled.Warehouse" Href="/spareParts">
+                                Запчасти
+                            </MudNavLink>
+                        </MudTooltip>
+                    }
+                    @if (UserInfoHolder.CurrentUser.Roles == Roles.Administrator)
+                    {
+                        <MudTooltip Text="Доходы/Расходы" Placement="Placement.Right">
+                            <MudNavLink Match="NavLinkMatch.All" Icon="@Icons.Material.Filled.AttachMoney" Href="/transactions">
+                                Доходы/Расходы
+                            </MudNavLink>
+                        </MudTooltip>
+                        <MudTooltip Text="Отчеты" Placement="Placement.Right">
+                            <MudNavLink Match="NavLinkMatch.All" Icon="@Icons.Material.Filled.AvTimer" Href="/reports">
+                                Отчеты
+                            </MudNavLink>
+                        </MudTooltip>
+                    }
+                    <MudTooltip Text="Заказы" Placement="Placement.Right">
+                        <MudNavLink Match="NavLinkMatch.All" Icon="@Icons.Material.Filled.AddChart" Href="/orders">
+                            Заказы
+                        </MudNavLink>
+                    </MudTooltip>
+                </MudNavMenu>
+            }
         </MudDrawer>
     </MudPaper>
     <MudMainContent>
@@ -67,8 +88,8 @@
 </MudLayout>
 
 @code {
-    readonly string _primaryColor = "#594AE2";
-    readonly string _secondaryColor = "#000000";
+    private readonly string _primaryColor = "#594AE2";
+    private readonly string _secondaryColor = "#000000";
     private User? _currentUser;
 
     protected override async Task OnInitializedAsync()

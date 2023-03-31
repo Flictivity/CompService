@@ -813,11 +813,17 @@ else
 
     private void StatusChanged()
     {
-        if (_model.Status is OrdersStatuses.Closed or OrdersStatuses.ClosedWithProblems)
+        switch (_model.Status)
         {
-            _canEdit = false;
-            return;
+            case OrdersStatuses.Closed or OrdersStatuses.ClosedWithProblems:
+                _canEdit = false;
+                return;
+            case OrdersStatuses.Finished when UserInfoHolder.CurrentUser!.Roles == Roles.Operator:
+                _canEdit = false;
+                return;
+            default:
+                _canEdit = true;
+                break;
         }
-        _canEdit = true;
     }
 }

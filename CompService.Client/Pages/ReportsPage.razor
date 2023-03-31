@@ -1,0 +1,67 @@
+﻿@page "/reports"
+
+@using CompService.Core.Services
+@using CompService.Core.Enums
+
+@inject UserInfoHolder UserInfoHolder;
+@inject NavigationManager NavigationManager;
+
+@if (UserInfoHolder.CurrentUser is null)
+{
+    <h1>Недостаточно прав</h1>
+    return;
+}
+@if (UserInfoHolder.CurrentUser is not null && UserInfoHolder.CurrentUser.Roles != Roles.Administrator)
+{
+    <h1>Недостаточно прав</h1>
+    return;
+}
+
+<PageTitle>Отчеты</PageTitle>
+<MudTable Items="@_elements"
+          T="string" OnRowClick="RowClickEvent" Filter="new Func<string, bool>(FilterFunc1)" Hover="true">
+    <ToolBarContent>
+        <MudText Typo="Typo.h6">Отчеты</MudText>
+        <MudSpacer/>
+        <MudTextField @bind-Value="_searchString" Placeholder="Поиск" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Search" IconSize="Size.Medium" Class="mt-0"></MudTextField>
+    </ToolBarContent>
+<HeaderContent>
+    <MudTh>Название</MudTh>
+</HeaderContent>
+<RowTemplate>
+    <MudTd DataLabel="Название">
+        <MudText>@context</MudText>
+    </MudTd>
+</RowTemplate>
+</MudTable>
+@code {
+    string _searchString = "";
+    private readonly IEnumerable<string> _elements = new List<string>{
+        "Отчет по заказам",
+        "Остатки на складе",
+    };
+
+    private bool FilterFunc1(string element) => FilterFunc(element, _searchString);
+
+    private bool FilterFunc(string element, string? searchingString)
+    {
+        if (string.IsNullOrWhiteSpace(searchingString))
+            return true;
+        if (element.Contains(searchingString, StringComparison.OrdinalIgnoreCase))
+            return true;
+        return false;
+    }
+
+    private void RowClickEvent(TableRowClickEventArgs<string> tableRowClickEventArgs)
+    {
+        switch (tableRowClickEventArgs.Item)
+        {
+            case "Отчет по заказам":
+                NavigationManager.NavigateTo("/ordersReport");
+                break;
+            case "Остатки на складе":
+                NavigationManager.NavigateTo("/sparePartsReport");
+                break;
+        }
+    }
+}

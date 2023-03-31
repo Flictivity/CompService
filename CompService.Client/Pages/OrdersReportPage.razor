@@ -1,0 +1,68 @@
+﻿@page "/ordersReport"
+@using CompService.Core.Models
+@using CompService.Core.Services
+
+@inject IReportService ReportService;
+
+<PageTitle>Отчет по заказам</PageTitle>
+<MudDateRangePicker PickerVariant="PickerVariant.Dialog" PickerClosed="async () => await Refresh()"
+                    Label="Период" @bind-DateRange="_dateRange" Editable="true"/>
+<MudTable T="OrderReportModel" Items="@_reports">
+    <HeaderContent>
+        <MudTh><MudText>Заказ</MudText></MudTh>
+        <MudTh><MudText>Услуги</MudText></MudTh>
+        <MudTh>
+            <MudContainer Class="d-flex flex-column mb-5 pa-0">
+                <MudText><b>Цена</b></MudText>
+                <MudText>Запчасти</MudText>
+            </MudContainer>
+        </MudTh>
+        <MudTh><MudText>Итого</MudText></MudTh>
+        <MudTh><MudText>Услуги</MudText></MudTh>
+        <MudTh>
+            <MudContainer Class="d-flex flex-column mb-5 pa-0">
+                <MudText><b>Себестоимость</b></MudText>
+                <MudText>Запчасти</MudText>
+            </MudContainer>
+        </MudTh>
+        <MudTh><MudText>Итого</MudText></MudTh>
+        <MudTh>
+            <MudContainer Class="d-flex flex-column mb-5 pa-0">
+                <MudText><b>Прибыль</b></MudText>
+                <MudText></MudText>
+            </MudContainer>
+        </MudTh>
+    </HeaderContent>
+    <RowTemplate>
+        <MudTd DataLabel="Заказ"><MudText>@context.OrderId</MudText></MudTd>
+        <MudTd DataLabel="Услуги"><MudText>@context.FacilitiesSum</MudText></MudTd>
+        <MudTd DataLabel="Запчасти"><MudText>@context.SparePartPriceSum</MudText></MudTd>
+        <MudTd DataLabel="Итого"><MudText>@context.PriceSum</MudText></MudTd>
+
+        <MudTd DataLabel="Услуги"><MudText>@context.FacilitiesSum</MudText></MudTd>
+        <MudTd DataLabel="Запчасти"><MudText>@context.SparePartCostSum</MudText></MudTd>
+        <MudTd DataLabel="Итого"><MudText>@context.CostSum</MudText></MudTd>
+        <MudTd DataLabel="Прибыль"><MudText>@context.Profit</MudText></MudTd>
+    </RowTemplate>
+</MudTable>
+
+@code {
+    private DateRange _dateRange = new(DateTime.Now.AddDays(-7).Date, DateTime.Now.AddDays(7).Date);
+
+    private List<OrderReportModel>? _reports;
+
+    protected override async Task OnInitializedAsync()
+    {
+        _reports = (await ReportService.GetOrdersReportForPeriodAsync(_dateRange.Start ?? DateTime.Now.AddDays(-7),
+            _dateRange.End ?? DateTime.Now.AddDays(7))).ToList();
+        
+        await base.OnInitializedAsync();
+    }
+
+    private async Task Refresh()
+    {
+        _reports = (await ReportService.GetOrdersReportForPeriodAsync(_dateRange.Start ?? DateTime.Now,
+            _dateRange.End ?? DateTime.Now.AddDays(7))).ToList();
+        StateHasChanged();
+    }
+}

@@ -47,7 +47,8 @@
             TransactionBasis = TransactionBasis.Order,
             OrderId = OrderId,
             UserId = UserInfoHolder.CurrentUser!.UserId,
-            UserSurname = UserInfoHolder.CurrentUser!.Surname,
+            UserSurname = UserInfoHolder.CurrentUser!.Surname + UserInfoHolder.CurrentUser!.Name + 
+                          UserInfoHolder.CurrentUser!.Patronymic,
             Comment = string.Empty
         };
 

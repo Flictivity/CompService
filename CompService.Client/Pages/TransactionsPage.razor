@@ -38,7 +38,8 @@
         </MudStack>
     </MudStack>
     <MudStack>
-        <MudDateRangePicker PickerVariant="PickerVariant.Dialog" PickerClosed="async () => await RefreshTransactions()" Label="Период" @bind-DateRange="_dateRange" Editable="true"/>
+        <MudDateRangePicker PickerVariant="PickerVariant.Dialog" PickerClosed="async () => await RefreshTransactions()"
+                            Label="Период" @bind-DateRange="_dateRange" Editable="true"/>
     </MudStack>
 </MudStack>
 
@@ -74,15 +75,15 @@
             <MudText Color="Color.Success">
                 @if (context.ArrivalMoney != 0)
                 {
-                    @context.ArrivalMoney
-                })
+                    @($"{context.ArrivalMoney} ₽")
+                }
             </MudText>
         </MudTd>
         <MudTd DataLabel="Расход">
             <MudText Color="Color.Error">
                 @if (context.ExpenseMoney != 0)
                 {
-                    @context.ExpenseMoney
+                    @($"{context.ExpenseMoney} ₽")
                 }
             </MudText>
         </MudTd>
@@ -90,7 +91,14 @@
             <MudText>@context.PaymentMethod.GetName()</MudText>
         </MudTd>
         <MudTd DataLabel="Основание">
-            <MudText>@context.TransactionBasis.GetName()</MudText>
+            @if (context.TransactionBasis == TransactionBasis.Order)
+            {
+                <MudText>@context.TransactionBasis.GetName() @context.OrderId</MudText>
+            }
+            else
+            {
+                <MudText>@context.TransactionBasis.GetName()</MudText>
+            }
         </MudTd>
         <MudTd>
             <MudText>@context.UserSurname</MudText>

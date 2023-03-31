@@ -53,6 +53,7 @@ builder.Services.AddScoped<ISparePartService, SparePartService>();
 builder.Services.AddScoped<ITransactionService, TransactionService>();
 builder.Services.AddScoped<IOrderService, OrderService>();
 builder.Services.AddScoped<IDevicePlaceService, DevicePlaceService>();
+builder.Services.AddScoped<IReportService, ReportService>();
 
 builder.Services.AddBlazoredLocalStorage();
 builder.Services.AddSingleton<AppState>();

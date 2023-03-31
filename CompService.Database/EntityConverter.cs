@@ -29,7 +29,7 @@ public static class EntityConverter
             Article = sparePart.Article,
             Count = sparePart.Count,
             PurchasePrice = sparePart.PurchasePrice,
-            RetailPrice = sparePart.PurchasePrice
+            RetailPrice = sparePart.RetailPrice
         };
     }
 
