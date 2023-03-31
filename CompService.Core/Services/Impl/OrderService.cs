@@ -83,33 +83,4 @@ public class OrderService : IOrderService
     {
         return await _orderRepository.GetAllOrdersForTable(itemCount, pageNum, user, searchText, field, desc);
     }
-
-    public async Task<BaseResult> RemoveSparePart(string orderId, List<string> sparePartIds)
-    {
-        var order = await _orderRepository.GetOrderById(orderId);
-
-        if (order is null)
-            return new BaseResult {Success = false, Message = "Заказ не найден"};
-
-        foreach (var sparePartId in sparePartIds)
-        {
-            var sparePart = await _sparePartRepository.GetSparePartById(sparePartId);
-
-            if (sparePart is null)
-                return new BaseResult {Success = false, Message = "Запчасть не найдена"};
-
-            var orderSparePart = order.SpareParts?.FirstOrDefault(x =>
-                x.Item.SparePartId == sparePartId);
-
-            sparePart.Count += orderSparePart!.ItemCount;
-
-            order.SpareParts?.Remove(orderSparePart);
-
-            await _sparePartRepository.UpdateSparePart(sparePart, sparePart);
-        }
-
-        await _orderRepository.UpdateOrder(order, order);
-
-        return new BaseResult {Success = true};
-    }
 }

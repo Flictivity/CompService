@@ -57,7 +57,7 @@ builder.Services.AddScoped<IReportService, ReportService>();
 
 builder.Services.AddBlazoredLocalStorage();
 builder.Services.AddSingleton<AppState>();
-builder.Services.AddSingleton<UserInfoHolder>();
+builder.Services.AddScoped<UserInfoHolder>();
 
 var app = builder.Build();
 

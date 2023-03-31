@@ -100,11 +100,12 @@ public class OrderRepository : IOrderRepository
 
     public async Task<int> GetMasterOrdersCount(string masterId)
     {
-        return (await _orders
-                .FindAsync(x => x.MasterId == masterId && (x.Status != (int) OrdersStatuses.Closed ||
-                                                           x.Status != (int) OrdersStatuses.Finished ||
-                                                           x.Status != (int) OrdersStatuses.ClosedWithProblems)))
-            .ToList().Count;
+        var res = (await _orders
+                .FindAsync(x => x.MasterId == masterId && !(x.Status == (int)OrdersStatuses.Closed ||
+                                                           x.Status == (int)OrdersStatuses.Finished ||
+                                                           x.Status == (int)OrdersStatuses.ClosedWithProblems)))
+            .ToList().Count; 
+        return res;
     }
 
     public async Task UpdateOrder(Order currentOrder, Order newOrder)
