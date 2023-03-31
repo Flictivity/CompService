@@ -1,6 +1,30 @@
 ﻿@page "/sparePartsReport"
+@using CompService.Core.Models;
+@using CompService.Core.Services;
+
+@inject IReferenceService<SparePartCategory> SparePartCategoryService;
+
 <PageTitle>Остатки на складе</PageTitle>
 
+<MudAutocomplete T="SparePartCategory" Label="Категория" @bind-Value="_selectedCategory" SearchFunc="@Search1"
+                 ResetValueOnEmptyText="true"
+                 CoerceText="true" />
+
+
 @code {
-    
+    private SparePartCategory? _selectedCategory;
+    private List<SparePartCategory>? _categories;
+
+    protected override async Task OnInitializedAsync()
+    {
+        _categories = (await SparePartCategoryService.GetAllValuesAsync()).ToList();
+        await base.OnInitializedAsync();
+    }
+
+    private async Task<IEnumerable<SparePartCategory>> Search1(string value)
+    {
+        if (string.IsNullOrEmpty(value))
+            return _categories ?? new();
+        return _categories!.Where(x => x.Name.Contains(value, StringComparison.InvariantCultureIgnoreCase));
+    }
 }

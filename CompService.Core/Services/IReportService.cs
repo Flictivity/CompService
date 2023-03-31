@@ -1,5 +1,4 @@
 ﻿using CompService.Core.Models;
-using CompService.Core.Results;
 
 namespace CompService.Core.Services
 {
@@ -7,5 +6,6 @@ namespace CompService.Core.Services
     {
         public Task<IEnumerable<OrderReportModel>> GetOrdersReportForPeriodAsync(DateTime periodStart,
             DateTime periodEnd);
+        public Task<SparePartsReportModel> GetSparePartsReportAsync(SparePartCategory category);
     }
 }

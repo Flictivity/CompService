@@ -24,62 +24,62 @@
         </TitleContent>
         <DialogContent>
             <MudContainer Class="d-flex justify-space-around align-center">
-                <MudContainer Class="d-flex flex-column">
-                    <MudPaper Class="pa-4">
-                        <MudText Typo="Typo.h5" Class="mb-3">Клиент</MudText>
-                        <MudContainer Class="d-flex justify-space-between align-center pa-0">
-                            <MudSelect Class="ma-3" Required="true" RequiredError="Обязательное поле"
-                                       T="Client" @bind-Value="_model.Client" ToStringFunc="@_converterClient" Label="Клиент"
+                    <MudContainer Class="d-flex flex-column">
+                        <MudPaper Class="pa-4">
+                            <MudText Typo="Typo.h5" Class="mb-3">Клиент</MudText>
+                            <MudContainer Class="d-flex justify-space-between align-center pa-0">
+                                <MudSelect Class="ma-3" Required="true" RequiredError="Обязательное поле"
+                                           T="Client" @bind-Value="_model.Client" ToStringFunc="@_converterClient" Label="Клиент"
+                                           Variant="Variant.Text" AnchorOrigin="Origin.BottomCenter">
+                                    @foreach (var client in _clients)
+                                    {
+                                        <MudSelectItem Value="client"/>
+                                    }
+                                </MudSelect>
+                                <MudFab Size="Size.Small" Color="Color.Primary" Icon="@Icons.Material.Filled.Add"
+                                        OnClick="async () => await OpenClientWindow()"/>
+                            </MudContainer>
+                            <MudTextField Class="ma-3" Value="@_model.Client?.PhoneNumber" Label="Телефон"
+                                          ReadOnly="@true">
+                            </MudTextField>
+                            <MudTextField Class="ma-3" Value="@_model.Client?.Email" Label="Почта"
+                                          ReadOnly="@true">
+                            </MudTextField>
+                        </MudPaper>
+                        <MudPaper Class="pa-4 mt-4">
+                            <MudText Class="mb-3" Typo="Typo.h5">Дополнительно</MudText>
+                            <MudSelect Class="ma-3" Required="true" RequiredError="Обязательное поле" T="User"
+                                       @bind-Value="_model.Operator" ToStringFunc="@_converterUser" Label="Оператор"
                                        Variant="Variant.Text" AnchorOrigin="Origin.BottomCenter">
-                                @foreach (var client in _clients)
+                                @foreach (var user in _operators)
                                 {
-                                    <MudSelectItem Value="client"/>
+                                    <MudSelectItem Value="user"/>
                                 }
                             </MudSelect>
-                            <MudFab Size="Size.Small" Color="Color.Primary" Icon="@Icons.Material.Filled.Add"
-                                    OnClick="async () => await OpenClientWindow()"/>
-                        </MudContainer>
-                        <MudTextField Class="ma-3" Value="@_model.Client?.PhoneNumber" Label="Телефон"
-                                      ReadOnly="@true">
-                        </MudTextField>
-                        <MudTextField Class="ma-3" Value="@_model.Client?.Email" Label="Почта"
-                                      ReadOnly="@true">
-                        </MudTextField>
-                    </MudPaper>
-                    <MudPaper Class="pa-4 mt-4">
-                        <MudText Class="mb-3" Typo="Typo.h5">Дополнительно</MudText>
-                        <MudSelect Class="ma-3" Required="true" RequiredError="Обязательное поле" T="User"
-                                   @bind-Value="_model.Operator" ToStringFunc="@_converterUser" Label="Оператор"
-                                   Variant="Variant.Text" AnchorOrigin="Origin.BottomCenter">
-                            @foreach (var user in _operators)
-                            {
-                                <MudSelectItem Value="user"/>
-                            }
-                        </MudSelect>
-                        <MudSelect Class="ma-3" Required="true" RequiredError="Обязательное поле" T="User"
-                                   @bind-Value="_model.Master" ToStringFunc="@_converterUser" Label="Мастер"
-                                   Variant="Variant.Text" AnchorOrigin="Origin.BottomCenter">
-                            @foreach (var user in _masters)
-                            {
-                                <MudSelectItem Value="user"/>
-                            }
-                        </MudSelect>
-                        <MudContainer Class="d-flex justify-space-between align-center pa-0">
-                            <MudSelect Class="ma-3" Required="true" RequiredError="Обязательное поле"
-                                       T="DevicePlace" @bind-Value="_model.Place" ToStringFunc="@_converterPlace"
-                                       Label="Место на стойке"
+                            <MudSelect Class="ma-3" Required="true" RequiredError="Обязательное поле" T="User"
+                                       @bind-Value="_model.Master" ToStringFunc="@_converterUser" Label="Мастер"
                                        Variant="Variant.Text" AnchorOrigin="Origin.BottomCenter">
-                                @foreach (var place in _places)
+                                @foreach (var user in _masters)
                                 {
-                                    <MudSelectItem Value="place"/>
+                                    <MudSelectItem Value="user"/>
                                 }
                             </MudSelect>
-                            <MudFab Size="Size.Small" Color="Color.Primary"
-                                    Icon="@Icons.Material.Filled.Add" OnClick="async () => await OpenPlaceWindow()"/>
-                        </MudContainer>
-                    </MudPaper>
+                            <MudContainer Class="d-flex justify-space-between align-center pa-0">
+                                <MudSelect Class="ma-3" Required="true" RequiredError="Обязательное поле"
+                                           T="DevicePlace" @bind-Value="_model.Place" ToStringFunc="@_converterPlace"
+                                           Label="Место на стойке"
+                                           Variant="Variant.Text" AnchorOrigin="Origin.BottomCenter">
+                                    @foreach (var place in _places)
+                                    {
+                                        <MudSelectItem Value="place"/>
+                                    }
+                                </MudSelect>
+                                <MudFab Size="Size.Small" Color="Color.Primary"
+                                        Icon="@Icons.Material.Filled.Add" OnClick="async () => await OpenPlaceWindow()"/>
+                            </MudContainer>
+                        </MudPaper>
                 </MudContainer>
-                <MudContainer Class="d-flex flex-column">
+                    <MudContainer Class="d-flex flex-column">
                     <MudPaper Class="pa-4">
                         <MudContainer Class="d-flex flex-column">
                             <MudText Class="mb-4" Typo="Typo.h5">Информация</MudText>

@@ -34,7 +34,7 @@ else
         </MudContainer>
     </TitleContent>
     <DialogContent>
-    <MudContainer Class="d-flex justify-around pa-0">
+    <MudContainer Class="d-flex justify-around pa-0 flex-wrap">
         <MudStack>
             <MudContainer Class="d-flex flex-row pa-0">
                 <MudText Typo="Typo.h6" Class="mr-2">Заказ: </MudText>
@@ -444,8 +444,8 @@ else
 
     private string? _searchStringSpareParts;
     private string? _searchStringFacilities;
-    private MudTable<OrderListModel<SparePart>> _sparePartTable = null!;
-    private MudTable<OrderListModel<Facility>> _facilityTable = null!;
+    private MudTable<OrderListModel<SparePart>>? _sparePartTable;
+    private MudTable<OrderListModel<Facility>>? _facilityTable;
 
     private readonly Func<Client?, string?> _converterClient = p => $"{p?.Surname} {p?.Name}";
     private readonly Func<User?, string?> _converterUser = p => $"{p?.Surname} {p?.Name} {p?.Email}";
@@ -587,7 +587,7 @@ else
         editSparePart!.Item = sparePart.Item;
         editSparePart.ItemCount = sparePart.ItemCount;
         editSparePart.Discount = sparePart.Discount;
-        _sparePartTable.UpdateSelection();
+        _sparePartTable?.UpdateSelection();
 
         _model.Money = Math.Round(_model.SpareParts!.Sum(x => x.Sum)
                                          + _model.Facilities!.Sum(x => x.Sum), 2);
@@ -645,7 +645,7 @@ else
         editSparePart!.Item = sparePart.Item;
         editSparePart.ItemCount = sparePart.ItemCount;
         editSparePart.Discount = sparePart.Discount;
-        _facilityTable.UpdateSelection();
+        _facilityTable?.UpdateSelection();
 
         _model.Money = Math.Round(_model.SpareParts!.Sum(x => x.Sum)
                                          + _model.Facilities!.Sum(x => x.Sum), 2);
