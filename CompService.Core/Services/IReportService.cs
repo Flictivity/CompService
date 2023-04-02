@@ -6,6 +6,6 @@ namespace CompService.Core.Services
     {
         public Task<IEnumerable<OrderReportModel>> GetOrdersReportForPeriodAsync(DateTime periodStart,
             DateTime periodEnd);
-        public Task<SparePartsReportModel> GetSparePartsReportAsync(SparePartCategory category);
+        public Task<SparePartsReportModel> GetSparePartsReportAsync(SparePartCategory? category);
     }
 }

@@ -1,22 +1,24 @@
-﻿using CompService.Core.Models;
+﻿using CompService.Core.Enums;
+using CompService.Core.Models;
 
 namespace CompService.Core.Services.Impl
 {
     public class ReportService : IReportService
     {
         private readonly IOrderService _orderService;
-        private readonly SparePartService _sparePartService;
+        private readonly ISparePartService _sparePartService;
 
-        public ReportService(IOrderService orderService)
+        public ReportService(IOrderService orderService, ISparePartService sparePartService)
         {
             _orderService = orderService;
+            _sparePartService = sparePartService;
         }
 
         public async Task<IEnumerable<OrderReportModel>> GetOrdersReportForPeriodAsync(DateTime periodStart,
             DateTime periodEnd)
         {
             var orders = (await _orderService.GetAllOrdersAsync())
-                .Where(x => x.OrderDate >= periodStart && x.OrderDate <= periodEnd)
+                .Where(x => x.OrderDate >= periodStart && x.OrderDate <= periodEnd && x.Status == OrdersStatuses.Closed)
                 .OrderBy(x => x.OrderDate)
                 .ToList();
 
@@ -39,17 +41,26 @@ namespace CompService.Core.Services.Impl
             return res;
         }
 
-        public async Task<SparePartsReportModel> GetSparePartsReportAsync(SparePartCategory category)
+        public async Task<SparePartsReportModel> GetSparePartsReportAsync(SparePartCategory? category)
         {
             var spareParts = await _sparePartService.GetAllSparePartsAsync();
-            var filtered = spareParts.Where(x => x.Category.CategoryId == category.CategoryId);
+
+            IEnumerable<SparePart> filtered;
+            if (category is not null)
+            {
+                filtered = spareParts.Where(x => x.Category.CategoryId == category.CategoryId);
+            }
+            else
+            {
+                filtered = spareParts;
+            }
 
             var reportModel = new SparePartsReportModel
             {
                 SpareParts = filtered.ToList(),
                 TotalCount = filtered.Sum(x => x.Count),
-                TotalCost = Math.Round(filtered.Sum(x => x.PurchasePrice)),
-                TotalPrice = Math.Round(filtered.Sum(x => x.RetailPrice))
+                TotalCost = Math.Round(filtered.Sum(x => (x.RetailPrice * x.Count))),
+                TotalPrice = Math.Round(filtered.Sum(x => (x.PurchasePrice * x.Count)))
             };
 
             return reportModel;
