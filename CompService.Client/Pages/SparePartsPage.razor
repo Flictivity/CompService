@@ -32,8 +32,8 @@
         <MudTh><MudTableSortLabel SortBy="new Func<SparePart, object>(x=>x.Name)">Название</MudTableSortLabel></MudTh>
         <MudTh><MudTableSortLabel SortBy="new Func<SparePart, object>(x=>x.Category.Name)">Категория</MudTableSortLabel></MudTh>
         <MudTh><MudTableSortLabel SortBy="new Func<SparePart, object>(x=>x.Count)">Количество</MudTableSortLabel></MudTh>
-        <MudTh><MudTableSortLabel SortBy="new Func<SparePart, object>(x=>x.PurchasePrice)">Цена</MudTableSortLabel></MudTh>
-        <MudTh><MudTableSortLabel SortBy="new Func<SparePart, object>(x=>x.RetailPrice)">Себестоимость</MudTableSortLabel></MudTh>
+        <MudTh><MudTableSortLabel SortBy="new Func<SparePart, object>(x=>x.RetailPrice)">Цена</MudTableSortLabel></MudTh>
+        <MudTh><MudTableSortLabel SortBy="new Func<SparePart, object>(x=>x.PurchasePrice)">Себестоимость</MudTableSortLabel></MudTh>
     </HeaderContent>
     <RowTemplate>
         <MudTd DataLabel="Артикул">
@@ -49,10 +49,10 @@
             <MudText>@context.Count</MudText>
         </MudTd>
         <MudTd DataLabel="Цена">
-            <MudText>@context.PurchasePrice</MudText>
+            <MudText>@context.RetailPrice</MudText>
         </MudTd>
         <MudTd DataLabel="Себестоимость">
-            <MudText>@context.RetailPrice</MudText>
+            <MudText>@context.PurchasePrice</MudText>
         </MudTd>
     </RowTemplate>
 </MudTable>

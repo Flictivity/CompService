@@ -26,7 +26,7 @@ namespace CompService.Core.Services.Impl
             var res = (from order in orders
                        let facilitiesSum = order.Facilities?.Sum(x => x.Sum) ?? 0
                        let sparePartPriceSum = order.SpareParts?.Sum(x => x.Sum) ?? 0
-                       let sparePartCostSum = order.SpareParts?.Sum(x => x.Item.RetailPrice * x.ItemCount) ?? 0
+                       let sparePartCostSum = order.SpareParts?.Sum(x => x.Item.PurchasePrice * x.ItemCount) ?? 0
                        select new OrderReportModel
                        {
                            OrderId = order.OrderId,
