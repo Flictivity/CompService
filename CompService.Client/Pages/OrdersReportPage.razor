@@ -6,8 +6,8 @@
 
 <PageTitle>Отчет по заказам</PageTitle>
 <MudDateRangePicker PickerVariant="PickerVariant.Dialog" PickerClosed="async () => await Refresh()"
-                    Label="Период" @bind-DateRange="_dateRange" Editable="true"/>
-<MudStack Row=true>
+                    Label="Период" @bind-DateRange="_dateRange" Editable="true" Class="ml-3"/>
+<MudStack Row="true" Class="ml-3">
     <MudText Typo="Typo.h6">Итоговая прибыль:</MudText>
     <MudText Typo="Typo.h6" Color="Color.Success">@_total ₽</MudText>
 </MudStack>
@@ -48,7 +48,11 @@
         </MudTh>
     </HeaderContent>
     <RowTemplate>
-        <MudTd DataLabel="Заказ"><MudText>@context.OrderId</MudText></MudTd>
+        <MudTd DataLabel="Заказ">
+            <MudStack>
+                <MudText>@context.OrderId</MudText> <MudText>@context.OrderDate.ToString("dd/MM/yyyy")</MudText>
+            </MudStack>
+        </MudTd>
         <MudTd DataLabel="Услуги"><MudText>@context.FacilitiesSum</MudText></MudTd>
         <MudTd DataLabel="Запчасти"><MudText>@context.SparePartPriceSum</MudText></MudTd>
         <MudTd DataLabel="Итого"><MudText>@context.PriceSum</MudText></MudTd>
@@ -60,7 +64,18 @@
     </RowTemplate>
 </MudTable>
 
+@if (_xAxisLabels is not null)
+{
+    <MudChart ChartType="ChartType.Line" ChartSeries="@_series" 
+              XAxisLabels="@_xAxisLabels" Width="100%" Height="50vh" 
+              ChartOptions=@_chartOptions LegendPosition="Position.Bottom"></MudChart>
+}
+
 @code {
+    private List<ChartSeries> _series = new();
+    private ChartOptions _chartOptions = new() {YAxisTicks = 1, XAxisLines = true, YAxisLines = true,
+        LineStrokeWidth = 2};
+    private string[]? _xAxisLabels;
     private DateRange _dateRange = new(DateTime.Now.AddDays(-7).Date, DateTime.Now.AddDays(7).Date);
 
     private List<OrderReportModel>? _reports;
@@ -73,8 +88,40 @@
             _dateRange.End ?? DateTime.Now.AddDays(7))).ToList();
 
         _total = _reports.Sum(x => x.Profit);
+        GenerateChartSeries();
 
         await base.OnInitializedAsync();
+    }
+    
+    private void GenerateChartSeries()
+    {
+        var labels = new List<string>();
+        List<double> values = new();
+        
+        if (_reports is null) return;
+        
+        var grouped = _reports.GroupBy(x => x.OrderDate.Date).ToList();
+
+        var start = _dateRange.Start!.Value;
+        var end = start.AddDays(10);
+        
+        while (start < end)
+        {
+            var report = grouped.FirstOrDefault(x => x.Key == start);
+            values.Add(report?.Count() ?? 0);
+            labels.Add(start.ToString("dd/MM"));
+            
+            start = start.AddDays(1);
+        }
+
+        var chartSeries = new ChartSeries
+        {
+            Name = "Динкамика заказов",
+            Data = values.ToArray()
+        };
+
+        _series.Add(chartSeries);
+        _xAxisLabels = labels.ToArray();
     }
 
     private async Task Refresh()
@@ -83,6 +130,9 @@
             _dateRange.End ?? DateTime.Now.AddDays(7))).ToList();
 
         _total = _reports.Sum(x => x.Profit);
+        _series.Clear();
+        _xAxisLabels = null;
+        GenerateChartSeries();
         StateHasChanged();
     }
 }

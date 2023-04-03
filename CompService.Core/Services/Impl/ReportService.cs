@@ -30,6 +30,7 @@ namespace CompService.Core.Services.Impl
                        select new OrderReportModel
                        {
                            OrderId = order.OrderId,
+                           OrderDate = order.OrderDate,
                            FacilitiesSum = Math.Round(facilitiesSum, 2),
                            SparePartPriceSum = Math.Round(sparePartPriceSum, 2),
                            SparePartCostSum = Math.Round(sparePartCostSum, 2),
@@ -43,12 +44,12 @@ namespace CompService.Core.Services.Impl
 
         public async Task<SparePartsReportModel> GetSparePartsReportAsync(SparePartCategory? category)
         {
-            var spareParts = await _sparePartService.GetAllSparePartsAsync();
+            var spareParts = (await _sparePartService.GetAllSparePartsAsync()).ToList();
 
-            IEnumerable<SparePart> filtered;
+            List<SparePart> filtered;
             if (category is not null)
             {
-                filtered = spareParts.Where(x => x.Category.CategoryId == category.CategoryId);
+                filtered = spareParts.Where(x => x.Category.CategoryId == category.CategoryId).ToList();
             }
             else
             {
