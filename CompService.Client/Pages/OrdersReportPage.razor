@@ -1,6 +1,7 @@
 ﻿@page "/ordersReport"
 @using CompService.Core.Models
 @using CompService.Core.Services
+@using System.Globalization;
 
 @inject IReportService ReportService;
 
@@ -92,35 +93,33 @@
 
         await base.OnInitializedAsync();
     }
-    
+
     private void GenerateChartSeries()
     {
         var labels = new List<string>();
         List<double> values = new();
-        
-        if (_reports is null) return;
-        
-        var grouped = _reports.GroupBy(x => x.OrderDate.Date).ToList();
 
-        var start = _dateRange.Start!.Value;
-        var end = start.AddDays(10);
-        
-        while (start < end)
+        if (_reports is null) return;
+
+        var grouped = _reports.GroupBy(x => new { Month = x.OrderDate.Month, Year = x.OrderDate.Year })
+            .ToDictionary(g => g.Key, g => g.Count());
+
+        for (int i = 1; i < 13; ++i)
         {
-            var report = grouped.FirstOrDefault(x => x.Key == start);
-            values.Add(report?.Count() ?? 0);
-            labels.Add(start.ToString("dd/MM"));
-            
-            start = start.AddDays(1);
+            if (!grouped.ContainsKey(new {Month = i, Year = DateTime.Now.Year }))
+            {
+                grouped[new { Month = i, Year = DateTime.Now.Year }] = 0;
+            }
+
+            values.Add(grouped[new { Month = i, Year = DateTime.Now.Year }]);
+            labels.Add(CultureInfo.CurrentCulture.DateTimeFormat.GetMonthName(i));
         }
 
-        var chartSeries = new ChartSeries
+        _series.Add(new ChartSeries
         {
-            Name = "Динкамика заказов за первую нежелю периода",
+            Name = "Динамика продаж",
             Data = values.ToArray()
-        };
-
-        _series.Add(chartSeries);
+        });
         _xAxisLabels = labels.ToArray();
     }
 
