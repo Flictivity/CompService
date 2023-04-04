@@ -11,7 +11,7 @@
     <MudAutocomplete T="SparePartCategory" Label="Категория" SearchFunc="@Search1"
                      ResetValueOnEmptyText="true"
                      CoerceText="true" ValueChanged="CategoryChange"
-                     ToStringFunc="@(e=> e==null?null : $"{e.Name}")" />
+                     ToStringFunc="@(e=> e is null ? null : $"{e.Name}")" />
     <MudStack Row="true" Class="d-flex align-items-center">
         <MudText Typo="Typo.h6">Итого: </MudText>
         <MudText Typo="Typo.body1" Style="line-height: 32px;">Количество - <b>@_model?.TotalCount</b></MudText>
@@ -49,15 +49,25 @@
     </RowTemplate>
 </MudTable>
 
+<MudStack>
+    <MudText Class="mt-3" Typo="Typo.h6" Align="Align.Center">Диаграмма запчастей по категориям</MudText>
+    <MudChart ChartType="ChartType.Donut" Width="50%" Height="40vh"
+              InputData="@_chartValues" InputLabels="@_labels"></MudChart>
+</MudStack>
 
-    @code {
+
+@code {
     private List<SparePartCategory>? _categories;
     private SparePartsReportModel? _model;
+    private string[]? _labels;
+    private double[]? _chartValues;
 
     protected override async Task OnInitializedAsync()
     {
         _categories = (await SparePartCategoryService.GetAllValuesAsync()).ToList();
         _model = await ReportService.GetSparePartsReportAsync(null);
+        
+        await GenerateChart();
         await base.OnInitializedAsync();
     }
 
@@ -72,4 +82,26 @@
     {
         _model = await ReportService.GetSparePartsReportAsync(category);
     }
+
+    private async Task GenerateChart()
+    {
+        var grouped = _model?.SpareParts?.GroupBy(x => x.Category.CategoryId);
+        if (grouped is null) return;
+
+        var values = new List<double>();
+        var labels = new List<string>();
+
+        foreach (var item in grouped)
+        {
+            var category = await SparePartCategoryService.GetReferenceByIdAsync(item.Key);
+            if (category is null) return;
+
+            values.Add(item.Count() * 1.0);
+            labels.Add($"{category.Name} - {item.Count()}");
+        }
+
+        _labels = labels.ToArray();
+        _chartValues = values.ToArray();
+    }
+
 }
