@@ -1,0 +1,189 @@
+﻿@layout BlankLayout
+@page "/orderPrint/{OrderId}"
+
+@using CompService.Client.Data;
+@using CompService.Core.Models;
+@using CompService.Core.Services;
+
+@inject IOrderService OrderService;
+@inject ISnackbar Snackbar;
+@inject IClientService ClientService;
+@inject IUserService UserService;
+@inject IDevicePlaceService DevicePlaceService;
+@inject IReferenceService<Defect> DefectService;
+@inject IReferenceService<Appearance> AppearanceService;
+@inject IReferenceService<DeviceType> DeviceTypeService;
+@inject IReferenceService<Brand> BrandService;
+@inject IJSRuntime JSR;
+
+<body class="ma-5">
+    @if(_order is not null)
+    {
+        <h2>Акт выполненных работ</h2>
+        <p>Заказ @_order.OrderId от @_order.OrderDate</p>
+
+        <table class="table">
+            <tbody>
+                <tr>
+                    <th>Клиент</th>
+                    <td>@_order.Client!.Surname @_order.Client!.Name, @_order.Client!.Email</td>
+                </tr>
+                <tr>
+                    <th>Устройство</th>
+                    <td>@_order.Brand?.Name @_order.Model</td>
+                </tr>
+                <tr>
+                    <th>Внешний вид</th>
+                    <td>@_order.Appearance?.Name</td>
+                </tr>
+                <tr>
+                    <th>Неисправность</th>
+                    <td>@_order.Defect!.Name</td>
+                </tr>
+            </tbody>
+        </table>
+        <h3>Запчасти</h3>
+            <table class="table">
+            <thead>
+                <tr>
+                    <th>Позиция</th>
+                    <th>Артикул</th>
+                    <th>Цена</th>
+                    <th>Скидка</th>
+                    <th>Количество</th>
+                    <th>Сумма</th>
+                </tr>
+            </thead>
+            <tbody>
+                @if(_order.SpareParts is not null)
+                {
+                    foreach (var item in _order.SpareParts)
+                    {
+                        <tr>
+                            <td>
+                                @item.Item.Name
+                            </td>
+                            <td>
+                                    @item.Item.Article
+                            </td>
+                            <td>
+                                    @item.Item.RetailPrice
+                            </td>
+                            <td>
+                                    @item.Discount
+                            </td>
+                            <td>
+                                    @item.ItemCount
+                            </td>
+                                    <td>
+                                    @item.Sum
+                                </td>
+                        </tr>
+                    }
+                    <tr>
+                        <td colspan="5">Cумма</td>
+                        <td>@_order.SpareParts.Sum(x => x.Sum)</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+        <h3>Услуги</h3>
+            <table class="table">
+            <thead>
+                <tr>
+                    <th>Позиция</th>
+                    <th>Цена</th>
+                    <th>Скидка</th>
+                    <th>Количество</th>
+                    <th>Сумма</th>
+                </tr>
+            </thead>
+            <tbody>
+                @if (_order.Facilities is not null)
+                {
+                    foreach (var item in _order.Facilities)
+                    {
+                        <tr>
+                            <td>
+                                @item.Item.Name
+                            </td>
+                            <td>
+                                @item.Item.Cost
+                            </td>
+                            <td>
+                                @item.Discount
+                            </td>
+                            <td>
+                                    @item.ItemCount
+                            </td>
+                            <td>
+                                    @item.Sum
+                            </td>
+                        </tr>
+                    }
+                    <tr>
+                        <td colspan="4">Cумма</td>
+                        <td>@_order.Facilities.Sum(x => x.Sum)</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+        <p></p>
+            <table class="table">
+            <tbody>
+                <tr>
+                    <td>Оператор:___________________ @_order.Operator?.Surname @_order.Operator?.Name[0]. @_order.Operator?.Patronymic[0].</td>
+                    <td>Клиент:___________________ @_order.Client?.Surname @_order.Client?.Name[0].</td>
+                </tr>
+                <tr>
+                    <td><b>Общая сумма:</b> @_order.Money</td>
+                    <td>
+                        @DateTime.Now
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    }
+</body>
+
+
+@code {
+    [Parameter]
+    public string? OrderId { get; set; }
+
+    private OrderModel? _order;
+
+    private bool _buttonHide = false;
+
+    protected override async Task OnInitializedAsync()
+    {
+        if (OrderId is null) return;
+
+        var order = await OrderService.GetOrderByIdAsync(OrderId);
+        if (order is null)
+            return;
+
+        _order = new();
+
+        _order.Appearance = await AppearanceService.GetReferenceByIdAsync(order.AppearanceId);
+        _order.Client = await ClientService.GetClientByIdAsync(order.ClientId);
+        _order.Operator = await UserService.GetUserByIdAsync(order.OperatorId);
+        _order.Master = await UserService.GetUserByIdAsync(order.MasterId);
+        _order.Place = await DevicePlaceService.GetPlaceByIdAsync(order.DevicePlaceId);
+        _order.RepairType = order.RepairType;
+        _order.Defect = await DefectService.GetReferenceByIdAsync(order.DefectId);
+        _order.DeviceType = await DeviceTypeService.GetReferenceByIdAsync(order.DeviceTypeId);
+        _order.Brand = await BrandService.GetReferenceByIdAsync(order.BrandId);
+        _order.Model = order.Model;
+        _order.Password = order.DevicePassword;
+        _order.SpareParts = new List<OrderListModel<SparePart>>(order.SpareParts ?? new());
+        _order.Facilities = new List<OrderListModel<Facility>>(order.Facilities ?? new());
+        _order.Money = order.Money;
+        _order.OrderId = order.OrderId;
+        _order.OrderDate = order.OrderDate;
+        _order.Status = order.Status;
+        await base.OnInitializedAsync();
+        StateHasChanged();
+        await JSR.InvokeVoidAsync("printWindow");
+    }
+}

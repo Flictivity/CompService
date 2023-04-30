@@ -7,7 +7,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CompService.Core", "CompSer
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CompService.Client", "CompService.Client\CompService.Client.csproj", "{6A0171F7-419A-4EB7-A110-1DB0F5D07855}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CompService.Database", "CompService.Database\CompService.Database.csproj", "{9CE63260-DF52-4467-86DD-9502AB25F1EB}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CompService.Database", "CompService.Database\CompService.Database.csproj", "{9CE63260-DF52-4467-86DD-9502AB25F1EB}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

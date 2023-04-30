@@ -16,6 +16,7 @@
 @inject IDialogService DialogService;
 @inject UserInfoHolder UserInfoHolder;
 @inject ITransactionService TransactionService;
+@inject IJSRuntime IJS;
 
 @if (_isLoaded)
 {
@@ -161,6 +162,7 @@ else
                     throw new ArgumentOutOfRangeException();
             }
         </MudSelect>
+        <MudIconButton Icon="@Icons.Filled.Print" OnClick="Print"></MudIconButton>
     </MudContainer>
     <MudContainer Class="d-flex flex-column pa-0">
     <MudContainer Class="pa-0">
@@ -472,12 +474,12 @@ else
     private List<DeviceType> _deviceTypes = new();
     private List<Brand> _brands = new();
 
-    private Order? _order;
+    private Order? order;
 
     protected override async Task OnInitializedAsync()
     {
-        _order = await OrderService.GetOrderByIdAsync(SelectedOrderId);
-        if (_order is null)
+        order = await OrderService.GetOrderByIdAsync(SelectedOrderId);
+        if (order is null)
         {
             return;
         }
@@ -501,25 +503,25 @@ else
 
     private async Task ConvertToModel()
     {
-        if (_order is null) return;
+        if (order is null) return;
 
-        _model.Appearance = await AppearanceService.GetReferenceByIdAsync(_order.AppearanceId);
-        _model.Client = await ClientService.GetClientByIdAsync(_order.ClientId);
-        _model.Operator = await UserService.GetUserByIdAsync(_order.OperatorId);
-        _model.Master = await UserService.GetUserByIdAsync(_order.MasterId);
-        _model.Place = await DevicePlaceService.GetPlaceByIdAsync(_order.DevicePlaceId);
-        _model.RepairType = _order.RepairType;
-        _model.Defect = await DefectService.GetReferenceByIdAsync(_order.DefectId);
-        _model.DeviceType = await DeviceTypeService.GetReferenceByIdAsync(_order.DeviceTypeId);
-        _model.Brand = await BrandService.GetReferenceByIdAsync(_order.BrandId);
-        _model.Model = _order.Model;
-        _model.Password = _order.DevicePassword;
-        _model.SpareParts = new List<OrderListModel<SparePart>>(_order.SpareParts ?? new());
-        _model.Facilities = new List<OrderListModel<Facility>>(_order.Facilities ?? new());
-        _model.Money = _order.Money;
-        _model.OrderId = _order.OrderId;
-        _model.OrderDate = _order.OrderDate;
-        _model.Status = _order.Status;
+        _model.Appearance = await AppearanceService.GetReferenceByIdAsync(order.AppearanceId);
+        _model.Client = await ClientService.GetClientByIdAsync(order.ClientId);
+        _model.Operator = await UserService.GetUserByIdAsync(order.OperatorId);
+        _model.Master = await UserService.GetUserByIdAsync(order.MasterId);
+        _model.Place = await DevicePlaceService.GetPlaceByIdAsync(order.DevicePlaceId);
+        _model.RepairType = order.RepairType;
+        _model.Defect = await DefectService.GetReferenceByIdAsync(order.DefectId);
+        _model.DeviceType = await DeviceTypeService.GetReferenceByIdAsync(order.DeviceTypeId);
+        _model.Brand = await BrandService.GetReferenceByIdAsync(order.BrandId);
+        _model.Model = order.Model;
+        _model.Password = order.DevicePassword;
+        _model.SpareParts = new List<OrderListModel<SparePart>>(order.SpareParts ?? new());
+        _model.Facilities = new List<OrderListModel<Facility>>(order.Facilities ?? new());
+        _model.Money = order.Money;
+        _model.OrderId = order.OrderId;
+        _model.OrderDate = order.OrderDate;
+        _model.Status = order.Status;
     }
 
     private Order ConvertToOrder()
@@ -575,7 +577,7 @@ else
         var sparePart = (OrderListModel<SparePart>) result.Data;
         if (result.Canceled) return;
 
-        if (_order is null) return;
+        if (order is null) return;
 
         if (_model.SpareParts is null)
         {
@@ -608,7 +610,7 @@ else
         var sparePart = (OrderListModel<SparePart>) result.Data;
         if (result.Canceled) return;
 
-        if (_order is null) return;
+        if (order is null) return;
 
         if (_model.SpareParts is null)
         {
@@ -633,7 +635,7 @@ else
         var sparePart = (OrderListModel<Facility>) result.Data;
         if (result.Canceled) return;
 
-        if (_order is null) return;
+        if (order is null) return;
 
         if (_model.Facilities is null)
         {
@@ -666,7 +668,7 @@ else
         var sparePart = (OrderListModel<Facility>) result.Data;
         if (result.Canceled) return;
 
-        if (_order is null) return;
+        if (order is null) return;
 
         if (_model.Facilities is null)
         {
@@ -711,7 +713,7 @@ else
         {
             _model.SpareParts.Remove(selectedSparePart);
         }
-        
+
         _model.Money = Math.Round(_model.SpareParts!.Sum(x => x.Sum)
                                          + _model.Facilities!.Sum(x => x.Sum), 2);
         Snackbar.Add("Успешно", Severity.Success);
@@ -761,7 +763,7 @@ else
     {
         var order = await OrderService.GetOrderByIdAsync(_model.OrderId!);
         var transaction = await TransactionService.GetTransactionByOrderAsync(order?.OrderId!);
-        
+
         if (_model.Status == OrdersStatuses.Closed && transaction is null)
         {
             var closeOnEscapeKey = new DialogOptions
@@ -826,5 +828,10 @@ else
                 _canEdit = true;
                 break;
         }
+    }
+
+    private async Task Print()
+    {
+        await IJS.InvokeAsync<object>("open", new object[] { $"/orderPrint/{_model.OrderId}", "_blank"});
     }
 }
