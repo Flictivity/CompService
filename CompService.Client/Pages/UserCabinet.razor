@@ -1,0 +1,152 @@
+﻿@page "/cabinet"
+@using CompService.Core.Models
+@using CompService.Client.Data
+@using CompService.Client.Windows
+@using CompService.Core.Extensions
+@using CompService.Core.Services
+@inject Blazored.LocalStorage.ILocalStorageService Session;
+@inject NavigationManager Nav;
+@inject AppState AppState;
+@inject IUserService UserService;
+@inject UserInfoHolder UserInfoHolder;
+@inject ISnackbar Snackbar;
+@inject IDialogService DialogService
+
+<PageTitle>Личный кабинет</PageTitle>
+@if (_isUserLoaded)
+{
+    <MudContainer Class="pa-5 d-flex justify-center">
+        <MudStack Row="true">
+            <MudAvatar Class="align-self-center" Style="height:200px;width:200px; font-size: 2rem;"
+                       Color="Color.Info">
+                @if (!(_model.Surname == "" || _model.Name == ""))
+                {
+                    @_model.Surname[0]@_model.Name[0]
+                }
+            </MudAvatar>
+            <MudForm @bind-IsValid="@_success">
+                <MudCard Class="pa-5">
+                    <MudStack>
+                        <MudStack Row="true">
+                            <MudTextField Required="true" T="string" @bind-Value="_model.Email"
+                                          RequiredError="Обязательное поле" Label="Почта" InputType="InputType.Email"
+                                          Validation="@(new EmailAddressAttribute {ErrorMessage = "Введенная почта не корректна"})"
+                                          Class="mb-3"/>
+                            <MudTextField T="string" @bind-Value="_role"
+                                          ReadOnly="true"
+                                          Variant="Variant.Text" Label="Роль"
+                                          Class="mb-3"/>
+                        </MudStack>
+                        <MudTextField T="string" @bind-Value="_model.PhoneNumber"
+                                      InputType="InputType.Telephone" Label="Телефон" Class="mb-3" 
+                                      Mask="@(new PatternMask("+0 (000) 000 00-00") { CleanDelimiters = true })"/>
+                        <MudStack Row="true">
+                            <MudTextField Required="true" RequiredError="Обязательное поле" T="string"
+                                          @bind-Value="_model.Surname" Label="Фамилия"
+                                          Class="mb-3"/>
+                            <MudTextField Required="true" T="string" RequiredError="Обязательное поле"
+                                          @bind-Value="_model.Name" Label="Имя"
+                                          Class="mb-3"/>
+                            <MudTextField Required="true" RequiredError="Обязательное поле"
+                                          T="string" @bind-Value="_model.Patronymic" Label="Отчество"
+                                          Class="mb-3"/>
+                        </MudStack>
+                        <MudStack Row="true">
+                            <MudButton Variant="Variant.Filled" Color="Color.Default" Class="mb-5"
+                                       OnClick="async () => await OpenDialog()">
+                                Сменить пароль
+                            </MudButton>
+                        </MudStack>
+                    </MudStack>
+                    <MudCardActions Class="pa-0">
+                        <MudButton Variant="Variant.Filled" Color="Color.Primary"
+                                   OnClick="async () => await SaveUserInfo()" Class="mr-5"
+                                   Disabled="@(!_success)">
+                            Сохранить изменения
+                        </MudButton>
+                        <MudButton Variant="Variant.Filled" Color="Color.Secondary"
+                                   OnClick="async () => await Quit()">
+                            Выход
+                        </MudButton>
+                    </MudCardActions>
+                </MudCard>
+            </MudForm>
+        </MudStack>
+    </MudContainer>
+}
+
+else
+{
+    <h1>Недостаточно прав</h1>
+    return;
+}
+
+@code {
+    private bool _success;
+    private bool _isUserLoaded;
+    private User? _currentUser;
+    private string? _role;
+    private UserModel _model = null!;
+
+    protected override async Task OnInitializedAsync()
+    {
+        if (UserInfoHolder.CurrentUser is null)
+        {
+            return;
+        }
+        _currentUser = UserInfoHolder.CurrentUser!;
+        _model = new UserModel
+        {
+            Name = _currentUser.Name,
+            Surname = _currentUser.Surname,
+            Patronymic = _currentUser.Patronymic,
+            Email = _currentUser.Email,
+            Password = _currentUser.Password,
+            PhoneNumber = _currentUser.PhoneNumber,
+            Roles = _currentUser.Roles
+        };
+        _role = _model.Roles.GetName();
+        _isUserLoaded = true;
+        await base.OnInitializedAsync();
+    }
+
+    private async Task SaveUserInfo()
+    {
+        await UserService.ChangeUserDataAsync(_model.Name, _model.Surname, _model.Patronymic, _model.Email, _model.Password!,
+            _model.PhoneNumber!, UserInfoHolder.CurrentUser!);
+        UserInfoHolder.CurrentUser = await UserService.GetUserByIdAsync(UserInfoHolder.CurrentUser?.UserId);
+        Snackbar.Add("Успешно", Severity.Success);
+    }
+
+    private async Task Quit()
+    {
+        UserInfoHolder.CurrentUser = null;
+        await Session.ClearAsync();
+        AppState.LoggedIn = false;
+        Nav.NavigateTo("/");
+    }
+
+    private async Task OpenDialog()
+    {
+        DialogOptions closeOnEscapeKey = new DialogOptions() {CloseOnEscapeKey = true};
+        DialogParameters parameters;
+        if (_model.Password is not null)
+        {
+            parameters = new DialogParameters {{"OldPassword", _model.Password}};
+        }
+        else
+        {
+            parameters = new DialogParameters() {{"OldPassword", null}};
+        }
+
+        var dialog = await DialogService.ShowAsync<PasswrodChangeWindow>("Смена пароля", parameters, closeOnEscapeKey);
+        var result = await dialog.Result;
+
+        if (!result.Canceled)
+        {
+            _model.Password = result.Data.ToString();
+            await SaveUserInfo();
+        }
+    }
+
+}

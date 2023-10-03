@@ -1,0 +1,70 @@
+﻿@using CompService.Core.Models
+@using CompService.Core.Services
+
+@inject IDevicePlaceService DevicePlaceService;
+@inject ISnackbar Snackbar;
+
+<MudForm @bind-IsValid="_success">
+    <MudDialog DefaultFocus="DefaultFocus.LastChild">
+        <DialogContent>
+            <MudTextField Required="true" T="string" @bind-Value="_info"
+                          RequiredError="Обязательное поле" Label="Информация" InputType="InputType.Text"
+                          Class="mb-3"/>
+            <MudCheckBox class="pa-0" @bind-Checked="_isOcuppied" Label="Занятость"></MudCheckBox>
+        </DialogContent>
+        <DialogActions>
+            <MudButton OnClick="Cancel">Отмена</MudButton>
+            <MudButton Color="Color.Primary" OnClick="Submit" Disabled="@(!_success)">Сохранить</MudButton>
+        </DialogActions>
+    </MudDialog>
+</MudForm>
+
+@code {
+
+    [Parameter]
+    public DevicePlace? SelectedPlace { get; set; }
+
+    [CascadingParameter]
+    MudDialogInstance MudDialog { get; set; } = null!;
+
+    private bool _isEditing;
+    private bool _success;
+
+    private string _info = null!;
+    private bool _isOcuppied;
+    
+    protected override Task OnInitializedAsync()
+    {
+        if (SelectedPlace is not null)
+        {
+            _isEditing = true;
+            _info = SelectedPlace.Info;
+            _isOcuppied = SelectedPlace.IsOccupied;
+        }
+        return base.OnInitializedAsync();
+    }
+
+    private async Task Submit()
+    {
+        var newPlace = new DevicePlace
+        {Info = _info, IsOccupied = _isOcuppied};
+        if (_isEditing && SelectedPlace is not null)
+        {
+            await DevicePlaceService.UpdateDevicePlaceAsync(SelectedPlace, newPlace);
+            Snackbar.Add("Успешно", Severity.Success);
+            MudDialog.Close(DialogResult.Ok(true));  
+            return;
+        }
+        
+        var res = await DevicePlaceService.CreateAsync(newPlace);
+
+        if (res.Success)
+        {
+            Snackbar.Add("Успешно", Severity.Success);
+            MudDialog.Close(DialogResult.Ok(true));   
+        }
+        Snackbar.Add(res.Message, Severity.Error);
+    }
+    
+    private void Cancel() => MudDialog.Cancel();
+}

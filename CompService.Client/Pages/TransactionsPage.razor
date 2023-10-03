@@ -1,0 +1,171 @@
+﻿@page "/transactions"
+@using CompService.Core.Services
+@using CompService.Core.Models
+@using CompService.Core.Extensions
+@using CompService.Client.Windows
+@using CompService.Core.Enums
+
+@inject ITransactionService TransactionService;
+@inject UserInfoHolder UserInfoHolder;
+@inject IDialogService DialogService;
+
+@if (UserInfoHolder.CurrentUser is null)
+{
+    <h1>Недостаточно прав</h1>
+    return;
+}
+
+@if (UserInfoHolder.CurrentUser.Roles != Roles.Administrator)
+{
+    <h1>Недостаточно прав</h1>
+    return;
+}
+
+<PageTitle>Денежные средства</PageTitle>
+<MudContainer Class="d-flex justify-space-between ma-0 pa-0 flex-wrap">
+    <MudStack Row="true" Class="d-flex justify-content-between">
+        <MudStack Row="true" Class="d-flex align-center">
+            <MudText Typo="Typo.h6">Итого</MudText>
+            <MudText Typo="Typo.subtitle1" Color="@(_balance >= 0 ? Color.Success : Color.Error)">@_balance ₽</MudText>
+        </MudStack>
+        <MudStack Class="d-flex justify-center align-content-center">
+            <MudText Typo="Typo.h6">Приход</MudText>
+            <MudText Typo="Typo.subtitle1" Color="Color.Secondary" Class="mx-auto">@_arrival ₽</MudText>
+        </MudStack>
+        <MudStack Class="d-flex justify-center align-content-center">
+            <MudText Typo="Typo.h6">Расход</MudText>
+            <MudText Typo="Typo.subtitle1" Color="Color.Secondary" Class="mx-auto">@_expense ₽</MudText>
+        </MudStack>
+    </MudStack>
+    <MudStack>
+        <MudDateRangePicker PickerVariant="PickerVariant.Dialog" PickerClosed="async () => await RefreshTransactions()"
+                            Label="Период" @bind-DateRange="_dateRange" Editable="true" />
+    </MudStack>
+</MudContainer>
+
+
+<MudTable Items="_transactions" T="Transaction" Hover="true">
+    <ToolBarContent>
+        <MudText Typo="Typo.h6">Платежи</MudText>
+        <MudSpacer/>
+        <MudTextField @bind-Value="_searchString" Placeholder="Поиск" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Search" IconSize="Size.Medium" Class="mt-0"></MudTextField>
+    </ToolBarContent>
+    <HeaderContent>
+        <MudTh>
+            <MudTableSortLabel SortBy="new Func<Transaction, object>(x => x.TransactionTime)">Дата</MudTableSortLabel>
+        </MudTh>
+        <MudTh>
+            <MudTableSortLabel SortBy="new Func<Transaction, object>(x => x.ArrivalMoney)">Приход</MudTableSortLabel>
+        </MudTh>
+        <MudTh>
+            <MudTableSortLabel SortBy="new Func<Transaction, object>(x => x.ExpenseMoney)">Расход</MudTableSortLabel>
+        </MudTh>
+        <MudTh>Метод оплаты</MudTh>
+        <MudTh>Основание</MudTh>
+        <MudTh>
+            <MudTableSortLabel SortBy="new Func<Transaction, object>(x => x.UserSurname)">Сотрудник</MudTableSortLabel>
+        </MudTh>
+        <MudTh>Комментарий</MudTh>
+    </HeaderContent>
+    <RowTemplate>
+        <MudTd DataLabel="Дата">
+            <MudText>@context.TransactionTime.Date.ToString("dd/MM/yyyy")</MudText>
+        </MudTd>
+        <MudTd DataLabel="Приход">
+            <MudText Color="Color.Success">
+                @if (context.ArrivalMoney != 0)
+                {
+                    @($"{context.ArrivalMoney} ₽")
+                }
+            </MudText>
+        </MudTd>
+        <MudTd DataLabel="Расход">
+            <MudText Color="Color.Error">
+                @if (context.ExpenseMoney != 0)
+                {
+                    @($"{context.ExpenseMoney} ₽")
+                }
+            </MudText>
+        </MudTd>
+        <MudTd DataLabel="Метод оплаты">
+            <MudText>@context.PaymentMethod.GetName()</MudText>
+        </MudTd>
+        <MudTd DataLabel="Основание">
+            @if (context.TransactionBasis == TransactionBasis.Order)
+            {
+                <MudText>@context.TransactionBasis.GetName() @context.OrderId</MudText>
+            }
+            else
+            {
+                <MudText>@context.TransactionBasis.GetName()</MudText>
+            }
+        </MudTd>
+        <MudTd>
+            <MudText>@context.UserSurname</MudText>
+        </MudTd>
+        <MudTd>
+            <MudText>@context.Comment</MudText>
+        </MudTd>
+    </RowTemplate>
+</MudTable>
+
+<MudFab Style="position: fixed; bottom: 0; right: 0; margin: 35px 25px;" Color="Color.Primary" Icon="@Icons.Material.Filled.Remove" OnClick="async () => await OpenWindow()"/>
+
+@code {
+    private DateRange _dateRange = new(DateTime.Now.Date, DateTime.Now.AddDays(7).Date);
+
+    private string _searchString = "";
+    private double _balance;
+    private double _arrival;
+    private double _expense;
+    private List<Transaction>? _transactions;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var transactions = await TransactionService.GetAllTransactionsForPeriodAsync(
+            _dateRange.Start ?? DateTime.Now, _dateRange.End ?? DateTime.Now.AddDays(7));
+        _balance = transactions.TransactionResult.Profit;
+        _arrival = transactions.TransactionResult.Arrival;
+        _expense = transactions.TransactionResult.Expense;
+        _transactions = transactions.Items.ToList();
+        await base.OnInitializedAsync();
+    }
+
+    private async Task OpenWindow()
+    {
+        if (UserInfoHolder.CurrentUser is null)
+        {
+            return;
+        }
+
+        DialogOptions closeOnEscapeKey = new DialogOptions {CloseOnEscapeKey = true};
+
+        var dialog = await DialogService.ShowAsync<TransactionCreateWindow>("Новая запись", closeOnEscapeKey);
+        var result = await dialog.Result;
+
+        if (!result.Canceled)
+        {
+            var transactions = await TransactionService.GetAllTransactionsForPeriodAsync(
+                _dateRange.Start ?? DateTime.Now, _dateRange.End ?? DateTime.Now.AddDays(7));
+            _balance = transactions.TransactionResult.Profit;
+            _arrival = transactions.TransactionResult.Arrival;
+            _expense = transactions.TransactionResult.Expense;
+            _transactions = transactions.Items.ToList();
+            StateHasChanged();
+        }
+    }
+
+    private async Task RefreshTransactions()
+    {
+        var transactions = await TransactionService
+            .GetAllTransactionsForPeriodAsync(_dateRange.Start ?? DateTime.Now,
+                _dateRange.End ?? DateTime.Now.AddDays(7));
+
+        _balance = transactions.TransactionResult.Profit;
+        _arrival = transactions.TransactionResult.Arrival;
+        _expense = transactions.TransactionResult.Expense;
+        _transactions = transactions.Items.ToList();
+        StateHasChanged();
+    }
+
+}

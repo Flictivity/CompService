@@ -1,0 +1,111 @@
+﻿@using CompService.Client.Data
+@using CompService.Core.Models
+@using CompService.Core.Services
+
+@inject ISnackbar Snackbar;
+@inject IClientService ClientService;
+@inject IReferenceService<Source> SourceService;
+
+<MudForm @bind-IsValid="_success" Model="_model">
+    <MudDialog DefaultFocus="DefaultFocus.LastChild">
+        <DialogContent>
+            <MudStack>
+                <MudTextField Required="true" T="string" @bind-Value="_model.Name"
+                              RequiredError="Обязательное поле" Label="Имя" InputType="InputType.Text"
+                              Class="mb-3"/>
+                <MudTextField Required="true" T="string" @bind-Value="_model.Surname"
+                              RequiredError="Обязательное поле" Label="Фамилия" InputType="InputType.Text"
+                              Class="mb-3"/>
+                <MudTextField Required="false" T="string" @bind-Value="_model.PhoneNumber"
+                              Label="Телефон" InputType="InputType.Telephone"
+                              Class="mb-3"
+                              Mask="@(new PatternMask("+0 (000) 000 00-00") { CleanDelimiters = true })"/>
+                <MudTextField Required="true" T="string" @bind-Value="_model.Email"
+                              RequiredError="Обязательное поле"
+                              Label="Почта" InputType="InputType.Email" 
+                              Validation="@(new EmailAddressAttribute {ErrorMessage = "Введенная почта не корректна"})"
+                              Class="mb-3"/>
+                @if (_sources is not null && _sources.Count != 0)
+                {
+                    <MudSelect Clearable="true" T="Source" @bind-Value="_model.Source" ToStringFunc="@_converter" Label="Откуда узнал"
+                               Variant="Variant.Text" AnchorOrigin="Origin.BottomCenter">
+                        @foreach (Source source in _sources)
+                        {
+                            <MudSelectItem Value="source"/>
+                        }
+                    </MudSelect>
+                }
+            </MudStack>
+        </DialogContent>
+        <DialogActions>
+            <MudButton Class="mx-auto" Variant="Variant.Filled" Color="Color.Secondary" OnClick="Cancel">Отмена</MudButton>
+            <MudButton Class="mx-auto" Variant="Variant.Filled" Color="Color.Primary" OnClick="Submit" Disabled="@(!_success)">Сохранить</MudButton>
+        </DialogActions>
+    </MudDialog>
+</MudForm>
+
+@code {
+    [Parameter] public Client? SelectedClient { get; set; }
+
+    [CascadingParameter]
+    MudDialogInstance MudDialog { get; set; } = null!;
+
+    private bool _success;
+    private bool _isEditing;
+    private ClientModel _model = new();
+    private readonly Func<Source?, string?> _converter = p => p?.Name;
+    private List<Source>? _sources;
+
+    protected override async Task OnInitializedAsync()
+    {
+        _sources = (await SourceService.GetAllValuesAsync()).ToList();
+        if (SelectedClient is not null)
+        {
+            _isEditing = true;
+            
+            _model.Name = SelectedClient.Name;
+            _model.Surname = SelectedClient.Surname;
+            _model.Email = SelectedClient.Email;
+            _model.PhoneNumber = SelectedClient.PhoneNumber;
+            _model.Source = SelectedClient.Source;
+        }
+        
+        await base.OnInitializedAsync();
+    }
+
+    private async Task Submit()
+    {
+        if (_isEditing)
+        {
+            await ClientService.ChangeClientDataAsync(_model.Name, _model.Surname,  _model.Email, _model.PhoneNumber!,
+                SelectedClient!, _model.Source);
+            
+            Snackbar.Add("Успешно", Severity.Success);
+            MudDialog.Close(DialogResult.Ok(true));
+
+            return;
+        }
+
+        var newClient = new Client
+        {
+            Name = _model.Name,
+            Surname = _model.Surname,
+            Email = _model.Email,
+            PhoneNumber = _model.PhoneNumber,
+            Source = _model.Source
+        };
+        
+        var res = await ClientService.CreateClientAsync(newClient);
+
+        if (!res.Success)
+        {
+            Snackbar.Add(res.Message, Severity.Error);
+            return;
+        }
+        
+        Snackbar.Add("Успешно", Severity.Success);
+        MudDialog.Close(DialogResult.Ok(true));
+    }
+
+    private void Cancel() => MudDialog.Cancel();
+}

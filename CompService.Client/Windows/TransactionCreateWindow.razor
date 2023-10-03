@@ -1,0 +1,86 @@
+﻿@using CompService.Client.Data
+@using CompService.Core.Enums
+@using CompService.Core.Extensions
+@using CompService.Core.Models
+@using CompService.Core.Services
+
+@inject UserInfoHolder UserInfoHolder;
+@inject ISnackbar Snackbar;
+@inject ITransactionService TransactionService;
+
+<MudForm @bind-IsValid="_success" Model="_model">
+    <MudDialog DefaultFocus="DefaultFocus.LastChild">
+        <DialogContent>
+            <MudStack>
+                <MudTextField Required="true" @bind-Value="_model.ExpenseMoney"
+                              RequiredError="Обязательное поле" Label="Цена"
+                              Class="mb-3"/>
+                <MudSelect T="TransactionBasis" @bind-Value="_model.TransactionBasis" ToStringFunc="@_converter" Label="Основание"
+                           Variant="Variant.Text" AnchorOrigin="Origin.BottomCenter">
+                    @foreach (TransactionBasis transactionBasis in Enum.GetValues(typeof(TransactionBasis)))
+                    {
+                        if (transactionBasis != TransactionBasis.Order)
+                        {
+                            <MudSelectItem Value="transactionBasis"/>
+                        }
+                    }
+                </MudSelect>
+                <MudRadioGroup @bind-SelectedOption="@SelectedOption">
+                    <MudRadio Option=@(PaymentMethods.Card) Color="Color.Primary">Карта</MudRadio>
+                    <MudRadio Option=@(PaymentMethods.Cash) Color="Color.Primary">Наличные</MudRadio>
+                </MudRadioGroup>
+                <MudTextField T="string" @bind-Value="_model.Comment"
+                              Label="Комментарий" InputType="InputType.Text"
+                              Class="mb-3"/>
+            </MudStack>
+        </DialogContent>
+        <DialogActions>
+            <MudButton Class="mx-auto" Variant="Variant.Filled" Color="Color.Secondary" OnClick="Cancel">Отмена</MudButton>
+            <MudButton Class="mx-auto" Variant="Variant.Filled" Color="Color.Primary" OnClick="Submit" Disabled="@(!_success)">Сохранить</MudButton>
+        </DialogActions>
+    </MudDialog>
+</MudForm>
+
+@code {
+
+    [CascadingParameter]
+    MudDialogInstance MudDialog { get; set; } = null!;
+
+    private bool _success;
+    private TransactionModel _model = new();
+
+    private readonly Func<TransactionBasis, string?> _converter = p => p.GetName();
+    public PaymentMethods SelectedOption { get; set; }
+
+    private async Task Submit()
+    {
+        if (UserInfoHolder.CurrentUser is null)
+        {
+            return;
+        }
+
+        var newTransaction = new Transaction
+        {
+            TransactionTime = DateTime.Now,
+            ArrivalMoney = 0,
+            ExpenseMoney = _model.ExpenseMoney,
+            PaymentMethod = SelectedOption,
+            TransactionBasis = _model.TransactionBasis,
+            UserId = UserInfoHolder.CurrentUser.UserId,
+            Comment = _model.Comment
+        };
+
+        var res = await TransactionService.CreateAsync(newTransaction);
+
+        if (!res.Success)
+        {
+            Snackbar.Add(res.Message, Severity.Error);
+            return;
+        }
+
+        Snackbar.Add("Успешно", Severity.Success);
+        MudDialog.Close(DialogResult.Ok(true));
+    }
+
+    private void Cancel() => MudDialog.Cancel();
+}

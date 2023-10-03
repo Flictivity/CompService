@@ -1,0 +1,97 @@
+﻿@using CompService.Core.Models
+@using CompService.Core.Services
+@using Microsoft.AspNetCore.Components
+
+@inject ISparePartService SparePartService;
+
+<MudDialog DefaultFocus="DefaultFocus.LastChild">
+    <DialogContent>
+        <MudTable  Items="@_spareParts" T="SparePart" OnRowClick="RowClickEvent" 
+                  Filter="new Func<SparePart, bool>(FilterFunc1)" Hover="true">
+            <ToolBarContent>
+                <MudText Typo="Typo.h6">Запчасти</MudText>
+                <MudSpacer/>
+                <MudTextField @bind-Value="_searchString" Placeholder="Поиск" 
+                              Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Search" 
+                              IconSize="Size.Medium" Class="mt-0"></MudTextField>
+            </ToolBarContent>
+            <HeaderContent>
+                <MudTh>
+                    <MudTableSortLabel SortBy="new Func<SparePart, object>(x => x.Article)">Артикул</MudTableSortLabel>
+                </MudTh>
+                <MudTh>
+                    <MudTableSortLabel SortBy="new Func<SparePart, object>(x => x.Name)">Название</MudTableSortLabel>
+                </MudTh>
+                <MudTh>
+                    <MudTableSortLabel SortBy="new Func<SparePart, object>(x => x.Category.Name)">Категория
+                        </MudTableSortLabel>
+                </MudTh>
+                <MudTh>
+                    <MudTableSortLabel SortBy="new Func<SparePart, object>(x => x.Count)">Количество</MudTableSortLabel>
+                </MudTh>
+                <MudTh>
+                    <MudTableSortLabel SortBy="new Func<SparePart, object>(x => x.PurchasePrice)">Цена
+                        </MudTableSortLabel>
+                </MudTh>
+                <MudTh>
+                    <MudTableSortLabel SortBy="new Func<SparePart, object>(x => x.RetailPrice)">Себестоимость
+                        </MudTableSortLabel>
+                </MudTh>
+            </HeaderContent>
+            <RowTemplate>
+                <MudTd DataLabel="Артикул">
+                    <MudText>@context.Article</MudText>
+                </MudTd>
+                <MudTd DataLabel="Название">
+                    <MudText>@context.Name</MudText>
+                </MudTd>
+                <MudTd DataLabel="Категория">
+                    <MudText>@context.Category.Name</MudText>
+                </MudTd>
+                <MudTd DataLabel="Количество">
+                    <MudText>@context.Count</MudText>
+                </MudTd>
+                <MudTd DataLabel="Цена">
+                    <MudText>@context.PurchasePrice</MudText>
+                </MudTd>
+                <MudTd DataLabel="Себестоимость">
+                    <MudText>@context.RetailPrice</MudText>
+                </MudTd>
+            </RowTemplate>
+        </MudTable>
+    </DialogContent>
+</MudDialog>
+
+@code {
+
+    [CascadingParameter]
+    MudDialogInstance MudDialog { get; set; } = null!;
+
+    private string _searchString = "";
+    private List<SparePart>? _spareParts;
+
+    protected override async Task OnInitializedAsync()
+    {
+        _spareParts = (await SparePartService.GetAllSparePartsAsync()).ToList();
+        await base.OnInitializedAsync();
+    }
+
+    private bool FilterFunc1(SparePart element) => FilterFunc(element, _searchString);
+
+    private bool FilterFunc(SparePart element, string? searchingString)
+    {
+        if (string.IsNullOrWhiteSpace(searchingString))
+            return true;
+        if (element.Article.Contains(searchingString, StringComparison.OrdinalIgnoreCase))
+            return true;
+        if (element.Name.Contains(searchingString, StringComparison.OrdinalIgnoreCase))
+            return true;
+        return false;
+    }
+
+    private void RowClickEvent(TableRowClickEventArgs<SparePart> tableRowClickEventArgs)
+    {
+        MudDialog.Close(DialogResult.Ok(tableRowClickEventArgs.Item));
+    }
+
+}

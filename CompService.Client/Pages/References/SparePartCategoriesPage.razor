@@ -1,0 +1,104 @@
+﻿@page "/sparePartCategories"
+
+@using CompService.Core.Models
+@using CompService.Core.Services
+@using CompService.Client.Windows
+@using CompService.Core.Enums
+
+@inject UserInfoHolder UserInfoHolder;
+@inject ISnackbar Snackbar;
+@inject IDialogService DialogService;
+@inject IReferenceService<SparePartCategory> ReferenceService;
+
+@if (UserInfoHolder.CurrentUser is null)
+{
+    <h1>Недостаточно прав</h1>
+    return;
+}
+@if (UserInfoHolder.CurrentUser is not null && UserInfoHolder.CurrentUser.Roles != Roles.Administrator)
+{
+    <h1>Недостаточно прав</h1>
+    return;
+}
+
+<PageTitle>Справочник.Категории запчастей</PageTitle>
+
+<MudTable Items="@_categories" T="SparePartCategory" OnRowClick="RowClickEvent" Filter="new Func<SparePartCategory, bool>(FilterFunc1)" Hover="true">
+    <ToolBarContent>
+        <MudText Typo="Typo.h6">Категории</MudText>
+        <MudSpacer/>
+        <MudTextField @bind-Value="_searchString" Placeholder="Поиск" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Search" IconSize="Size.Medium" Class="mt-0"></MudTextField>
+    </ToolBarContent>
+    <HeaderContent>
+        <MudTh>Название</MudTh>
+    </HeaderContent>
+    <RowTemplate>
+        <MudTd DataLabel="Название">
+            <MudText>@context.Name</MudText>
+        </MudTd>
+    </RowTemplate>
+</MudTable>
+
+<MudFab Style="position: fixed; bottom: 0; right: 0; margin: 35px 25px;" Color="Color.Primary" Icon="@Icons.Material.Filled.Add" OnClick="async () => await OpenWindow()"/>
+
+@code {
+    private List<SparePartCategory>? _categories;
+    string _searchString = "";
+
+    protected override async Task OnInitializedAsync()
+    {
+        _categories = (await ReferenceService.GetAllValuesAsync()).ToList();
+        await base.OnInitializedAsync();
+    }
+    
+    private async Task OpenWindow()
+    {
+        DialogOptions closeOnEscapeKey = new DialogOptions {CloseOnEscapeKey = true};
+        DialogParameters parameters = new DialogParameters
+        {
+            {"SelectedReferenceName", null},
+            {"SelectedReference", null}
+        };
+        var dialog = await DialogService.ShowAsync<ReferenceWindow<SparePartCategory>>("Новая запись",parameters, closeOnEscapeKey);
+        var result = await dialog.Result;
+
+        if (!result.Canceled)
+        {
+            _categories = (await ReferenceService.GetAllValuesAsync()).ToList();
+            StateHasChanged();
+        }
+    }
+
+    private bool FilterFunc1(SparePartCategory element) => FilterFunc(element, _searchString);
+    
+    private bool FilterFunc(SparePartCategory element, string? searchingString)
+    {
+        if (string.IsNullOrWhiteSpace(searchingString))
+            return true;
+        if (element.Name.Contains(searchingString, StringComparison.OrdinalIgnoreCase))
+            return true;
+        return false;
+    }
+
+    private async void RowClickEvent(TableRowClickEventArgs<SparePartCategory> tableRowClickEventArgs)
+    {
+        DialogOptions closeOnEscapeKey = new DialogOptions {CloseOnEscapeKey = true};
+        DialogParameters parameters;
+        
+        parameters = new DialogParameters
+        {
+            {"SelectedReferenceName", tableRowClickEventArgs.Item.Name},
+            {"SelectedReference", tableRowClickEventArgs.Item}
+        };
+        var dialog = await DialogService.ShowAsync<ReferenceWindow<SparePartCategory>>("",
+            parameters, closeOnEscapeKey);
+        var result = await dialog.Result;
+
+        if (!result.Canceled)
+        {
+            _categories = (await ReferenceService.GetAllValuesAsync()).ToList();
+            Snackbar.Add("Успешно", Severity.Success);
+            StateHasChanged();
+        }
+    }
+}

@@ -1,0 +1,112 @@
+﻿@using CompService.Client.Data
+@using CompService.Core.Enums
+@using CompService.Core.Extensions
+@using CompService.Core.Models
+@using CompService.Core.Services
+@using IAuthorizationService = CompService.Core.Services.IAuthorizationService
+
+@inject IAuthorizationService AuthorizationService;
+@inject ISnackbar Snackbar;
+@inject IUserService UserService;
+
+<MudForm @bind-IsValid="_success" Model="_model" Wid>
+    <MudDialog DefaultFocus="DefaultFocus.LastChild">
+        <DialogContent>
+            <MudStack>
+                <MudTextField Required="true" T="string" @bind-Value="_model.Name"
+                              RequiredError="Обязательное поле" Label="Имя" InputType="InputType.Text"
+                              Class="mb-3"/>
+                <MudTextField Required="true" T="string" @bind-Value="_model.Surname"
+                              RequiredError="Обязательное поле" Label="Фамилия" InputType="InputType.Text"
+                              Class="mb-3"/>
+                <MudTextField Required="true" T="string" @bind-Value="_model.Patronymic"
+                              RequiredError="Обязательное поле" Label="Отчество" InputType="InputType.Text"
+                              Class="mb-3"/>
+                <MudTextField Required="false" T="string" @bind-Value="_model.PhoneNumber"
+                              Label="Телефон" InputType="InputType.Telephone"
+                              Class="mb-3"
+                              Mask="@(new PatternMask("+0 (000) 000 00-00") { CleanDelimiters = true })"/>
+                <MudTextField Required="true" T="string" @bind-Value="_model.Email"
+                              RequiredError="Обязательное поле"
+                              Label="Почта" InputType="InputType.Email" Validation="@(new EmailAddressAttribute {ErrorMessage = "Введенная почта не корректна"})"
+                              Class="mb-3"/>
+                @if (_isEditing)
+                {
+                    <MudTextField T="string" Value="_model.Roles.GetName()" ReadOnly="true"
+                                                              Variant="Variant.Text" Label="Роль"
+                                                              Class="mb-3"/>
+                }
+                else
+                {
+                    <MudSelect T="Roles" @bind-Value="_model.Roles" ToStringFunc="@_converter" HelperText="Нельзя изменить после создания сотрудника" Label="Роль"
+                               Variant="Variant.Text" AnchorOrigin="Origin.BottomCenter">
+                        @foreach (Roles role in Enum.GetValues(typeof(Roles)))
+                        {
+                            <MudSelectItem Value="role"/>
+                        }
+                    </MudSelect>
+                }
+            </MudStack>
+        </DialogContent>
+        <DialogActions>
+            <MudButton Class="mx-auto" Variant="Variant.Filled" Color="Color.Secondary" OnClick="Cancel">Отмена</MudButton>
+            <MudButton Class="mx-auto" Variant="Variant.Filled" Color="Color.Primary" OnClick="Submit" Disabled="@(!_success)">Сохранить</MudButton>
+        </DialogActions>
+    </MudDialog>
+</MudForm>
+
+@code {
+    [Parameter] public User? SelectedUser { get; set; }
+
+    [CascadingParameter]
+    MudDialogInstance MudDialog { get; set; } = null!;
+
+    private bool _success;
+    private bool _isEditing;
+    private UserModel _model = new();
+    private readonly Func<Roles, string?> _converter = p => p.GetName();
+
+    protected override Task OnInitializedAsync()
+    {
+        if (SelectedUser is not null)
+        {
+            _isEditing = true;
+            
+            _model.Name = SelectedUser.Name;
+            _model.Surname = SelectedUser.Surname;
+            _model.Patronymic = SelectedUser.Patronymic;
+            _model.Email = SelectedUser.Email;
+            _model.PhoneNumber = SelectedUser.PhoneNumber;
+            _model.Roles = SelectedUser.Roles;
+        }
+        
+        return base.OnInitializedAsync();
+    }
+
+    private async Task Submit()
+    {
+        if (_isEditing)
+        {
+            await UserService.ChangeUserDataAsync(_model.Name, _model.Surname, _model.Patronymic, _model.Email, _model.Password!,
+                _model.PhoneNumber!, SelectedUser!);
+            
+            Snackbar.Add("Успешно", Severity.Success);
+            MudDialog?.Close(DialogResult.Ok(true));
+
+            return;
+        }
+        var res = await AuthorizationService.RegistrateAsync(_model.Name, _model.Surname,
+            _model.Patronymic, _model.Email, _model.PhoneNumber, _model.Roles);
+
+        if (!res.Success)
+        {
+            Snackbar.Add(res.Message, Severity.Error);
+            return;
+        }
+        
+        Snackbar.Add("Успешно", Severity.Success);
+        MudDialog?.Close(DialogResult.Ok(true));
+    }
+
+    private void Cancel() => MudDialog?.Cancel();
+}

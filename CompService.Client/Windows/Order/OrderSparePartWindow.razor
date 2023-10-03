@@ -1,0 +1,96 @@
+﻿@using CompService.Core.Models
+
+@inject IDialogService DialogService;
+@inject ISnackbar Snackbar;
+
+<MudDialog DefaultFocus="DefaultFocus.LastChild">
+    <DialogContent>
+        <MudContainer Class="d-flex justify-start flex-row pa-0 mt-5 align-self-center">
+            <MudText Class="mr-5" Style="line-height: 37px;">Запчасть:</MudText>
+            <MudText Class="mr-5" Style="line-height: 37px;">
+                @(SelectedSparePart is null ? "..." : SelectedSparePart.Item.Name)
+            </MudText>
+            <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="OpenWindow">Выбрать</MudButton>
+        </MudContainer>
+        <MudNumericField T="int" Min="0" 
+                         Max="@MaxCount"
+                         Required="true" @bind-Value="_count" RequiredError="Обязательное поле" 
+                         Label="Количество" Class="mb-3"/>
+        <MudTextField Required="true" @bind-Value="_discount"
+                              RequiredError="Обязательное поле" Label="Скидка" 
+                              Class="mb-3"/>
+    </DialogContent>
+    <DialogActions>
+        <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="Submit" 
+                   Class="mx-auto">@(_isEditing ? "Изменить" : "Добавить")</MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    [CascadingParameter]
+    MudDialogInstance MudDialog { get; set; } = null!;
+
+    [Parameter]
+    public OrderListModel<SparePart>? SelectedSparePart { get; set; }
+    
+    [Parameter]
+    public int MaxCount { get; set; }
+    
+    private int _count;
+    private double _discount;
+    private bool _isEditing;
+
+    protected override async Task OnInitializedAsync()
+    {
+        if (SelectedSparePart is not null)
+        {
+            _isEditing = true;
+            _count = SelectedSparePart.ItemCount;
+            _discount = SelectedSparePart.Discount;
+        }
+        await base.OnInitializedAsync();
+    }
+
+    private void Submit()
+    {
+        if (SelectedSparePart is null)
+        {
+            Snackbar.Add("Необходимо выбрать запчасть", Severity.Error);
+            return;
+        }
+        if (_count <= 0)
+        {
+            Snackbar.Add("Используемое количество должно быть больше 0", Severity.Error);
+            return;
+        }
+        if (_discount < 0)
+        {
+            Snackbar.Add("Скидка не может быть отрицательной", Severity.Error);
+            return;
+        }
+        SelectedSparePart.ItemCount = _count;
+        SelectedSparePart.Discount = _discount;
+        SelectedSparePart.Sum = SelectedSparePart.Item.RetailPrice * _count
+                                - SelectedSparePart.Item.RetailPrice * _count * _discount * 0.01;
+        MudDialog.Close(DialogResult.Ok(SelectedSparePart));  
+    }
+
+    private async void OpenWindow()
+    {
+        var options = new DialogOptions
+        {
+            CloseOnEscapeKey = true, CloseButton = true, FullWidth = true, MaxWidth = MaxWidth.Medium
+                
+        };
+
+        var dialog = await DialogService.ShowAsync<SparePartsWindow>("", options);
+        var result = await dialog.Result;
+
+        if (result.Canceled) return;
+        
+        SelectedSparePart ??= new OrderListModel<SparePart>();
+        SelectedSparePart.Item = (SparePart)result.Data;
+        MaxCount = SelectedSparePart.Item.Count;
+        StateHasChanged();
+    }
+}

@@ -1,0 +1,132 @@
+﻿@page "/employees"
+@using CompService.Core.Services
+@using CompService.Core.Enums
+@using CompService.Core.Extensions
+@using CompService.Core.Models
+@using CompService.Client.Windows
+
+@inject IUserService UserService;
+@inject UserInfoHolder UserInfoHolder;
+@inject IDialogService DialogService;
+
+@if (UserInfoHolder.CurrentUser is null)
+{
+    <h1>Недостаточно прав</h1>
+    return;
+}
+@if (UserInfoHolder.CurrentUser is not null && UserInfoHolder.CurrentUser.Roles != Roles.Administrator)
+{
+    <h1>Недостаточно прав</h1>
+    return;
+}
+
+@if (_employees is null)
+{
+    return;
+}
+
+<PageTitle>Сотрудники</PageTitle>
+
+<MudTable T="User" OnRowClick="RowClickEvent" Items="@_employees" Filter="new Func<User, bool>(FilterFunc1)" Hover="true">
+    <ToolBarContent>
+        <MudText Typo="Typo.h6">Сотрудники</MudText>
+        <MudSpacer/>
+        <MudTextField @bind-Value="_searchString" Placeholder="Поиск" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Search" IconSize="Size.Medium" Class="mt-0"></MudTextField>
+    </ToolBarContent>
+    <HeaderContent>
+        <MudTh>Аватар</MudTh>
+        <MudTh>Имя</MudTh>
+        <MudTh>Фамилия</MudTh>
+        <MudTh>Телефон</MudTh>
+        <MudTh>Почта</MudTh>
+        <MudTh>Роль</MudTh>
+    </HeaderContent>
+    <RowTemplate>
+        <MudTd DataLabel="Аватар">
+            <MudAvatar Size="Size.Large">@context.Name[0]</MudAvatar>
+        </MudTd>
+        <MudTd DataLabel="Имя">
+            <MudText>@context.Name</MudText>
+        </MudTd>
+        <MudTd DataLabel="Фамилия">
+            <MudText>@context.Surname</MudText>
+        </MudTd>
+        <MudTd DataLabel="Телефон">
+            <MudText>@context.PhoneNumber</MudText>
+        </MudTd>
+        <MudTd DataLabel="Почта">
+            <MudText>@context.Email</MudText>
+        </MudTd>
+        <MudTd DataLabel="Роль">
+            <MudText>@context.Roles.GetName()</MudText>
+        </MudTd>
+    </RowTemplate>
+</MudTable>
+
+<MudFab Style="position: fixed; bottom: 0; right: 0; margin: 35px 25px;" Color="Color.Primary" Icon="@Icons.Material.Filled.Add" OnClick="async () => await OpenWindow()"/>
+
+@code {
+    private List<User>? _employees;
+    string _searchString = "";
+
+    protected override async Task OnInitializedAsync()
+    {
+        @if (UserInfoHolder.CurrentUser is null
+             || UserInfoHolder.CurrentUser is not null && UserInfoHolder.CurrentUser.Roles != Roles.Administrator)
+        {
+            return;
+        }
+        _employees = (await UserService.GetAllUsersAsync()).ToList();
+        await base.OnInitializedAsync();
+    }
+
+    private async Task OpenWindow()
+    {
+        DialogOptions closeOnEscapeKey = new DialogOptions {CloseOnEscapeKey = true};
+
+        var dialog = await DialogService.ShowAsync<EmployeeWindow>("Новый сотрудник", closeOnEscapeKey);
+        var result = await dialog.Result;
+
+        if (!result.Canceled)
+        {
+            _employees = (await UserService.GetAllUsersAsync()).ToList();
+            StateHasChanged();
+        }
+    }
+
+    private bool FilterFunc1(User element) => FilterFunc(element, _searchString);
+
+    private bool FilterFunc(User element, string? searchingString)
+    {
+        if (string.IsNullOrWhiteSpace(searchingString))
+            return true;
+        if (element.Surname.Contains(searchingString, StringComparison.OrdinalIgnoreCase))
+            return true;
+        if (element.Name.Contains(searchingString, StringComparison.OrdinalIgnoreCase))
+            return true;
+        if (element.Patronymic.Contains(searchingString, StringComparison.OrdinalIgnoreCase))
+            return true;
+        if ($"{element.Name} {element.Surname} {element.Patronymic}".Contains(searchingString))
+            return true;
+        return false;
+    }
+
+    private async void RowClickEvent(TableRowClickEventArgs<User> tableRowClickEventArgs)
+    {
+        var user = tableRowClickEventArgs.Item;
+
+        DialogOptions closeOnEscapeKey = new DialogOptions {CloseOnEscapeKey = true};
+        DialogParameters parameters = new DialogParameters {{"SelectedUser", user}};
+
+        var dialog = await DialogService.ShowAsync<EmployeeWindow>("Изменение сотрудника",
+            parameters, closeOnEscapeKey);
+        var result = await dialog.Result;
+
+        if (!result.Canceled)
+        {
+            _employees = (await UserService.GetAllUsersAsync()).ToList();
+            StateHasChanged();
+        }
+    }
+
+}

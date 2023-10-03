@@ -1,0 +1,8 @@
+﻿@inherits LayoutComponentBase
+<MudThemeProvider Theme="new MudTheme {Palette = new Palette {Primary = _primaryColor, Secondary = _secondaryColor}}" />
+
+@Body
+@code{
+    private readonly string _primaryColor = "#594AE2";
+    private readonly string _secondaryColor = "#000000";
+}

@@ -1,0 +1,175 @@
+﻿@page "/orders"
+@using CompService.Core.Models
+@using CompService.Core.Services
+@using CompService.Client.Data
+@using CompService.Client.Windows.Order
+@using CompService.Core.Enums
+@using CompService.Core.Extensions
+@using CompService.Core.Results
+
+@inject IOrderService OrderService;
+@inject ISnackbar Snackbar;
+@inject IDialogService DialogService;
+@inject UserInfoHolder UserInfoHolder;
+
+@if (UserInfoHolder.CurrentUser is null)
+{
+    <h1>Недостаточно прав</h1>
+    return;
+}
+<PageTitle>Заказы</PageTitle>
+
+<MudTable T="OrderTableModel" @ref="_table" Hover="true" ServerData="GetData" 
+          OnRowClick="RowClickEvent">
+    <ToolBarContent>
+        <MudText Typo="Typo.h6">Заказы</MudText>
+        <MudSpacer/>
+        <MudTextField T="string" ValueChanged="@(OnSearch)" Placeholder="Поиск" Adornment="Adornment.Start" 
+                      AdornmentIcon="@Icons.Material.Filled.Search" IconSize="Size.Medium" Class="mt-0"></MudTextField>
+    </ToolBarContent>
+    <HeaderContent>
+        <MudTh>
+            <MudTableSortLabel SortLabel="OrderId" T="OrderTableModel">Заказ</MudTableSortLabel>
+        </MudTh>
+        <MudTh>
+            <MudTableSortLabel SortLabel="Status" T="OrderTableModel">Статус</MudTableSortLabel>
+        </MudTh>
+        <MudTh>
+            Клиент
+        </MudTh>
+        <MudTh>
+            Неисправность
+        </MudTh>
+        <MudTh>
+            Оператор
+        </MudTh>
+        <MudTh>
+            Исполнитель
+        </MudTh>
+        <MudTh>
+            Место на стойке
+        </MudTh>
+        <MudTh>
+            <MudTableSortLabel T="OrderTableModel" SortLabel="Sum">Итоговая сумма</MudTableSortLabel>
+        </MudTh>
+    </HeaderContent>
+    <RowTemplate>
+        <MudTd DataLabel="Заказ">
+            <MudStack>
+                <MudText>@context.OrderId</MudText>
+                <MudText>@context.OrderDate.ToString("dd/MM/yyyy")</MudText>
+            </MudStack>
+        </MudTd>
+        <MudTd DataLabel="Статус">
+            <MudChip Style="@($"color:#FFFFFF; background:{StatusColors.StatusColor[context.Status]};")">@context.Status.GetName()</MudChip>
+        </MudTd>
+        <MudTd DataLabel="Клиент">
+            <MudStack>
+                <MudText>@context.ClientSurname</MudText>
+                <MudText>@context.ClientPhoneNumber</MudText>
+            </MudStack>
+        </MudTd>
+        <MudTd DataLabel="Неиcправность">
+            <MudText>@context.Defect</MudText>
+        </MudTd>
+        <MudTd DataLabel="Оператор">
+            <MudText>@context.OperatorName</MudText>
+        </MudTd>
+        <MudTd DataLabel="Исполнитель">
+            <MudText>@context.MasterName</MudText>
+        </MudTd>
+        <MudTd DataLabel="Место на стойке">
+            <MudText>@context.Place</MudText>
+        </MudTd>
+        <MudTd DataLabel="Итоговая сумма">
+            <MudText>@context.Sum</MudText>
+        </MudTd>
+    </RowTemplate>
+    <NoRecordsContent>
+            <MudText>Не найдено записей</MudText>
+        </NoRecordsContent>
+        <LoadingContent>
+            <MudProgressCircular Class="d-flex mx-auto align-self-center" Color="Color.Primary"
+                                 Style="height:200px;width:200px; margin-top: 10vh;" Indeterminate="true"/>
+        </LoadingContent>
+        <PagerContent>
+            <div class="d-flex flex-column align-center">
+                <MudPagination SelectedChanged="PageChanged" Count="@((_table.GetFilteredItemsCount() + _table.RowsPerPage - 1) / _table.RowsPerPage)" Class="pa-4"/>
+                <MudTablePager HidePagination="true" InfoFormat="{first_item}-{last_item} из {all_items}" RowsPerPageString="Отображать строк:"/>
+            </div>
+        </PagerContent>
+</MudTable>
+
+@if (UserInfoHolder.CurrentUser.Roles is Roles.Operator or Roles.Administrator)
+{
+    <MudFab Style="position: fixed; bottom: 0; right: 0; margin: 35px 25px;" Color="Color.Primary" 
+            Icon="@Icons.Material.Filled.Add" OnClick="async () => await OpenWindow()"/>
+}
+
+@code {
+    private string _searchString = "";
+    private MudTable<OrderTableModel> _table = null!;
+    
+
+    private async Task<TableData<OrderTableModel>> GetData(TableState state)
+    {
+        ListDataResult<OrderTableModel> data;
+        if (state.SortLabel is null)
+            data = await OrderService.GetAllOrdersForTableAsync(state.PageSize, state.Page,
+                UserInfoHolder.CurrentUser!, _searchString);
+        else
+            data = await OrderService.GetAllOrdersForTableAsync(state.PageSize,
+                state.Page, UserInfoHolder.CurrentUser!, _searchString, state.SortLabel,
+                state.SortDirection == SortDirection.Descending);
+
+        return new TableData<OrderTableModel> { TotalItems = data.TotalItemsCount, Items = data.Items };
+    }
+    
+    private void OnSearch(string text)
+    {
+        _searchString = text;
+        _table.ReloadServerData();
+    }
+
+    private void PageChanged(int i)
+    {
+        _table.NavigateTo(i - 1);
+    }
+    private async Task OpenWindow()
+    {
+        var closeOnEscapeKey = new DialogOptions
+        {
+            CloseOnEscapeKey = true, DisableBackdropClick = true, CloseButton = true, MaxWidth = MaxWidth.Medium,
+            FullWidth = true
+        };
+
+        var dialog = await DialogService.ShowAsync<OrderCreateWindow>("Новый заказ", closeOnEscapeKey);
+        var result = await dialog.Result;
+
+        if (!result.Canceled)
+        {
+            Snackbar.Add("Успешно", Severity.Success);
+            StateHasChanged();
+        }
+        await _table.ReloadServerData();
+    }
+
+    private async void RowClickEvent(TableRowClickEventArgs<OrderTableModel> tableRowClickEventArgs)
+    {
+        var closeOnEscapeKey = new DialogOptions
+        {
+            CloseButton = false, FullScreen = true, CloseOnEscapeKey = false, DisableBackdropClick = true,
+        };
+        var parameters = new DialogParameters {{"SelectedOrderId", tableRowClickEventArgs.Item.OrderId}};
+
+        var dialog = await DialogService.ShowAsync<OrderEditWindow>("", parameters, closeOnEscapeKey);
+        var result = await dialog.Result;
+
+        if (result.Canceled) return;
+        
+        await _table.ReloadServerData();
+        StateHasChanged();
+    }
+
+}
+

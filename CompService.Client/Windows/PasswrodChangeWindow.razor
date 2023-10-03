@@ -1,0 +1,79 @@
+﻿@using CompService.Client.Data.ValidationMessages
+@inject ISnackbar Snackbar;
+<MudForm @bind-IsValid="_success">
+    <MudDialog DefaultFocus="DefaultFocus.LastChild">
+        <DialogContent>
+            @if (_isHavePassword)
+            {
+                <MudTextField T="string" Label="Старый пароль"  
+                              InputType="InputType.Password"
+                              Required="true"
+                              RequiredError="Обязательное поле" @bind-Value="_password"/>
+            }
+            <MudTextField T="string" @bind-Value="_newPassword"
+                          Label="Новый пароль" HelperText="Только английские буквы" InputType="InputType.Password"
+                          Validation="@(new Func<string, IEnumerable<string>>(PasswordStrength))"/>
+        </DialogContent>
+        <DialogActions>
+            <MudButton OnClick="Cancel">Отмена</MudButton>
+            <MudButton Color="Color.Primary" OnClick="Submit" Disabled="@(!_success)">Сохранить</MudButton>
+        </DialogActions>
+    </MudDialog>
+</MudForm>
+
+@code {
+    private string _password = "";
+    private string _newPassword = "";
+
+    private bool _isHavePassword;
+    private bool _success;
+
+    [CascadingParameter]
+    MudDialogInstance MudDialog { get; set; } = null!;
+
+    [Parameter]
+    public string? OldPassword { get; set; }
+
+    protected override void OnInitialized()
+    {
+        if (OldPassword is not null)
+        {
+            _isHavePassword = true;
+        }
+        base.OnInitialized();
+    }
+
+    private IEnumerable<string> PasswordStrength(string pw)
+    {
+        if (string.IsNullOrWhiteSpace(pw))
+        {
+            yield return UserValidation.NullablePassword;
+            yield break;
+        }
+        if (pw.Length < 8)
+            yield return UserValidation.LeastPasswordLength;
+        if (!Regex.IsMatch(pw, @"[A-Z]"))
+            yield return UserValidation.CapitalLetterInPassword;
+        if (!Regex.IsMatch(pw, @"[a-z]"))
+            yield return UserValidation.LowerLetterInPassword;
+        if (!Regex.IsMatch(pw, @"[0-9]"))
+            yield return UserValidation.LeastDigitInPassword;
+    }
+
+    private void Submit()
+    {
+        if (OldPassword is not null && !Equals(OldPassword, _password))
+        {
+            Snackbar.Add("Неверный пароль", Severity.Error);
+            return;
+        }
+        if (Equals(_password, _newPassword))
+        {
+            Snackbar.Add("Новый пароль должен отличаться", Severity.Error);
+            return;
+        }
+        MudDialog?.Close(DialogResult.Ok(_newPassword));
+    }
+
+    private void Cancel() => MudDialog?.Cancel();
+}

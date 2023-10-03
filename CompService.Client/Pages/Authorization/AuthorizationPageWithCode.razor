@@ -1,0 +1,104 @@
+﻿@page "/"
+@using CompService.Client.Data;
+@using IAuthorizationService = Core.Services.IAuthorizationService
+@inject IAuthorizationService AuthorizationService;
+@inject ISnackbar Snackbar;
+@inject NavigationManager Nav;
+@inject Blazored.LocalStorage.ILocalStorageService Session;
+@inject AppState AppState;
+
+<PageTitle>Авторизация</PageTitle>
+@if (_isShowAuth)
+{
+    <MudCard>
+        <MudCardHeader>
+            <CardHeaderContent>
+                <MudText Typo="Typo.h5">Вход. Введите почту для получения кода</MudText>
+            </CardHeaderContent>
+        </MudCardHeader>
+        <MudForm Model="@_model" @ref="@_form" @bind-IsValid="@_success">
+            <MudCardContent>
+                <MudTextField T="string" @bind-Value="_model.Email" InputType="InputType.Email" Label="Почта" Required="true"
+                              RequiredError="Почта должна быть заполнена"
+                              Validation="@(new EmailAddressAttribute {ErrorMessage = "Введенная почта не корректна"})"
+                              Class="mb-3"/>
+                <MudText Align="Align.Center" Typo="Typo.subtitle2">При входе в систему вы принимаете условия пользовательского соглашения</MudText>
+            </MudCardContent>
+            <MudCardActions Class="d-flex flex-column">
+                <MudButton Variant="Variant.Filled" Color="Color.Primary" Disabled="@(!_success)" Class="mb-3 mx-auto"
+                           OnClick="async () => await CreateCode()">
+                    Авторизация
+                </MudButton>
+                <MudLink Class="mt-3" Typo="Typo.subtitle2" Href="/authp"
+                         Underline="Underline.Hover">
+                    Вход по паролю
+                </MudLink>
+            </MudCardActions>
+        </MudForm>
+    </MudCard>
+}
+else
+{
+    <MudCard>
+        <MudCardHeader>
+            <CardHeaderContent>
+                <MudText Typo="Typo.h5">На вашу почту отправлен код.</MudText>
+            </CardHeaderContent>
+        </MudCardHeader>
+        <MudForm Model="@_model" @ref="@_form" @bind-IsValid="@_success">
+            <MudCardContent>
+                <MudTextField T="string" @bind-Value="_model.Code" Label="Код" Required="true"
+                              RequiredError="Необходимо ввести код" Class="mb-3"/>
+                <MudText Align="Align.Center" Typo="Typo.subtitle2">При входе в систему вы принимаете условия пользовательского соглашения</MudText>
+            </MudCardContent>
+            <MudCardActions Class="d-flex flex-column">
+                <MudButton Variant="Variant.Filled" Color="Color.Primary" Disabled="@(!_success)" Class="mb-3 mx-auto"
+                           OnClick="async () => await Authorization()">
+                    Авторизация
+                </MudButton>
+                <MudLink Class="mt-3" Typo="Typo.subtitle2" Href="/authp"
+                         Underline="Underline.Hover">
+                    Вход по паролю
+                </MudLink>
+            </MudCardActions>
+        </MudForm>
+    </MudCard>
+}
+
+@code {
+    private bool _success;
+    private MudForm? _form;
+    private readonly LoginCredentials _model = new();
+    private bool _isShowAuth = true;
+
+    private async Task CreateCode()
+    {
+        await Session.ClearAsync();
+        var res = await AuthorizationService.CreateAuthorizeCodeAsync(_model.Email);
+        if (res.Success)
+        {
+            _isShowAuth = false;
+        }
+        else
+        {
+            Snackbar.Add(res.Message, Severity.Error);
+        }
+    }
+
+    private async Task Authorization()
+    {
+        var res = await AuthorizationService.AuthorizeWithCodeAsync(_model.Email, _model.Code);
+        if (res.Success)
+        {
+            await Session.SetItemAsync("UserSession", res.User);
+            Snackbar.Add("Успешно", Severity.Success);
+            AppState.LoggedIn = true;
+            Nav.NavigateTo("/cabinet");
+        }
+        else
+        {
+            Snackbar.Add(res.Message, Severity.Error);
+        }
+    }
+
+}

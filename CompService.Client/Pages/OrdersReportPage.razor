@@ -1,0 +1,137 @@
+﻿@page "/ordersReport"
+@using CompService.Core.Models
+@using CompService.Core.Services
+@using System.Globalization;
+
+@inject IReportService ReportService;
+
+<PageTitle>Отчет по заказам</PageTitle>
+<MudDateRangePicker PickerVariant="PickerVariant.Dialog" PickerClosed="async () => await Refresh()"
+                    Label="Период" @bind-DateRange="_dateRange" Editable="true" Class="ml-3"/>
+<MudStack Row="true" Class="ml-3">
+    <MudText Typo="Typo.h6">Итоговая прибыль:</MudText>
+    <MudText Typo="Typo.h6" Color="Color.Success">@_total ₽</MudText>
+</MudStack>
+<MudTable T="OrderReportModel" Items="@_reports" Hover="true" Striped="true">
+    <ColGroup>
+        <col style="width: 20%;" />
+        <col style="width: 10%;" />
+        <col style="width: 10%;" />
+        <col style="width: 20%;" />
+        <col style="width: 10%;" />
+        <col style="width: 10%;" />
+        <col style="width: 20%;" />
+        <col />
+    </ColGroup>
+    <HeaderContent>
+        <MudTh><MudText>Заказ</MudText></MudTh>
+        <MudTh><MudText>Услуги</MudText></MudTh>
+        <MudTh>
+            <MudContainer Class="d-flex flex-column mb-5 pa-0">
+                <MudText><b>Цена</b></MudText>
+                <MudText>Запчасти</MudText>
+            </MudContainer>
+        </MudTh>
+        <MudTh><MudText>Итого</MudText></MudTh>
+        <MudTh><MudText>Услуги</MudText></MudTh>
+        <MudTh>
+            <MudContainer Class="d-flex flex-column mb-5 pa-0">
+                <MudText><b>Себестоимость</b></MudText>
+                <MudText>Запчасти</MudText>
+            </MudContainer>
+        </MudTh>
+        <MudTh><MudText>Итого</MudText></MudTh>
+        <MudTh>
+            <MudContainer Class="d-flex flex-column mb-5 pa-0">
+                <MudText><b>Прибыль</b></MudText>
+                <MudText></MudText>
+            </MudContainer>
+        </MudTh>
+    </HeaderContent>
+    <RowTemplate>
+        <MudTd DataLabel="Заказ">
+            <MudStack>
+                <MudText>@context.OrderId</MudText> <MudText>@context.OrderDate.ToString("dd/MM/yyyy")</MudText>
+            </MudStack>
+        </MudTd>
+        <MudTd DataLabel="Услуги"><MudText>@context.FacilitiesSum</MudText></MudTd>
+        <MudTd DataLabel="Запчасти"><MudText>@context.SparePartPriceSum</MudText></MudTd>
+        <MudTd DataLabel="Итого"><MudText>@context.PriceSum</MudText></MudTd>
+
+        <MudTd DataLabel="Услуги"><MudText>@context.FacilitiesSum</MudText></MudTd>
+        <MudTd DataLabel="Запчасти"><MudText>@context.SparePartCostSum</MudText></MudTd>
+        <MudTd DataLabel="Итого"><MudText>@context.CostSum</MudText></MudTd>
+        <MudTd DataLabel="Прибыль"><MudText>@context.Profit</MudText></MudTd>
+    </RowTemplate>
+</MudTable>
+
+@if (_xAxisLabels is not null)
+{
+    <MudChart ChartType="ChartType.Line" ChartSeries="@_series" 
+              XAxisLabels="@_xAxisLabels" Width="100%" Height="50vh" 
+              ChartOptions=@_chartOptions LegendPosition="Position.Bottom"></MudChart>
+}
+
+@code {
+    private List<ChartSeries> _series = new();
+    private ChartOptions _chartOptions = new() {YAxisTicks = 1, XAxisLines = true, YAxisLines = true,
+        LineStrokeWidth = 2};
+    private string[]? _xAxisLabels;
+    private DateRange _dateRange = new(DateTime.Now.AddDays(-7).Date, DateTime.Now.AddDays(7).Date);
+
+    private List<OrderReportModel>? _reports;
+
+    private double _total;
+
+    protected override async Task OnInitializedAsync()
+    {
+        _reports = (await ReportService.GetOrdersReportForPeriodAsync(_dateRange.Start ?? DateTime.Now.AddDays(-7),
+            _dateRange.End ?? DateTime.Now.AddDays(7))).ToList();
+
+        _total = _reports.Sum(x => x.Profit);
+        GenerateChartSeries();
+
+        await base.OnInitializedAsync();
+    }
+
+    private void GenerateChartSeries()
+    {
+        var labels = new List<string>();
+        List<double> values = new();
+
+        if (_reports is null) return;
+
+        var grouped = _reports.GroupBy(x => new { Month = x.OrderDate.Month, Year = x.OrderDate.Year })
+            .ToDictionary(g => g.Key, g => g.Count());
+
+        for (int i = 1; i < 13; ++i)
+        {
+            if (!grouped.ContainsKey(new {Month = i, Year = DateTime.Now.Year }))
+            {
+                grouped[new { Month = i, Year = DateTime.Now.Year }] = 0;
+            }
+
+            values.Add(grouped[new { Month = i, Year = DateTime.Now.Year }]);
+            labels.Add(CultureInfo.CurrentCulture.DateTimeFormat.GetMonthName(i));
+        }
+
+        _series.Add(new ChartSeries
+        {
+            Name = "Динамика продаж",
+            Data = values.ToArray()
+        });
+        _xAxisLabels = labels.ToArray();
+    }
+
+    private async Task Refresh()
+    {
+        _reports = (await ReportService.GetOrdersReportForPeriodAsync(_dateRange.Start ?? DateTime.Now,
+            _dateRange.End ?? DateTime.Now.AddDays(7))).ToList();
+
+        _total = _reports.Sum(x => x.Profit);
+        _series.Clear();
+        _xAxisLabels = null;
+        GenerateChartSeries();
+        StateHasChanged();
+    }
+}

@@ -1,0 +1,120 @@
+﻿@page "/clients"
+@using CompService.Core.Services
+@using Microsoft.AspNetCore.Components
+@using CompService.Core.Models
+@using CompService.Client.Windows
+
+@inject IClientService ClientService;
+@inject UserInfoHolder UserInfoHolder;
+@inject IDialogService DialogService;
+
+@if (UserInfoHolder.CurrentUser is null)
+{
+    <h1>Недостаточно прав</h1>
+    return;
+}
+
+@if (_clients is null)
+{
+    return;
+}
+<PageTitle>Клиенты</PageTitle>
+<MudTable T="Client" OnRowClick="RowClickEvent" Items="@_clients" Filter="new Func<Client, bool>(FilterFunc1)" Hover="true">
+    <ToolBarContent>
+        <MudText Typo="Typo.h6">Клиенты</MudText>
+        <MudSpacer/>
+        <MudTextField @bind-Value="_searchString" Placeholder="Поиск" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Search" IconSize="Size.Medium" Class="mt-0"></MudTextField>
+    </ToolBarContent>
+    <HeaderContent>
+        <MudTh>Аватар</MudTh>
+        <MudTh>Имя</MudTh>
+        <MudTh>Фамилия</MudTh>
+        <MudTh>Телефон</MudTh>
+        <MudTh>Почта</MudTh>
+        <MudTh>Откуда узнал</MudTh>
+    </HeaderContent>
+    <RowTemplate>
+        <MudTd DataLabel="Аватар">
+            <MudAvatar Size="Size.Large">@context.Name[0]</MudAvatar>
+        </MudTd>
+        <MudTd DataLabel="Имя">
+            <MudText>@context.Name</MudText>
+        </MudTd>
+        <MudTd DataLabel="Фамилия">
+            <MudText>@context.Surname</MudText>
+        </MudTd>
+        <MudTd DataLabel="Телефон">
+            <MudText>@context.PhoneNumber</MudText>
+        </MudTd>
+        <MudTd DataLabel="Почта">
+            <MudText>@context.Email</MudText>
+        </MudTd>
+        <MudTd DataLabel="Откуда узнал">
+            <MudText>@context.Source?.Name</MudText>
+        </MudTd>
+    </RowTemplate>
+</MudTable>
+
+<MudFab Style="position: fixed; bottom: 0; right: 0; margin: 35px 25px;" Color="Color.Primary" Icon="@Icons.Material.Filled.Add" OnClick="async () => await OpenWindow()"/>
+
+@code {
+    private List<Client>? _clients;
+    string _searchString = "";
+    
+    protected override async Task OnInitializedAsync()
+    {
+        @if (UserInfoHolder.CurrentUser is null)
+        {
+            return;
+        }
+        _clients = (await ClientService.GetAllClientsAsync()).ToList();
+        await base.OnInitializedAsync();
+    }
+
+    private async Task OpenWindow()
+    {
+        DialogOptions closeOnEscapeKey = new DialogOptions {CloseOnEscapeKey = true};
+
+        var dialog = await DialogService.ShowAsync<ClientWindow>("Новый клиент", closeOnEscapeKey);
+        var result = await dialog.Result;
+
+        if (!result.Canceled)
+        {
+            _clients = (await ClientService.GetAllClientsAsync()).ToList();
+            StateHasChanged();
+        }
+    }
+
+    private bool FilterFunc1(Client element) => FilterFunc(element, _searchString);
+
+    private bool FilterFunc(Client element, string? searchingString)
+    {
+        if (string.IsNullOrWhiteSpace(searchingString))
+            return true;
+        if (element.Surname.Contains(searchingString, StringComparison.OrdinalIgnoreCase))
+            return true;
+        if (element.Name.Contains(searchingString, StringComparison.OrdinalIgnoreCase))
+            return true;
+        if ($"{element.Name} {element.Surname}".Contains(searchingString))
+            return true;
+        return false;
+    }
+
+    private async void RowClickEvent(TableRowClickEventArgs<Client> tableRowClickEventArgs)
+    {
+        var client = tableRowClickEventArgs.Item;
+
+        DialogOptions closeOnEscapeKey = new DialogOptions {CloseOnEscapeKey = true};
+        DialogParameters parameters = new DialogParameters {{"SelectedClient", client}};
+
+        var dialog = await DialogService.ShowAsync<ClientWindow>("Изменение клиента",
+            parameters, closeOnEscapeKey);
+        var result = await dialog.Result;
+
+        if (!result.Canceled)
+        {
+            _clients = (await ClientService.GetAllClientsAsync()).ToList();
+            StateHasChanged();
+        }
+    }
+}
